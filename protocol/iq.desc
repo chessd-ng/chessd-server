@@ -1,0 +1,12 @@
+<xd>
+	<root name="iq" type="iq"/>
+	<type name="iq">
+		<attribute name="from"/>
+		<attribute name="to"/>
+		<attribute name="id"/>
+		<child name="query" type="query"/>
+	</type>
+	<type name="query">
+		<attribute name="code" type="number"/>
+	</type>
+</xd>
