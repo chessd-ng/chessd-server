@@ -69,6 +69,9 @@ namespace XML {
 			const Tag* getChild(const std::string& name, const Tag* begin = 0) const;
 			Tag* getChild(const std::string& name, const Tag* begin = 0);
 
+			/* Loads n xml file */
+			static Tag* loadXmlFile(const std::string& filename);
+
 		private:
 			std::string _name;
 			AttributeMap _attributes;
