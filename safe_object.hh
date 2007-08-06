@@ -7,7 +7,7 @@ template <class T>
 class SafeObject {
 	private:
 		T object;
-		RWLock rwlock;
+		RwLock rwlock;
 	public:
 
 		SafeObject() { }

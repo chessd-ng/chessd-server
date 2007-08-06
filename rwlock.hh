@@ -3,12 +3,12 @@
 
 #include <pthread.h>
 
-class RWLock {
+class RwLock {
 	public:
-		RWLock() {
+		RwLock() {
 			pthread_rwlock_init(&this->lock, 0);
 		}
-		~RWLock() {
+		~RwLock() {
 			pthread_rwlock_destroy(&this->lock);
 		}
 		void rdlock() {
