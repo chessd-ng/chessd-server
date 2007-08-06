@@ -61,7 +61,7 @@ ComposeAnd(const FUNCTOR1& f1, const FUNCTOR2& f2) {
 }*/
 
 /* Convert a string to a int */
-unsigned int str2int(const std::string& number) {
+inline unsigned int str2int(const std::string& number) {
 	int ret = 0;
 	for(int i = 0; i < int(number.size()); ++i)
 		ret = ret * 10 + (number [i] - '0');
@@ -69,7 +69,7 @@ unsigned int str2int(const std::string& number) {
 }
 
 /* Convert a int to a string */
-std::string int2str(int number) {
+inline std::string int2str(int number) {
 	std::string ret;
 	for(int i = 0; number; ++i, number/=10)
 		ret += '0' + (number%10);
@@ -77,8 +77,8 @@ std::string int2str(int number) {
 	return ret;
 }
 
-/* Check if a ginven string is a number */
-bool isNumber(const std::string& number) {
+/* Check if a given string is a number */
+inline bool isNumber(const std::string& number) {
 	for(int i = 0; i < int(number.size()); ++i)
 		if(not isdigit(number[i]))
 			return false;
@@ -86,7 +86,7 @@ bool isNumber(const std::string& number) {
 }
 
 /* Check if a ginven string is a space */
-bool isSpace(const std::string& number) {
+inline bool isSpace(const std::string& number) {
 	for(int i = 0; i < int(number.size()); ++i)
 		if(not isspace(number[i]))
 			return false;

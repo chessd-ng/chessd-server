@@ -83,11 +83,13 @@ namespace XML {
 			/* copy constructor */
 			CData(const CData& cdata) : _data(cdata.data()) { }
 
-			/* return its char data */
+			virtual ~CData() { }
+
+			/* return the char data */
 			std::string& data() { return this->_data; }
 			const std::string& data() const { return this->_data; }
 
-			/* clone the cdata */
+			/* clone this object */
 			virtual Item* clone() const;
 
 			/* generator xml doc */
@@ -113,6 +115,8 @@ namespace XML {
 
 			Tag* getLastTag();
 
+			bool empty() const;
+
 		private:
 			std::stack<Tag*> tag_stack;
 			Tag* last;
@@ -123,8 +127,9 @@ namespace XML {
 			Description();
 			~Description();
 
-			bool loadDescription(const std::string& desc_filename);
+			bool loadFromFile(const std::string& desc_filename);
 			bool validateXML(Tag* xml);
+
 		private:
 			enum FieldType {
 				FieldString,
@@ -156,6 +161,8 @@ namespace XML {
 				std::map<std::string, AttributeDesc> attributes;
 				std::vector<ChildDesc> children;
 				bool cdata; /* does it allow cdata? */
+				bool any; /* the children are unspecified */
+				TypeDesc() : cdata(false), any(false) { }
 			};
 			std::string root_type, root_name;
 			std::map<std::string, TypeDesc> types;

@@ -6,7 +6,7 @@
 #include "disco.hh"
 #include "muc.hh"
 #include "stream_listener.hh"
-#include "dispatch.hh"
+#include "dispatcher.hh"
 #include "task.hh"
 
 using namespace std;

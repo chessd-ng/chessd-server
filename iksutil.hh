@@ -12,6 +12,7 @@ iks* tag2iks(const XML::Tag* tag);
 XML::Tag* iks2tag(iks* tree); 
 
 /* Read an xml from a file */
-XML::Tag* iksReadXML(const std::string& filename); 
+XML::Tag* iksReadXMLFile(const std::string& filename); 
+XML::Tag* iksReadXMLString(const std::string& xml); 
 
 #endif

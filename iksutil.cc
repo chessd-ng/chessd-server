@@ -45,9 +45,10 @@ static int readTagHook (void* user_data, char* name, char** atts, int type) {
 	TagGenerator* generator = (TagGenerator*) user_data;
 	if(type==IKS_OPEN||type==IKS_SINGLE) {
 		generator->openTag(name);
-		for(;atts;atts+=2) {
-			generator->addAttribute(*atts, *(atts+1));
-		}
+		if(atts) 
+			for(;*atts;atts+=2) {
+				generator->addAttribute(*atts, *(atts+1));
+			}
 	}
 	if(type==IKS_CLOSE||type==IKS_SINGLE) {
 		generator->closeTag();
@@ -57,31 +58,43 @@ static int readTagHook (void* user_data, char* name, char** atts, int type) {
 
 static int readCDataHook (void* user_data, char* data, size_t len) {
 	TagGenerator* generator = (TagGenerator*) user_data;
-	generator->addCData(data);
+	if(not generator->empty())
+		generator->addCData(string(data, len));
 	return IKS_OK;
 }
 
 #define BUFFER_SIZE 2048
 
-Tag* iksReadXML(const std::string& filename) {
+Tag* iksReadXMLFile(const std::string& filename) {
 	TagGenerator generator;
 	FILE* file;
 	size_t len;
 	file = fopen(filename.c_str(), "r");
-	if(file==0) return NULL;
+	if(file==0) return 0;
 	char* buffer = new char[BUFFER_SIZE];
 	iksparser* parser = iks_sax_new((void*)&generator, readTagHook, readCDataHook);
-	while((len=fread(buffer, BUFFER_SIZE, 1, file))) {
+	while((len=fread(buffer, 1, BUFFER_SIZE, file))) {
 		if(iks_parse(parser, buffer, len, 0)!=IKS_OK) break;
 	}
-	if(len != 0 or iks_parse(parser, 0, 0, 1)!=IKS_OK) {
+	if(len != 0 or iks_parse(parser, 0, 0, 1)!=IKS_OK or not generator.empty()) {
 		iks_parser_delete(parser);
-		delete buffer;
+		delete[] buffer;
 		fclose(file);
-		return NULL;
+		return 0;
 	}
 	iks_parser_delete(parser);
-	delete buffer;
+	delete[] buffer;
 	fclose(file);
+	return generator.getLastTag();
+}
+
+Tag* iksReadXMLString(const std::string& xml) {
+	TagGenerator generator;
+	iksparser* parser = iks_sax_new((void*)&generator, readTagHook, readCDataHook);
+	if(iks_parse(parser, xml.c_str(), xml.size(), 1)!=IKS_OK) {
+		iks_parser_delete(parser);
+		return 0;
+	}
+	iks_parser_delete(parser);
 	return generator.getLastTag();
 }
