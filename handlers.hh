@@ -3,6 +3,7 @@
 
 #include "xml.hh"
 #include "stanza.hh"
+
 #include <sigc++/sigc++.h>
 
 typedef sigc::slot<void, XML::Tag*> TagSender;

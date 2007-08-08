@@ -1,41 +1,41 @@
-#include "dispatch.hh"
+#include "Dispatcher.hh"
 
-Dispatcher::Dispatcher() : running(true) { }
+namespace Threads {
 
-Dispatcher::~Dispatcher() {
-	if(this->running) {
-		this->shutdown();
-		this->join();
+	Dispatcher::Dispatcher() : running(true) { }
+
+	Dispatcher::~Dispatcher() {
+		if(this->running) {
+			this->shutdown();
+			this->join();
+		}
 	}
-}
 
-void Dispatcher::run() {
-	while(this->running)
-		this->dispatch();
-}
+	void Dispatcher::run() {
+		while(this->running)
+			this->dispatch();
+	}
 
-void Dispatcher::shutdown() {
-	this->post(new TypedMessage<void>(sigc::mem_fun(this, &Dispatcher::_shutdown), false));
-}
+	void Dispatcher::stop() {
+		this->post(new TypedMessage<void>(sigc::mem_fun(this, &Dispatcher::_stop), false));
+	}
 
-void Dispatcher::_shutdown() {
-	this->running = false;
-}
+	void Dispatcher::_stop() {
+		this->running = false;
+	}
 
-void Dispatcher::post(Message* message) {
-	this->fila.push(message);
-}
+	void Dispatcher::post(Message* message) {
+		this->queue.push(message);
+	}
 
-void Dispatcher::dispatch() {
-	Message* message = this->fila.pop();
-	message->send();
-	/* if the message is asynchronous it has
-	 * to be deleted here, because the sender
-	 * is not wating for it*/
-	if(not message->isSync())
-		delete message;
-}
+	void Dispatcher::dispatch() {
+		Message* message = this->queue.pop();
+		message->send();
+		/* if the message is asynchronous it has
+		 * to be deleted here, because the sender
+		 * is not waiting for it*/
+		if(not message->isSync())
+			delete message;
+	}
 
-void Dispatcher::setShutdownHandler(const ShutdownHandler& handler) {
-	this->shutdown_handler = handler;
 }

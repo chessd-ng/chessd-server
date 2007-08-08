@@ -1,8 +1,10 @@
 #ifndef TASK_HH
 #define TASK_HH
 
-#include "mutex.hh"
-#include "condition.hh"
+#include "Mutex.hh"
+#include "Condition.hh"
+
+namespace Threads {
 
 enum TaskStatus {
 	TaskIdle,
@@ -32,5 +34,7 @@ class Task {
 		TaskStatus status;
 		bool waiting;
 };
+
+}
 
 #endif

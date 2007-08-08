@@ -5,7 +5,7 @@
 
 #include "Mutex.hh"
 
-namespace Thread {
+namespace Threads {
 
 	class Condition {
 		private:

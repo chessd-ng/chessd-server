@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 
-namespace Thread {
+namespace Threads {
 
 	class Mutex {
 		private:

@@ -1,40 +1,44 @@
-#include "task.hh"
-#include "pool.hh"
+#include "Task.hh"
+#include "Pool.hh"
 
-Task::Task() : status(TaskIdle), waiting(false) { }
+namespace Threads {
 
-Task::~Task() { }
+	Task::Task() : status(TaskIdle), waiting(false) { }
 
-void Task::start() {
-	Pool::singleton()->launchTask(this);
-}
+	Task::~Task() { }
 
-void Task::_run() {
-	mutex.lock();
-	status = TaskRunning;
-	mutex.unlock();
-	this->run();
-	mutex.lock();
-	status = TaskZombie;
-	condition.signal();
-	mutex.unlock();
-}
-
-bool Task::join() {
-	mutex.lock();
-	if(waiting) {
-		mutex.unlock();
-		return false;
+	void Task::start() {
+		Pool::singleton()->launchTask(this);
 	}
-	waiting = true;
-	if(status == TaskIdle || status == TaskRunning)
-		condition.wait(mutex);
-	status = TaskCompleted;
-	waiting = false;
-	mutex.unlock();
-	return true;
-}
 
-TaskStatus Task::getStatus() const {
-	return status;
+	void Task::_run() {
+		mutex.lock();
+		status = TaskRunning;
+		mutex.unlock();
+		this->run();
+		mutex.lock();
+		status = TaskZombie;
+		condition.signal();
+		mutex.unlock();
+	}
+
+	bool Task::join() {
+		mutex.lock();
+		if(waiting) {
+			mutex.unlock();
+			return false;
+		}
+		waiting = true;
+		if(status == TaskIdle || status == TaskRunning)
+			condition.wait(mutex);
+		status = TaskCompleted;
+		waiting = false;
+		mutex.unlock();
+		return true;
+	}
+
+	TaskStatus Task::getStatus() const {
+		return status;
+	}
+
 }

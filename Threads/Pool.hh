@@ -1,17 +1,21 @@
 #ifndef POOL_HH
 #define POOL_HH
 
-#include <pthread.h>
-#include <vector>
-
 #include "../singleton.hh"
 #include "Queue.hh"
 #include "Task.hh"
 #include "SafeObject.hh"
 
-namespace Thread {
+#include <pthread.h>
+#include <vector>
+
+namespace Threads {
 
 	class Pool : public Singleton<Pool> {
+		public:
+
+			void launchTask(Task* task);
+
 		private:
 
 			Fila<Task*> tarefas;
@@ -25,11 +29,6 @@ namespace Thread {
 			~Pool();
 
 			void newThread();
-
-		public:
-
-			void launchTask(Task* task);
-
 	};
 
 }
