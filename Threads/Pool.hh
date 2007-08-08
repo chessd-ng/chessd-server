@@ -1,7 +1,7 @@
 #ifndef POOL_HH
 #define POOL_HH
 
-#include "../singleton.hh"
+#include "../Util/Singleton.hh"
 #include "Queue.hh"
 #include "Task.hh"
 #include "SafeObject.hh"
@@ -11,7 +11,7 @@
 
 namespace Threads {
 
-	class Pool : public Singleton<Pool> {
+	class Pool : public Util::Singleton<Pool> {
 		public:
 
 			void launchTask(Task* task);
