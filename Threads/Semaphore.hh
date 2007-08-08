@@ -3,6 +3,7 @@
 
 #include <semaphore.h>
 
+namespace Thread {
 class Semaphore {
 	public:
 		Semaphore(int value = 0) {
