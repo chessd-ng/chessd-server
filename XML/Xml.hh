@@ -1,8 +1,6 @@
 #ifndef XML_HH
 #define XML_HH
 
-#include "../utils.hh"
-
 #include <vector>
 #include <map>
 #include <string>
@@ -58,7 +56,7 @@ namespace XML {
 			/* clear children */
 			void clearChildren();
 
-			bool hasAttribute(const std::string& name) const { return hasKey(this->attributes(), name); }
+			bool hasAttribute(const std::string& name) const { return this->attributes().find(name) != this->attributes().end(); }
 
 			const std::string& getAttribute(const std::string& name) const;
 			std::string& getAttribute(const std::string& name);

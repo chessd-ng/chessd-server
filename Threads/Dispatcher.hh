@@ -7,6 +7,7 @@
 // #include "handlers.hh"
 
 #include <boost/function.hpp>
+#include <boost/bind.hpp>
 
 namespace Threads {
 
@@ -20,25 +21,29 @@ namespace Threads {
 
 			/* creates a function wrapper through the tunnel */
 			template <class R_TYPE> boost::function<R_TYPE ()>
-				createTunnel(const boost::function<R_TYPE ()>& slot, bool sync = false) {
+				createTunnel(const boost::function<R_TYPE ()>& function, bool sync = false) {
 					R_TYPE (Dispatcher::*p)(const boost::function<R_TYPE ()>&,bool) = &Dispatcher::callback<R_TYPE>;
 					return boost::bind(
-							boost::mem_fun(this, p),
-							slot, sync);
+							p, this,
+							function, sync);
 				}
-			template <class R_TYPE, class T1> boost::slot<R_TYPE, T1>
-				createTunnel(const boost::slot<R_TYPE, T1>& slot, bool sync = false) {
-					R_TYPE (Dispatcher::*p)(T1,const boost::slot<R_TYPE, T1>&,bool) = &Dispatcher::callback<R_TYPE, T1>;
+			template <class R_TYPE, class T1> boost::function<R_TYPE (T1)>
+				createTunnel(const boost::function<R_TYPE (T1)>& function, bool sync = false) {
+					R_TYPE (Dispatcher::*p)(T1,const boost::function<R_TYPE (T1)>&,bool) = &Dispatcher::callback<R_TYPE, T1>;
 					return boost::bind(
-							boost::mem_fun(this, p),
-							slot, sync);
+							p,
+							this,
+							_1,
+							function, sync);
 				}
-			template <class R_TYPE, class T1, class T2> boost::slot<R_TYPE, T1, T2>
-				createTunnel(const boost::slot<R_TYPE>& slot, bool sync = false) {
-					R_TYPE (Dispatcher::*p)(T1,T2,const boost::slot<R_TYPE, T1, T2>&,bool) = &Dispatcher::callback<R_TYPE, T1, T2>;
+			template <class R_TYPE, class T1, class T2> boost::function<R_TYPE (T1, T2)>
+				createTunnel(const boost::function<R_TYPE (T1, T2)>& function, bool sync = false) {
+					R_TYPE (Dispatcher::*p)(T1,T2,const boost::function<R_TYPE (T1, T2)>&,bool) = &Dispatcher::callback<R_TYPE, T1, T2>;
 					return boost::bind(
-							boost::mem_fun(this, p),
-							slot, sync);
+							p, this,
+							_1,
+							_2,
+							function, sync);
 				}
 
 		private:
@@ -50,9 +55,9 @@ namespace Threads {
 			void _stop();
 
 			/* define a callback for 0 parameters */
-			template <class R_TYPE> R_TYPE callback(const boost::slot<R_TYPE>&
-					slot, bool sync) {
-				TypedMessage<R_TYPE>* message = new TypedMessage<R_TYPE>(slot, sync);
+			template <class R_TYPE> R_TYPE callback(const boost::function<R_TYPE>&
+					function, bool sync) {
+				TypedMessage<R_TYPE>* message = new TypedMessage<R_TYPE>(function, sync);
 				this->post(message);
 				if(sync) {
 					std::auto_ptr< TypedMessage<R_TYPE> > m_ptr(message);
@@ -66,10 +71,10 @@ namespace Threads {
 			/* define a callback for 1 parameter */
 			template <class R_TYPE, class T1> R_TYPE callback(
 					T1 t,
-					const boost::slot<R_TYPE, T1>& slot,
+					const boost::function<R_TYPE, T1>& function,
 					bool sync) {
 				TypedMessage<R_TYPE>* message = new TypedMessage<R_TYPE>(
-						boost::bind(slot, t), sync);
+						boost::bind(function, t), sync);
 				this->post(message);
 				if(sync) {
 					std::auto_ptr< TypedMessage<R_TYPE> > m_ptr(message);
@@ -83,10 +88,10 @@ namespace Threads {
 			/* define a callback for 2 parameters */
 			template <class R_TYPE, class T1, class T2> R_TYPE callback(
 					T1 t1, T2 t2,
-					const boost::slot<R_TYPE, T1>& slot,
+					const boost::function<R_TYPE, T1>& function,
 					bool sync) {
 				TypedMessage<R_TYPE>* message = new TypedMessage<R_TYPE>(
-						boost::bind(slot, t1, t2), sync);
+						boost::bind(function, t1, t2), sync);
 				this->post(message);
 				if(sync) {
 					std::auto_ptr< TypedMessage<R_TYPE> > m_ptr(message);

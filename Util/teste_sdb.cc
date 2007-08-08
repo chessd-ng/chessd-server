@@ -1,10 +1,11 @@
 #include <set>
 #include <functional>
 #include <iostream>
-#include "sdb.hh"
+#include "Sdb.hh"
 #include "utils.hh"
 
 using namespace std;
+using namespace Util;
 
 struct teste {
 	int a,b;

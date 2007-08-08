@@ -1,72 +1,78 @@
 #ifndef MESSAGE_HH
 #define MESSAGE_HH
 
+#include "Semaphore.hh"
+#include "Queue.hh"
+
 #include <memory>
-#include <sigc++/sigc++.h>
-#include "semaphore.hh"
-#include "fila.hh"
 
-class Message{
-	public:
-		Message(bool sync) : semaphore(sync?new Semaphore:0) { }
-		virtual ~Message() {
-			if(this->semaphore)
-				delete this->semaphore;
-		}
-		virtual void send() = 0;
-		bool isSync() { return this->semaphore != 0; }
-	protected:
-		Semaphore* semaphore;
-};
+#include <boost/function.hpp>
 
-template <class R_TYPE> class TypedMessage;
+namespace Threads {
 
-template <class R_TYPE> class TypedMessage : public Message {
-	public:
-		typedef sigc::slot<R_TYPE> message_slot;
+	class Message{
+		public:
+			Message(bool sync) : semaphore(sync?new Semaphore:0) { }
+			virtual ~Message() {
+				if(this->semaphore)
+					delete this->semaphore;
+			}
+			virtual void send() = 0;
+			bool isSync() { return this->semaphore != 0; }
+		protected:
+			Semaphore* semaphore;
+	};
 
-		TypedMessage(const message_slot& message, bool sync)
-			: Message(sync), message(message) { }
+	template <class R_TYPE> class TypedMessage;
 
-		virtual ~TypedMessage() { }
+	template <class R_TYPE> class TypedMessage : public Message {
+		public:
+			typedef boost::function<R_TYPE() > message_function;
 
-		virtual void send() {
-			this->ret = this->message();
-			if(this->semaphore)
-				this->semaphore->post();
-		}
+			TypedMessage(const message_function& message, bool sync)
+				: Message(sync), message(message) { }
 
-		R_TYPE wait() {
-			this->semaphore->wait();
-			return this->ret;
-		}
+			virtual ~TypedMessage() { }
 
-	private:
-		message_slot message;
-		R_TYPE ret;
-};
+			virtual void send() {
+				this->ret = this->message();
+				if(this->semaphore)
+					this->semaphore->post();
+			}
 
-template <> class TypedMessage<void> : public Message {
-	public:
-		typedef sigc::slot<void> message_slot;
-		
-		TypedMessage(const message_slot& message, bool sync)
-			: Message(sync), message(message) { }
+			R_TYPE wait() {
+				this->semaphore->wait();
+				return this->ret;
+			}
 
-		virtual ~TypedMessage() { }
+		private:
+			message_function message;
+			R_TYPE ret;
+	};
 
-		virtual void send() {
-			this->message();
-			if(this->semaphore)
-				this->semaphore->post();
-		}
+	template <> class TypedMessage<void> : public Message {
+		public:
+			typedef boost::function<void()> message_function;
 
-		void wait() {
-			this->semaphore->wait();
-		}
+			TypedMessage(const message_function& message, bool sync)
+				: Message(sync), message(message) { }
 
-	private:
-		message_slot message;
-};
+			virtual ~TypedMessage() { }
+
+			virtual void send() {
+				this->message();
+				if(this->semaphore)
+					this->semaphore->post();
+			}
+
+			void wait() {
+				this->semaphore->wait();
+			}
+
+		private:
+			message_function message;
+	};
+
+}
 
 #endif

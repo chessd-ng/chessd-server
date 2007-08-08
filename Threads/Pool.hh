@@ -18,7 +18,7 @@ namespace Threads {
 
 		private:
 
-			Fila<Task*> tarefas;
+			Queue<Task*> tasks;
 
 			SafeObject<std::vector<pthread_t*> > threads;
 

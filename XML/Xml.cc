@@ -1,8 +1,10 @@
 #include "Xml.hh"
 #include "iksutil.hh"
-#include "utils.hh"
+
+#include "../Util/utils.hh"
 
 using namespace std;
+using namespace Util;
 
 namespace XML {
 	Item::~Item() { }

@@ -1,5 +1,5 @@
-#ifndef DATASTRUCTSDB_HH
-#define DATASTRUCTSDB_HH
+#ifndef UTILSDB_HH
+#define UTILSDB_HH
 
 #include <map>
 #include <list>
@@ -7,9 +7,9 @@
 #include <iterator>
 #include <functional>
 
-#include "../utils.hh"
+#include "utils.hh"
 
-namespace DataStruct {
+namespace Util {
 
 	template <class Data> class SimpleDatabase;
 
@@ -245,8 +245,8 @@ namespace DataStruct {
 			typedef std::list<Data> ItemList;
 
 		public:
-			typedef ItemList::iterator iterator;
-			typedef ItemList::const_iterator const_iterator;
+			typedef typename ItemList::iterator iterator;
+			typedef typename ItemList::const_iterator const_iterator;
 
 			SimpleDatabase() { }
 			~SimpleDatabase() {
@@ -332,7 +332,7 @@ namespace DataStruct {
 				return this->items.end();
 			}
 
-			ItemList::size_type size() const {
+			typename ItemList::size_type size() const {
 				return this->items.size();
 			}
 

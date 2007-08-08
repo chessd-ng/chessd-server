@@ -6,7 +6,7 @@ namespace Threads {
 
 	Dispatcher::~Dispatcher() {
 		if(this->running) {
-			this->shutdown();
+			this->stop();
 			this->join();
 		}
 	}
@@ -17,7 +17,7 @@ namespace Threads {
 	}
 
 	void Dispatcher::stop() {
-		this->post(new TypedMessage<void>(sigc::mem_fun(this, &Dispatcher::_stop), false));
+		this->post(new TypedMessage<void>(boost::bind(&Dispatcher::_stop, this), false));
 	}
 
 	void Dispatcher::_stop() {
