@@ -1,4 +1,4 @@
-#include "jid.hh"
+#include "Jid.hh"
 
 using namespace std;
 

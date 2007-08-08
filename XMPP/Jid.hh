@@ -1,5 +1,5 @@
-#ifndef Jid_HH
-#define Jid_HH
+#ifndef XMPPJID_HH
+#define XMPPJID_HH
 
 #include <string>
 
