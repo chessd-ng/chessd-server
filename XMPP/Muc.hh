@@ -2,6 +2,7 @@
 #define XMPPMUC_HH
 
 #include "Disco.hh"
+#include "Node.hh"
 #include "handlers.hh"
 
 #include <vector>
@@ -21,7 +22,7 @@ namespace XMPP {
 
 	class Muc {
 		public:
-			Muc(const StanzaSender& sender, DiscoNode* node, const Jid& jid);
+			Muc(const StanzaSender& sender, Node* node, const Jid& jid);
 			~Muc();
 
 			void handlePresence(Stanza* stanza);
@@ -38,7 +39,7 @@ namespace XMPP {
 
 			StanzaSender stanza_sender;
 
-			DiscoNode* disco_node;
+			Node* disco_node;
 
 			Jid jid;
 

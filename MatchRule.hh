@@ -18,14 +18,26 @@
 /*  */
 typedef std::vector<MatchEntity> MatchRequest;
 
-/* An abstract MatchRule is the one who tells if a match
+/*! \brief A MatchRule's descriptor .
+ *
+ * An abstract MatchRule is the one who tells if a match
  * is valid and if so it returns a Match instance */
 class MatchRule {
 	public:
+		/*! \brief Destructor */
 		virtual ~MatchRule() { }
-		virtual std::string name() = 0;
+
+		/*! \brief Returns the category name */
+		virtual std::string category() = 0;
+
+		/*! \brief check a given Match request.
+		 *
+		 * \param match_request is the requested match's description
+		 * \param teamdb is the collection of available team
+		 * \return Returns a pointer to a match description on success, 0 otherwise.
+		 */
 		virtual Match* checkMatchRequest(const MatchRequest& match_request,
-				const SimpleDatabase<Team>&) = 0;
+				const SimpleDatabase<Team>& teamdb) = 0 const;
 };
 
 #endif

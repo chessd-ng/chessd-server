@@ -1,16 +1,9 @@
-#include <sigc++/sigc++.h>
 #include <iostream>
 #include <string>
-#include "component.hh"
-#include "jabbernode.hh"
-#include "disco.hh"
-#include "muc.hh"
-#include "stream_listener.hh"
-#include "dispatcher.hh"
-#include "task.hh"
+
+#include "Core.hh"
 
 using namespace std;
-using namespace XML;
 
 const char* secret = "secret";
 
@@ -23,12 +16,14 @@ void log_traffic(const std::string& data, bool incoming) {
 
 }
 
-void connection_handler(int status) {
-	cout << "Status change: " << status << endl;
-}
-
 int main(void) {
-	Stream stream("jabber:component:accept");
+	Config config;
+	Core* core = new Core(config);
+	core->start();
+	core->join();
+	delete core;
+	return 0;
+	/* Stream stream("jabber:component:accept");
 	Dispatcher stream_dispatch;
 	Dispatcher component_dispatch;
 	Component component(stream_dispatch.createWrapper(sigc::slot<void, Tag*>(sigc::mem_fun(&stream, &Stream::send))), secret);
@@ -91,5 +86,5 @@ int main(void) {
 	stream_dispatch.join();
 	component_dispatch.join();
 
-	return 0;
+	return 0; */
 }

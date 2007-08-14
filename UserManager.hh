@@ -3,15 +3,18 @@
 
 #include "Threads/Dispatcher.hh"
 #include "XMPP/Jid.hh"
+#include "XMPP/Component.hh"
+
+#include "ComponentListener.hh"
+
+#include "CoreInterface.hh"
 
 #include <boost/function.hpp>
 
 #include <string>
+#include <map>
 
-/*! \brief The UserManager manages the user's status.
- *
- * It keeps the users's status, wheter the user is available to play
- * or not. It provides a notification service whenever a user status chenges.
+/*! \brief All user status.
  */
 
 enum UserStatus {
@@ -22,6 +25,12 @@ enum UserStatus {
 
 typedef boost::function<void (UserStatus new_status)> UserStatusHandle;
 
+/*! \brief The UserManager manages the user's status.
+ *
+ * It keeps the users's status, wheter the user is available to play
+ * or not. It provides a notification service whenever a user status chenges.
+ */
+
 class UserManager : public Threads::Dispatcher {
 	public:
 
@@ -29,8 +38,9 @@ class UserManager : public Threads::Dispatcher {
 		/*! \brief Constructor.
 		 *
 		 * \param data_path is the path to the data files.
+		 * \param interfcae is the interface to the core.
 		 */
-		UserManager(const std::string& data_path);
+		UserManager(const std::string& data_path, CoreInterface* interface);
 
 		/*! \brief Destructor.
 		 *
@@ -62,21 +72,53 @@ class UserManager : public Threads::Dispatcher {
 		 * same user in the same namespace.
 		 * \param user is the user's JID.
 		 * \param handle is the function to be called.
-		 * \param ns is a namespace for the monitor.
+		 * \param ns is a namespace for the monitor. Used to differ monitors from different threads.
 		 * \return None.
 		 */
 		void addMonitor(const XMPP::Jid& user, const UserStatusHandle& handle, int ns);
 
 		/*! \brief Erase an existing monitor
 		 *
-		 * The monitor is removed and is no longer called on status chenge.
+		 * The monitor is removed and is no longer called on status change.
 		 * \param user is the user's JID.
 		 * \param ns is a namespace where the monitor was added in.
 		 * \return None.
 		 */
-		void eraseMonitor(const XMPP:Jid& user, int ns);
+		void eraseMonitor(const XMPP::Jid& user, int ns);
 	private:
+		
+		/*! \brief Store all active monitors. */
+		std::map<XMPP::Jid, std::map<int, UserStatusHandle> > monitors;
 
+		/*! \brief Store all online user's status. */
+		std::map<XMPP::Jid, UserStatus> user_status;
+
+		/*! \brief The XMPP Component. */
+		XMPP::Component component;
+
+		/*! \brief The component listener.
+		 *
+		 * It is important to receive the messages in a separate thread.
+		 */
+		ComponentListener listener;
+
+		/*! \brief The XMPP root Node */
+		XMPP::Node root_node;
+
+		/*! \brief The XMPP Disco */
+		XMPP::Disco disco;
+
+		/*! \brief An interface to the core */
+		CoreInterface* core_interface;
+
+		/*! \brief Path to data files */
+		string data_path;
+
+		/*! \brief Connection handler */
+		void handleConnection(int status);
+
+		/*! \brief Handle a presence and deliver notifications */
+		void handlePresence(Stanza* stanza);
 };
 
 #endif

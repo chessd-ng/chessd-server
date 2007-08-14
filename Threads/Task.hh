@@ -6,34 +6,34 @@
 
 namespace Threads {
 
-enum TaskStatus {
-	TaskIdle,
-	TaskRunning,
-	TaskZombie,
-	TaskCompleted
-};
+	enum TaskStatus {
+		TaskIdle,
+		TaskRunning,
+		TaskZombie,
+		TaskCompleted
+	};
 
-class Task {
-	public:
-		Task();
+	class Task {
+		public:
+			Task();
 
-		virtual ~Task();
+			virtual ~Task();
 
-		virtual void run() = 0;
+			virtual void run() = 0;
 
-		void start();
+			void start();
 
-		bool join();
+			bool join();
 
-		void _run();
+			void _run();
 
-		TaskStatus getStatus() const;
-	private:
-		Mutex mutex;
-		Condition condition;
-		TaskStatus status;
-		bool waiting;
-};
+			TaskStatus getStatus() const;
+		private:
+			Mutex mutex;
+			Condition condition;
+			TaskStatus status;
+			bool waiting;
+	};
 
 }
 

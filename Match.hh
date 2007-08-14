@@ -4,6 +4,9 @@
 #include <vector>
 #include <set>
 
+#include "XMPP/Jid.hh"
+#include "Util/Time.hh"
+
 /* This match stuff is not flexible as it should be according
  * to the OO design. Each rule may require very different 
  * parameters, so it should not be fixed to time and color.
@@ -12,15 +15,19 @@
  * communication should have something equally flexible,
  * such as the X forms in the xmpp. */
 
-/* This id is used locally by the match manager as an
+/*! \brief A plyer identification.
+ *
+ * This id is used locally by the match manager as an
  * alias for the player's jid. This is for the sake of
  * efficiency and convenience. Should this be at the
  * server core? */
 
-typedef unsigned int PlayerID;
+typedef XMPP::Jid PlayerID;
 
-/* Possible color of the players. Again, what happen
- * if someone want to implmente a game that has more
+/*! \brief Available colors.
+ *
+ * Possible color of the players. Again, what happen
+ * if someone want to implment a game that has more
  * than two colors? */
 
 enum PlayerColor {
@@ -28,28 +35,30 @@ enum PlayerColor {
 	Black
 };
 
-/* Here is defined the info about one entity of a match. */
+/*! \brief An entity regarding a match. */
 struct MatchEntity {
 	MatchEntity(PlayerID player, Time time, Time inc, PlayerColor color) :
-		player(player) ,
-		time(time) ,
-		inc(inc) ,
+		player(player),
+		time(time),
+		inc(inc),
 		color(color) { }
 	PlayerID player;
 	Time time, inc;
 	PlayerColor color;
 };
 
-/* For a match we have a collection of teams */
 typedef std::vector<MatchEntity> MatchTeam;
 
 typedef std::vector<MatchTeam> MatchTeams;
 
-/* Here is an abstract match that holds information
- * about one single match */
+/*! \brief An abstract match description. */
 struct Match {
+
+	/*! \brief Destructor */
 	virtual ~Match() { }
-	virtual MatchTeams getTeams() = 0 const;
+
+	/*! \brief The teams involved in the match */
+	virtual const MatchTeams& getTeams() = 0 const;
 };
 
 

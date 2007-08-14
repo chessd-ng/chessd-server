@@ -3,80 +3,90 @@
 
 #include <map>
 #include <set>
-#include <sigc++/sigc++.h>
-#include "core_interface.hh"
-#include "component.hh"
-#include "jabbernode.hh"
-#include "dispatch.hh"
-#include "stream_listener.hh"
-#include "disco.hh"
-#include "timer.hh"
+#include "CoreInterface.hh"
+#include "XMPP/Component.hh"
+#include "XMPP/Node.hh"
+#include "XMPP/Disco.hh"
+#include "XMPP/Roster"
+#include "Threads/Dispatch.hh"
+#include "ComponentListener.hh"
+#include "Util/Timer.hh"
 
-#include "match.hh"
-#include "matchrule.hh"
+#include "Match.hh"
+#include "MatchRule.hh"
 
-#include "sdb.hh"
+#include "Util/Sdb.hh"
 
-#include "identifier.hh"
-
-class MatchManager : public Dispatcher {
+class MatchManager : public Threads::Dispatcher {
 	public:
-		MatchManager(CoreInterface* core_interface, const JID& jid);
+		/*! \brief Constructor
+		 *
+		 * \param core_interface is the interface to the core
+		 */
+		MatchManager(CoreInterface* core_interface);
 
+		/*! \brief Destructor
+		 *
+		 * Closes server connection if available
+		 */
 		~MatchManager();
 
-		void connect(const std::string& host, const std::string& password, int port);
+		/*! \brief Connect to the server.
+		 *
+		 * \param host is the server address
+		 * \param port is the port to be used
+		 * \param password is the server's password
+		 * \return Returns true on success, false otherwise.
+		 */
+		bool connect(const std::string& host, int port, const std::string& password);
 
-		void insertMatchRule(const MatchRule& rule);
+		/*! \brief Insert a match rule
+		 *
+		 * The rule's ownership is passed to this class.
+		 * \param rule is the MatchRule to be inserted.
+		 */
+		void insertMatchRule(MatchRule* rule);
 
 
 	private:
 
-		/* Keep a relation from JID and ID */
-		typedef Identifier<JID> JidIdentifier;
-		JidIdentifier jid_identifier;
-
 		/* several handlers for the incoming events */
 
-		/* handle the conenction status */
-		void handleConnection(int status);
-
-		/* handle an incoming match offer */
+		/*! \brief handle an incoming match offer */
 		void handleMatchOffer(Stanza* stanza);
-		/* handle an incoming match acceptance */
+		/*! \brief handle an incoming match acceptance */
 		void handleMatchAccept(Stanza* stanza);
-		/* handle an incoming match declinance */
+		/*! \brief handle an incoming match declinance */
 		void handleMatchDecline(Stanza* stanza);
 
-		/* all required structures for jabber */
+		/*! \brief Interface to the core */
 		CoreInterface* core_interface;
-		Stream stream;
-		StreamListener listener;
-		Component component;
-		Jabbernode node;
-		Disco disco;
 
-		/* Team database */
+		/*! \brief A XMPP component */
+		XMPP::Component component;
+
+		/*! \brief A component listener */
+		ComponentListener listener;
+
+		/*! \brief A XMPP node*/
+		XMPP::Node node;
+
+		/*! \brief A XMPP disco module */
+		XMPP::Disco disco;
+
 		typedef std::vector<PlayerID> Team;
 		typedef SimpleDatabase<Team> TeamDB;
+
+		/*! \brief Team database */
 		TeamDB teams;
 
-		/* types and members used to store the match rules */
 		typedef std::map<std::stream, MatchRule*>  RuleMap;
+		/*! \brief Regitered rules */
 		RuleMap rules;
 
-		/* search for a match rule */
-		/* Returns NULL if category is not found */
-		RuleMap* getMatchRule(const std::string& category);
-		void insertMatchRule(MatchRule* rule, const std::string& category);
-
-		/* types and members used to store current matchs */
 		typedef SimpleDatabase<Match*> MatchDB;
+		/*! \brief Pending offers */
 		MatchDB matchs;
-
-		/* keep track of monitored users */
-		typedef std::set<PlayerID> IDSet;
-		IDSet monitored_users;
 };
 
 #endif

@@ -22,7 +22,7 @@ namespace Threads {
 
 			SafeObject<std::vector<pthread_t*> > threads;
 
-			friend class Singleton<Pool>;
+			friend class Util::Singleton<Pool>;
 
 			Pool();
 

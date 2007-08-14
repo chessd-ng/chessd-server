@@ -1,12 +1,20 @@
 #include "Node.hh"
+#include <boost/bind.hpp>
 
 using namespace std;
 
 namespace XMPP {
 
-	Node::Node(const Jid& jid, const StanzaSender& sender) :
-		_jid(jid) {
-			this->stanza_sender = sender;
+	Node::Node(const StanzaSender& sender,
+			const std::string& category,
+			const std::string& type,
+			const std::string& name) :
+		stanza_sender(sender),
+		_disco(sender, category, type, name) {
+			this->setIqHandler(boost::bind(&Disco::handleIqInfo, &this->_disco, _1),
+					"http://jabber.org/protocol/disco#info");
+			this->setIqHandler(boost::bind(&Disco::handleIqItems, &this->_disco, _1),
+					"http://jabber.org/protocol/disco#item");
 		}
 
 	Node::~Node() { }

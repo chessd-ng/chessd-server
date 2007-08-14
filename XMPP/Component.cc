@@ -1,71 +1,74 @@
-#include <iksemel.h>
-#include <iostream>
 #include "Component.hh"
 #include "Jid.hh"
+
+#include <iksemel.h>
+#include <iostream>
+#include <boost/scoped_ptr.hpp>
 
 using namespace XML;
 using namespace std;
 
 namespace XMPP {
 
-	Component::Component(const TagSender& tag_sender,
-			const std::string& password) :
-		tag_sender(tag_sender),
-		password(password),
-		status(0) { }
+	Component::Component() :
+		stream("jabber:component:accept") { }
 
 	Component::~Component() { }
 
-	void Component::handleTag(Tag* tag) {
-		int error = 0;
-		if(this->status == 0) {
-			if (tag->name() != "stream:stream") {
-				error = 1;
-				this->status = -1;
-			} else if(tag->attributes().count("id") == 0) {
-				error = 1;
-				this->status = -1;
-			} else {
-				string data = tag->attributes()["id"] + this->password;
-				this->password = "";
-				char hash[128];
-				iks_sha(data.c_str(), hash);
-				Tag* tag = new Tag("handshake");
-				tag->children().push_back(new CData(hash));
-				this->tag_sender(tag);
-				this->status = 1;
-			}
-			if(not this->conn_handler.empty())
-				this->conn_handler(this->status);
-			delete tag;
-		} else if(this->status == 1) {
-			if(tag->name() == "handshake") {
-				this->status = 2;
-			} else {
-				error = 1;
-				this->status = -1;
-			}
-			if(not this->conn_handler.empty())
-				this->conn_handler(this->status);
-			delete tag;
-		} else if(this->status == 2) {
-			Stanza* stanza = new Stanza(tag);
-			HandlerMap::const_iterator it;
-			it = this->node_handlers.find(stanza->to().node());
-			if(it != this->node_handlers.end())
-				it->second(stanza);
-			else if(not this->root_handler.empty())
-				this->root_handler(stanza);
-			else {
-				delete stanza;
-				cout << "ignoring message" << endl;
-			}
-		}
-		//return error;
+	bool Component::connect(const std::string& host, int port, const std::string& password) {
+		bool success;
+		success = this->stream.connect(host, port);
+		if(not success)
+			return false;
+		success = this->auth(password);
+		if(not success)
+			return false;
+		else
+			return true;
 	}
 
-	void Component::setConnectionHandler(const ConnectionHandler& handler) {
-		this->conn_handler = handler;
+	bool Component::auth(const std::string& password) {
+		boost::scoped_ptr<Tag> tag(this->stream.recv());
+		if(tag.get() == 0)
+			return false;
+		if (tag->name() != "stream:stream") {
+			return false;
+		} else if(not tag->hasAttribute("id")) {
+			return false;
+		} else {
+			string data = tag->getAttribute("id") + password;
+			char hash[128];
+			iks_sha(data.c_str(), hash);
+			Tag* tag_tmp = new Tag("handshake");
+			tag_tmp->children().push_back(new CData(hash));
+			if(not this->stream.send(tag_tmp))
+				return false;
+		}
+		tag.reset(this->stream.recv());
+		if(tag.get() == 0)
+			return false;
+		if(tag->name() == "handshake") {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	void Component::recv(int timeout) {
+		Tag* tag = this->stream.recv(timeout);
+		if(tag == 0)
+			return;
+		Stanza* stanza = new Stanza(tag);
+		HandlerMap::const_iterator it;
+		it = this->node_handlers.find(stanza->to().node());
+		if(it != this->node_handlers.end())
+			it->second(stanza);
+		else if(not this->root_handler.empty())
+			this->root_handler(stanza);
+		else {
+			delete stanza;
+			cout << "ignoring message" << endl;
+		}
 	}
 
 	void Component::setStanzaHandler(const StanzaHandler& handler,
@@ -83,7 +86,7 @@ namespace XMPP {
 
 	void Component::send(Stanza* stanza) {
 		Tag *tag = stanza->tag();
-		this->tag_sender(tag);
+		this->stream.send(tag);
 	}
 
 }

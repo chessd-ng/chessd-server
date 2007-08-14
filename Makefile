@@ -1,8 +1,8 @@
-OBJECTS = main.o pool.o task.o stream.o xml.o component.o jid.o stanza.o jabbernode.o disco.o muc.o stream_listener.o dispatcher.o match.o timer.o pairing/Game.o pairing/Player.o pairing/Tourney.o pairing/TourneyPlayers.o iksutil.o
+OBJECTS = main.o Threads/Pool.o Threads/Task.o XMPP/Stream.o XML/Xml.o XMPP/Component.o XMPP/Jid.o XMPP/Stanza.o XMPP/Node.o XMPP/Disco.o ComponentListener.o Threads/Dispatcher.o Util/Timer.o Pairing/Game.o Pairing/Player.o Pairing/Tourney.o Pairing/TourneyPlayers.o XML/iksutil.o Core.o
 
 
-CXXFLAGS=-Wall -ggdb3 `pkg-config sigc++-2.0 --cflags`
-LIBS=-lrt -lpthread -liksemel `pkg-config sigc++-2.0 --libs`
+CXXFLAGS=-Wall -ggdb3
+LIBS=-lrt -lpthread -liksemel
 TARGET=chessd
 CC=gcc
 CXX=g++
@@ -15,6 +15,8 @@ ${TARGET}: ${OBJECTS}
 
 xml: xml.o teste_xml.o xml.hh iksutil.o
 	${CXX} -o teste_xml xml.o teste_xml.o iksutil.o ${CXXFLAGS} ${LIBS}
+
+
 
 
 clean:

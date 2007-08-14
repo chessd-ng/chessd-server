@@ -15,7 +15,7 @@ void StreamListener::run() {
 	}
 }
 
-void StreamListener::shutdown() {
+void StreamListener::stop() {
 	this->running = false;
 }
 

@@ -1,7 +1,7 @@
 #ifndef CORE_HH
 #define CORE_HH
 
-#include "Dispatcher.hh"
+#include "Threads/Dispatcher.hh"
 
 #include <string>
 #include <set>
@@ -11,17 +11,21 @@
  *  It is responsible to interconnect all of the elements of
  *  the server. */
 
-class Core : public Dispatcher {
+typedef std::set<std::string, std::string> Properties;
+typedef std::set<std::string, Properties> Config;
+
+class Core : public Threads::Dispatcher {
 	public:
 
-		Core();
+		Core(const Config& config);
 
 		~Core();
 
 		/*! \brief Connects to the XMPP server.
-		 *  \param config holds all configurable information.
+		 *
+		 * \param config holds all configurable information.
 		 */
-		bool connect(const std::set<std::string, std::set<std::string, std::string> >& config);
+		bool connect();
 
 	private:
 };

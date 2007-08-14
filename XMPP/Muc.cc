@@ -2,7 +2,7 @@
 #include <algorithm>
 
 #include "Muc.hh"
-#include "../utils.hh"
+#include "../Util/utils.hh"
 
 using namespace std;
 using namespace XML;
@@ -13,7 +13,7 @@ namespace XMPP {
 			const std::string& role, const Jid& jid) :
 		nick(nick), affiliation(affiliation), role(role), jid(jid) { }
 
-	Muc::Muc(const StanzaSender& sender, DiscoNode* node, const Jid& jid) : stanza_sender(sender),
+	Muc::Muc(const StanzaSender& sender, Node* node, const Jid& jid) : stanza_sender(sender),
 	disco_node(node), jid(jid) {
 		this->disco_node->features().insert("http://jabber.org/protocol/muc");
 	}

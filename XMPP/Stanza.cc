@@ -35,6 +35,7 @@ namespace XMPP {
 		}
 		/* XXX */
 		tag->children().clear();
+		/* XXX */
 		delete tag;
 	}
 

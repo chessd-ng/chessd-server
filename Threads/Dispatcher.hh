@@ -15,7 +15,6 @@ namespace Threads {
 		public:
 			Dispatcher();
 			~Dispatcher();
-			void post(Message* message);
 			virtual void run();
 			void stop();
 
@@ -31,8 +30,7 @@ namespace Threads {
 				createTunnel(const boost::function<R_TYPE (T1)>& function, bool sync = false) {
 					R_TYPE (Dispatcher::*p)(T1,const boost::function<R_TYPE (T1)>&,bool) = &Dispatcher::callback<R_TYPE, T1>;
 					return boost::bind(
-							p,
-							this,
+							p, this,
 							_1,
 							function, sync);
 				}
@@ -41,12 +39,14 @@ namespace Threads {
 					R_TYPE (Dispatcher::*p)(T1,T2,const boost::function<R_TYPE (T1, T2)>&,bool) = &Dispatcher::callback<R_TYPE, T1, T2>;
 					return boost::bind(
 							p, this,
-							_1,
-							_2,
+							_1, _2,
 							function, sync);
 				}
 
 		private:
+
+			void post(Message* message);
+
 			Queue<Message*> queue;
 
 			bool running;
