@@ -3,42 +3,46 @@
 
 namespace Threads {
 
-	Task::Task() : status(TaskIdle), waiting(false) { }
+	Task::Task(const boost::function<void ()>& function) : status(TaskReady), waiting(false), function(function) { }
 
 	Task::~Task() { }
 
 	void Task::start() {
-		Pool::singleton()->launchTask(this);
+		this->mutex.lock();
+		if(this->status != TaskReady)
+			return; /* TODO throw exception */
+		this->status = TaskWaiting;
+		Pool::singleton()->launchTask(*this);
+		this->mutex.unlock();
 	}
 
-	void Task::_run() {
-		mutex.lock();
-		status = TaskRunning;
-		mutex.unlock();
-		this->run();
-		mutex.lock();
-		status = TaskZombie;
-		condition.signal();
-		mutex.unlock();
+	void Task::run() {
+		this->mutex.lock();
+		this->status = TaskRunning;
+		this->mutex.unlock();
+		this->function();
+		this->mutex.lock();
+		this->status = TaskReady;
+		this->condition.signal();
+		this->mutex.unlock();
 	}
 
 	bool Task::join() {
-		mutex.lock();
-		if(waiting) {
-			mutex.unlock();
+		this->mutex.lock();
+		if(this->waiting) {
+			this->mutex.unlock();
 			return false;
 		}
-		waiting = true;
-		if(status == TaskIdle || status == TaskRunning)
-			condition.wait(mutex);
-		status = TaskCompleted;
-		waiting = false;
-		mutex.unlock();
+		this->waiting = true;
+		if(this->status != TaskReady)
+			this->condition.wait(this->mutex);
+		this->waiting = false;
+		this->mutex.unlock();
 		return true;
 	}
 
 	TaskStatus Task::getStatus() const {
-		return status;
+		return this->status;
 	}
 
 }

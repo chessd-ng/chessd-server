@@ -7,8 +7,8 @@
 #include "XMPP/Component.hh"
 #include "XMPP/Node.hh"
 #include "XMPP/Disco.hh"
-#include "XMPP/Roster"
-#include "Threads/Dispatch.hh"
+#include "XMPP/Roster.hh"
+#include "Threads/Dispatcher.hh"
 #include "ComponentListener.hh"
 #include "Util/Timer.hh"
 
@@ -17,13 +17,14 @@
 
 #include "Util/Sdb.hh"
 
-class MatchManager : public Threads::Dispatcher {
+class MatchManager {
 	public:
 		/*! \brief Constructor
 		 *
-		 * \param core_interface is the interface to the core
+		 * \param core_interface is the interface to the core.
+		 * \param config is the configuration for this component.
 		 */
-		MatchManager(CoreInterface* core_interface);
+		MatchManager(CoreInterface* core_interface, const XML::Tag* config);
 
 		/*! \brief Destructor
 		 *
@@ -33,19 +34,20 @@ class MatchManager : public Threads::Dispatcher {
 
 		/*! \brief Connect to the server.
 		 *
-		 * \param host is the server address
-		 * \param port is the port to be used
-		 * \param password is the server's password
 		 * \return Returns true on success, false otherwise.
 		 */
-		bool connect(const std::string& host, int port, const std::string& password);
+		bool connect();
 
 		/*! \brief Insert a match rule
 		 *
 		 * The rule's ownership is passed to this class.
+		 * This must be called befre connect.
 		 * \param rule is the MatchRule to be inserted.
 		 */
 		void insertMatchRule(MatchRule* rule);
+
+		/*! \brief Closes the conenction to the server */
+		void close();
 
 
 	private:
@@ -53,11 +55,17 @@ class MatchManager : public Threads::Dispatcher {
 		/* several handlers for the incoming events */
 
 		/*! \brief handle an incoming match offer */
-		void handleMatchOffer(Stanza* stanza);
+		void handleMatchOffer(XMPP::Stanza* stanza);
 		/*! \brief handle an incoming match acceptance */
-		void handleMatchAccept(Stanza* stanza);
+		void handleMatchAccept(XMPP::Stanza* stanza);
 		/*! \brief handle an incoming match declinance */
-		void handleMatchDecline(Stanza* stanza);
+		void handleMatchDecline(XMPP::Stanza* stanza);
+
+		/*! \brief We run in a separated thread as a dispatcher */
+		Threads::Dispatcher dispatcher;
+
+		/*! \brief Is it running? */
+		bool running;
 
 		/*! \brief Interface to the core */
 		CoreInterface* core_interface;
@@ -69,24 +77,30 @@ class MatchManager : public Threads::Dispatcher {
 		ComponentListener listener;
 
 		/*! \brief A XMPP node*/
-		XMPP::Node node;
-
-		/*! \brief A XMPP disco module */
-		XMPP::Disco disco;
+		XMPP::Node root_node;
 
 		typedef std::vector<PlayerID> Team;
-		typedef SimpleDatabase<Team> TeamDB;
+		typedef Util::SimpleDatabase<Team> TeamDB;
 
 		/*! \brief Team database */
 		TeamDB teams;
 
-		typedef std::map<std::stream, MatchRule*>  RuleMap;
-		/*! \brief Regitered rules */
+		typedef std::map<std::string, MatchRule*>  RuleMap;
+		/*! \brief Registered rules */
 		RuleMap rules;
 
-		typedef SimpleDatabase<Match*> MatchDB;
+		typedef Util::SimpleDatabase<Match*> MatchDB;
 		/*! \brief Pending offers */
 		MatchDB matchs;
+
+		/*! \brief The XMPP server address */
+		std::string server_address;
+
+		/*! \brief The server port */
+		int server_port;
+
+		/*! \brief The server password */
+		std::string server_password;
 };
 
 #endif

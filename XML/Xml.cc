@@ -116,14 +116,6 @@ namespace XML {
 		return this->tag_stack.empty();
 	}
 
-	const std::string& Tag::getAttribute(const std::string& name) const {
-		return this->attributes().find(name)->second;
-	}
-
-	std::string& Tag::getAttribute(const std::string& name) {
-		return this->attributes().find(name)->second;
-	}
-
 	const Tag* Tag::getChild(const std::string& name, const Tag* begin) const {
 		ChildrenList::const_iterator it;
 		for(it = this->children().begin();
@@ -158,7 +150,7 @@ namespace XML {
 	}
 
 	bool Description::loadFromFile(const std::string& filename) {
-		Tag* xml = Tag::loadXmlFile(filename);
+		Tag* xml = loadXmlFile(filename);
 		if(xml == 0)
 			return false;
 		if(xml->name()!="xd") {
@@ -383,7 +375,7 @@ namespace XML {
 		}
 		return true;
 	}
-	Tag* Tag::loadXmlFile(const std::string& filename) {
+	Tag* loadXmlFile(const std::string& filename) {
 		return iksReadXMLFile(filename);
 	}
 }

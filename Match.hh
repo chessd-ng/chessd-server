@@ -5,7 +5,7 @@
 #include <set>
 
 #include "XMPP/Jid.hh"
-#include "Util/Time.hh"
+#include "Util/Timer.hh"
 
 /* This match stuff is not flexible as it should be according
  * to the OO design. Each rule may require very different 
@@ -37,13 +37,13 @@ enum PlayerColor {
 
 /*! \brief An entity regarding a match. */
 struct MatchEntity {
-	MatchEntity(PlayerID player, Time time, Time inc, PlayerColor color) :
+	MatchEntity(PlayerID player, Util::Time time, Util::Time inc, PlayerColor color) :
 		player(player),
 		time(time),
 		inc(inc),
 		color(color) { }
 	PlayerID player;
-	Time time, inc;
+	Util::Time time, inc;
 	PlayerColor color;
 };
 
@@ -58,7 +58,7 @@ struct Match {
 	virtual ~Match() { }
 
 	/*! \brief The teams involved in the match */
-	virtual const MatchTeams& getTeams() = 0 const;
+	virtual const MatchTeams& getTeams() const = 0;
 };
 
 

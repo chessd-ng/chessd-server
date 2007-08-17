@@ -1,0 +1,7 @@
+<server>
+	<match-manager
+		server_address="localhost"
+		server_port="5563"
+		server_password="secret"
+	/>
+</server>

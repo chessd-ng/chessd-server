@@ -58,6 +58,11 @@ namespace XMPP {
 		return this->active;
 	}
 
+	void Stream::close() {
+		iks_disconnect(this->hinfo->parser);
+		this->active = false;
+	}
+
 	Tag* Stream::recv(int timeout) {
 		int ret = IKS_OK;
 		if(this->hinfo->incoming.empty()) {
@@ -72,6 +77,7 @@ namespace XMPP {
 		} else {
 			Tag* tag = this->hinfo->incoming.front();
 			this->hinfo->incoming.pop();
+			cout << tag->xml() << endl;
 			return tag;
 		}
 	}

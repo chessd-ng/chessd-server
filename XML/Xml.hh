@@ -58,24 +58,31 @@ namespace XML {
 
 			bool hasAttribute(const std::string& name) const { return this->attributes().find(name) != this->attributes().end(); }
 
-			const std::string& getAttribute(const std::string& name) const;
-			std::string& getAttribute(const std::string& name);
-
 			void setAttribute(const std::string& name, const std::string& value) {
 				this->attributes().insert(std::pair<std::string, std::string>(name, value));
 			}
 
-			const Tag* getChild(const std::string& name, const Tag* begin = 0) const;
-			Tag* getChild(const std::string& name, const Tag* begin = 0);
+			const std::string& getAttribute(const std::string& name) const {
+				return this->attributes().find(name)->second;
+			}
 
-			/* Loads n xml file */
-			static Tag* loadXmlFile(const std::string& filename);
+			std::string& getAttribute(const std::string& name) {
+				return this->attributes().find(name)->second;
+			}
+
+			const Tag* getChild(const std::string& name, const Tag* begin=0) const;
+			Tag* getChild(const std::string& name, const Tag* begin=0);
+
 
 		private:
 			std::string _name;
 			AttributeMap _attributes;
 			ChildrenList _children;
 	};
+
+	/* Loads a xml file */
+	Tag* loadXmlFile(const std::string& filename);
+
 
 	class CData : public Item {
 		public:

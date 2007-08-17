@@ -5,19 +5,25 @@
 #include "XMPP/Component.hh"
 #include "Threads/Task.hh"
 
-class ComponentListener : public Threads::Task {
+class ComponentListener {
 	public:
 		ComponentListener(XMPP::Component& component);
 
-		virtual ~ComponentListener();
+		~ComponentListener();
 
-		virtual void run();
+		void start();
+
 
 		void stop();
 
 	private:
 		XMPP::Component& component;
+
 		bool running;
+
+		Threads::Task task;
+
+		void run();
 };
 
 #endif

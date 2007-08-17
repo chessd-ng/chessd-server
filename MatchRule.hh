@@ -3,9 +3,8 @@
 
 #include <vector>
 #include <set>
-#include "time.hh"
-#include "match.hh"
-#include "sdb.hh"
+#include "Match.hh"
+#include "Util/Sdb.hh"
 
 /* This match stuff is not flexible as it should be according
  * to the OO design. Each rule may require very different 
@@ -37,7 +36,7 @@ class MatchRule {
 		 * \return Returns a pointer to a match description on success, 0 otherwise.
 		 */
 		virtual Match* checkMatchRequest(const MatchRequest& match_request,
-				const SimpleDatabase<Team>& teamdb) = 0 const;
+				const Util::SimpleDatabase<MatchTeam>& teamdb) const = 0;
 };
 
 #endif

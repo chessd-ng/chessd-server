@@ -37,6 +37,9 @@ namespace XMPP {
 			 */
 			bool connect(const std::string& host, int port);
 
+			/*! \brief Close the connection to the server */
+			void close();
+
 			/*! \brief Send a tag through the stream
 			 *
 			 * The ownership of the Tag is passed to this class.

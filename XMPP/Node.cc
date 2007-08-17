@@ -6,15 +6,15 @@ using namespace std;
 namespace XMPP {
 
 	Node::Node(const StanzaSender& sender,
+			const std::string& name,
 			const std::string& category,
-			const std::string& type,
-			const std::string& name) :
+			const std::string& type) :
 		stanza_sender(sender),
-		_disco(sender, category, type, name) {
+		_disco(sender, name, category, type) {
 			this->setIqHandler(boost::bind(&Disco::handleIqInfo, &this->_disco, _1),
 					"http://jabber.org/protocol/disco#info");
 			this->setIqHandler(boost::bind(&Disco::handleIqItems, &this->_disco, _1),
-					"http://jabber.org/protocol/disco#item");
+					"http://jabber.org/protocol/disco#items");
 		}
 
 	Node::~Node() { }

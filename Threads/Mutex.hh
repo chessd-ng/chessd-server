@@ -11,7 +11,7 @@ namespace Threads {
 			friend class Condition;
 		public:
 			Mutex() {
-				pthread_mutex_init(&mutex, 0);
+				pthread_mutex_init(&this->mutex, 0);
 			}
 
 			~Mutex() {

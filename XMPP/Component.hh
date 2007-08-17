@@ -27,6 +27,10 @@ namespace XMPP {
 			 */
 			bool connect(const std::string& host, int port, const std::string& password);
 
+			/*! \brief Closes the connection to the server
+			 */
+			void close();
+
 			/*! \brief Set a stanza handler for the given node
 			 *
 			 * Every incoming stanza adressed to node@ something
@@ -58,12 +62,12 @@ namespace XMPP {
 			 */
 			void send(Stanza* stanza);
 
-			/*! \brief Wait for an incoming stanza.
+			/*! \brief Deliver an incoming stanza.
 			 *
 			 * Wait at most timeout for an incoming stanza.
 			 * \param timeout is the maximun time to wait, -1 means infinite.
 			 */
-			void recv(int timeout = -1);
+			void deliverStanza(int timeout = -1);
 
 		private:
 

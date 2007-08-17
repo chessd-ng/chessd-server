@@ -30,9 +30,9 @@ namespace XMPP {
 			 * \param sender is a function used to send the stanzas
 			 */
 			Disco(const StanzaSender& sender,
+					const std::string& name = "",
 					const std::string& category = "",
-					const std::string& type = "",
-					const std::string& name = "");
+					const std::string& type = "");
 			~Disco();
 
 			/*! \brief Handler for the info

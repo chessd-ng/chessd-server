@@ -39,9 +39,11 @@ class CoreInterface {
 
 		friend class Core;
 
-		CoreInterface();
+		CoreInterface(Core& core);
 
 		void shutdown();
+
+		Core& core;
 };
 
 #endif

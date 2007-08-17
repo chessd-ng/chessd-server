@@ -27,6 +27,10 @@ namespace XMPP {
 			return true;
 	}
 
+	void Component::close() {
+		this->stream.close();
+	}
+
 	bool Component::auth(const std::string& password) {
 		boost::scoped_ptr<Tag> tag(this->stream.recv());
 		if(tag.get() == 0)
@@ -54,7 +58,7 @@ namespace XMPP {
 		}
 	}
 
-	void Component::recv(int timeout) {
+	void Component::deliverStanza(int timeout) {
 		Tag* tag = this->stream.recv(timeout);
 		if(tag == 0)
 			return;

@@ -18,9 +18,9 @@ namespace XMPP {
 			 * \param name is the node name.
 			 */
 			Node(const StanzaSender& sender,
+					const std::string& name = "",
 					const std::string& category = "",
-					const std::string& type = "",
-					const std::string& name = "");
+					const std::string& type = "");
 			~Node();
 
 			/*! \brief Set a handler for message stanzas.

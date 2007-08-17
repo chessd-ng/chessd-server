@@ -3,6 +3,10 @@
 
 #include "Threads/Dispatcher.hh"
 
+#include "XML/Xml.hh"
+
+#include "MatchManager.hh"
+
 #include <string>
 #include <set>
 
@@ -11,13 +15,11 @@
  *  It is responsible to interconnect all of the elements of
  *  the server. */
 
-typedef std::set<std::string, std::string> Properties;
-typedef std::set<std::string, Properties> Config;
 
-class Core : public Threads::Dispatcher {
+class Core {
 	public:
 
-		Core(const Config& config);
+		Core(const XML::Tag* config);
 
 		~Core();
 
@@ -28,6 +30,7 @@ class Core : public Threads::Dispatcher {
 		bool connect();
 
 	private:
+		MatchManager match_manager;
 };
 
 #endif
