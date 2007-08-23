@@ -17,17 +17,20 @@ void log_traffic(const std::string& data, bool incoming) {
 }
 
 int main(void) {
-	XML::Tag* config = XML::loadXmlFile("config.xml");
-	cout << config->xml() << endl;
-	Core* core = new Core(config);
-	delete config;
-	if(not core->connect()) {
-		cout << "Connection to server failed." << endl;
-		return 1;
+	try {
+		XML::Tag* config = XML::loadXmlFile("config.xml");
+		Core* core = new Core(config);
+		delete config;
+		if(not core->connect()) {
+			cout << "Connection to server failed." << endl;
+			return 1;
+		}
+		string cmd;
+		cin >> cmd;
+		delete core;
+	} catch (const char* msg) {
+		cout << "Error: " << msg << endl;
 	}
-	string cmd;
-	cin >> cmd;
-	delete core;
 	return 0;
 	/* Stream stream("jabber:component:accept");
 	Dispatcher stream_dispatch;

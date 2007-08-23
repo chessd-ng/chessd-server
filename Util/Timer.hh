@@ -61,6 +61,7 @@ namespace Util {
 			const Time& operator=(Time time);
 
 			bool operator == (Time time) const;
+			bool operator != (Time time) const;
 			bool operator >= (Time time) const;
 			bool operator <= (Time time) const;
 			bool operator > (Time time) const;
@@ -72,13 +73,13 @@ namespace Util {
 			double getMicroseconds() const;
 	};
 
-	Time operator* (unsigned int constante, const _Seconds&);
-	Time operator* (long long unsigned int constante, const _Miliseconds&);
-	Time operator* (long long unsigned int constante, const _Microseconds&);
+	Time operator* (unsigned int constant, const _Seconds&);
+	Time operator* (long long unsigned int constant, const _Miliseconds&);
+	Time operator* (long long unsigned int constant, const _Microseconds&);
 
-	Time operator* (double constant, const _Seconds&);
+	/*Time operator* (double constant, const _Seconds&);
 	Time operator* (double constant, const _Miliseconds&);
-	Time operator* (double constant, const _Microseconds&);
+	Time operator* (double constant, const _Microseconds&);*/
 
 }
 

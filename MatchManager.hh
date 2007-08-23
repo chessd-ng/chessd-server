@@ -3,6 +3,7 @@
 
 #include <map>
 #include <set>
+#include <memory>
 #include "CoreInterface.hh"
 #include "XMPP/Component.hh"
 #include "XMPP/Node.hh"
@@ -14,6 +15,9 @@
 
 #include "Match.hh"
 #include "MatchRule.hh"
+#include "MatchProtocol.hh"
+#include "MatchDatabase.hh"
+
 
 #include "Util/Sdb.hh"
 
@@ -24,7 +28,7 @@ class MatchManager {
 		 * \param core_interface is the interface to the core.
 		 * \param config is the configuration for this component.
 		 */
-		MatchManager(CoreInterface* core_interface, const XML::Tag* config);
+		MatchManager(CoreInterface* core_interface, const XML::Tag& config);
 
 		/*! \brief Destructor
 		 *
@@ -60,6 +64,14 @@ class MatchManager {
 		void handleMatchAccept(XMPP::Stanza* stanza);
 		/*! \brief handle an incoming match declinance */
 		void handleMatchDecline(XMPP::Stanza* stanza);
+		/*! \brief handle an incoming match iq */
+		void handleMatch(XMPP::Stanza* stanza);
+
+		void notifyMatchOffer(int id);
+
+		void notifyMatchResult(int id, bool accepted);
+
+		void notifyUserStatus(const XMPP::Jid jid, bool available);
 
 		/*! \brief We run in a separated thread as a dispatcher */
 		Threads::Dispatcher dispatcher;
@@ -68,7 +80,7 @@ class MatchManager {
 		bool running;
 
 		/*! \brief Interface to the core */
-		CoreInterface* core_interface;
+		std::auto_ptr<CoreInterface> core_interface;
 
 		/*! \brief A XMPP component */
 		XMPP::Component component;
@@ -79,7 +91,9 @@ class MatchManager {
 		/*! \brief A XMPP node*/
 		XMPP::Node root_node;
 
-		typedef std::vector<PlayerID> Team;
+		/*! \brief A XMPP roster */
+		XMPP::Roster roster;
+
 		typedef Util::SimpleDatabase<Team> TeamDB;
 
 		/*! \brief Team database */
@@ -89,9 +103,10 @@ class MatchManager {
 		/*! \brief Registered rules */
 		RuleMap rules;
 
-		typedef Util::SimpleDatabase<Match*> MatchDB;
 		/*! \brief Pending offers */
-		MatchDB matchs;
+		MatchDatabase match_db;
+
+		Util::IDSet match_ids;
 
 		/*! \brief The XMPP server address */
 		std::string server_address;
@@ -101,6 +116,8 @@ class MatchManager {
 
 		/*! \brief The server password */
 		std::string server_password;
+
+		MatchProtocol protocol;
 };
 
 #endif

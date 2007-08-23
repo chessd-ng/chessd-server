@@ -3,5 +3,6 @@
 		server_address="localhost"
 		server_port="5563"
 		server_password="secret"
+		node_name="match.shiva"
 	/>
 </server>

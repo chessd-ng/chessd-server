@@ -83,6 +83,7 @@ namespace XMPP {
 	}
 
 	bool Stream::send(Tag* tag) {
+		cout << tag->xml() << endl;
 		iks* tree = tag2iks(tag);
 		delete tag;
 		int ret = iks_send(this->hinfo->parser, tree);

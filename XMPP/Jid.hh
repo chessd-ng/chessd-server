@@ -38,6 +38,11 @@ namespace XMPP {
 					this->domain() == jid.domain() and
 					this->resource() == jid.resource();
 			}
+			bool operator!=(const Jid& jid) const {
+				return this->node() != jid.node() or
+					this->domain() != jid.domain() or
+					this->resource() != jid.resource();
+			}
 
 			bool operator<(const Jid& jid) const {
 				if(this->node() < jid.node())

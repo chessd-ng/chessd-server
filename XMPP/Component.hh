@@ -13,7 +13,7 @@ namespace XMPP {
 	class Component {
 		public:
 			/*! \brief Constructor */
-			Component();
+			Component(const std::string& node_name);
 
 			/*! \brief Destructor */
 			~Component();
@@ -25,7 +25,9 @@ namespace XMPP {
 			 * \param password is the server's password.
 			 * \return Returns true on success, false otherwise.
 			 */
-			bool connect(const std::string& host, int port, const std::string& password);
+			bool connect(const std::string& host,
+					int port,
+					const std::string& password);
 
 			/*! \brief Closes the connection to the server
 			 */
@@ -87,6 +89,8 @@ namespace XMPP {
 			int status;
 
 			bool auth(const std::string& password);
+
+			std::string node_name;
 	};
 
 }

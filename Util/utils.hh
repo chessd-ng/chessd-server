@@ -73,9 +73,10 @@ namespace Util {
 	/* Convert a int to a string */
 	inline std::string int2str(int number) {
 		std::string ret;
-		for(int i = 0; number; ++i, number/=10)
+		for(; number; number/=10)
 			ret += '0' + (number%10);
 		std::reverse(ret.begin(), ret.end());
+		if(ret.empty()) ret+='0';
 		return ret;
 	}
 

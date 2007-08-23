@@ -70,8 +70,8 @@ namespace XML {
 				return this->attributes().find(name)->second;
 			}
 
-			const Tag* getChild(const std::string& name, const Tag* begin=0) const;
-			Tag* getChild(const std::string& name, const Tag* begin=0);
+			const Tag& getChild(const std::string& name) const;
+			Tag& getChild(const std::string& name);
 
 
 		private:
@@ -136,8 +136,10 @@ namespace XML {
 			Description();
 			~Description();
 
+			/* TODO: remove this method, make it a constructor
+			 * throw an exception on error */
 			bool loadFromFile(const std::string& desc_filename);
-			bool validateXML(Tag* xml);
+			bool validateXML(Tag& xml);
 
 		private:
 			enum FieldType {
@@ -170,15 +172,16 @@ namespace XML {
 				std::map<std::string, AttributeDesc> attributes;
 				std::vector<ChildDesc> children;
 				bool cdata; /* does it allow cdata? */
-				bool any; /* the children are unspecified */
-				TypeDesc() : cdata(false), any(false) { }
+				bool any_children; /* the children are unspecified */
+				bool any_attributes; /* the attributes are unspecified */
+				TypeDesc() : cdata(false), any_children(false), any_attributes(false) { }
 			};
 			std::string root_type, root_name;
 			std::map<std::string, TypeDesc> types;
 			int type_count;
 			/* Auxilary functions */
-			bool parseType(const Tag* xml, const std::string& name);
-			bool _validate(Tag* xml, const TypeDesc& type);
+			bool parseType(const Tag& xml, const std::string& name);
+			bool _validate(Tag& xml, const TypeDesc& type);
 	};
 }
 

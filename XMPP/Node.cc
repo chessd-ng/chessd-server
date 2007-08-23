@@ -1,4 +1,5 @@
 #include "Node.hh"
+#include "../Util/utils.hh"
 #include <boost/bind.hpp>
 
 using namespace std;
@@ -44,26 +45,49 @@ namespace XMPP {
 		this->presence_handler = StanzaHandler();
 	}
 
-	void Node::notifyIq(Stanza* stanza) {
-		if(not stanza->children().empty() and not stanza->id().empty()) {
-			HandlerMap::const_iterator it;
-			const string& ns = stanza->children().front()->attributes()["xmlns"];
-			it = this->iq_handlers.find(ns);
-			if(it == this->iq_handlers.end()) {
-				Stanza* error = Stanza::createErrorStanza(stanza,
-						"cancel", "feature-not-implemented");
-				this->stanza_sender(error);
+	void Node::handleIq(Stanza* stanza) {
+		try {
+			if(not stanza->children().empty() and not stanza->id().empty()) {
+				if(stanza->subtype() == "set" or stanza->subtype() == "get") {
+					HandlerMap::const_iterator it;
+					const string& ns = stanza->children().front()->attributes()["xmlns"];
+					it = this->iq_handlers.find(ns);
+					if(it == this->iq_handlers.end()) {
+						Stanza* error = Stanza::createErrorStanza(stanza,
+								"cancel", "feature-not-implemented");
+						this->stanza_sender(error);
+					} else {
+						it->second(stanza);
+					}
+				} else if((stanza->subtype() == "result" or stanza->subtype() == "error") and
+						Util::isNumber(stanza->id())) {
+					int id = Util::str2int(stanza->id());
+					if(not Util::hasKey(this->iq_tracks, id))
+						throw "";
+					const IQTrack& iq_track = this->iq_tracks.find(id)->second;
+					if(iq_track.jid != stanza->from())
+						throw "";
+					if(iq_track.on_result) {
+						iq_track.on_result(stanza);
+					} else {
+						delete stanza;
+					}
+					this->iq_ids.releaseID(id);
+					this->iq_tracks.erase(id);
+				} else {
+					throw "";
+				}
 			} else {
-				it->second(stanza);
+				throw "";
 			}
-		} else {
+		} catch(const char* msg) {
 			Stanza* error = Stanza::createErrorStanza
-				(stanza, "modify", "bad-request");
+				(stanza, "modify", "bad-request", msg);
 			this->stanza_sender(error);
 		}
 	}
 
-	void Node::notifyMessage(Stanza* stanza) {
+	void Node::handleMessage(Stanza* stanza) {
 		if(not stanza->subtype().empty()) {
 			HandlerMap::const_iterator it;
 			it = this->message_handlers.find(stanza->subtype());
@@ -81,7 +105,7 @@ namespace XMPP {
 		}
 	}
 
-	void Node::notifyPresence(Stanza* stanza) {
+	void Node::handlePresence(Stanza* stanza) {
 		if(not this->presence_handler.empty()) {
 			this->presence_handler(stanza);
 		} else {
@@ -91,16 +115,23 @@ namespace XMPP {
 
 	void Node::handleStanza(Stanza* stanza) {
 		if(stanza->type() == "presence") {
-			this->notifyPresence(stanza);
+			this->handlePresence(stanza);
 		} else if(stanza->type() == "iq") {
-			this->notifyIq(stanza);
+			this->handleIq(stanza);
 		} else if(stanza->type() == "message") {
-			this->notifyMessage(stanza);
+			this->handleMessage(stanza);
 		} else {
 			Stanza* error = Stanza::createErrorStanza(stanza,
 					"modify", "bad-request");
 			this->stanza_sender(error);
 		}
+	}
+
+	void Node::sendIq(Stanza* stanza, const StanzaHandler& on_result, const TimeoutHandler& on_timeout) {
+		int id = this->iq_ids.acquireID();
+		stanza->id() = Util::int2str(id);
+		this->iq_tracks.insert(make_pair(id, IQTrack(stanza->to(), on_result, on_timeout)));
+		this->stanza_sender(stanza);
 	}
 
 }

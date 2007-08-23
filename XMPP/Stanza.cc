@@ -2,6 +2,8 @@
 
 #include "Stanza.hh"
 
+#include "../Util/utils.hh"
+
 using namespace std;
 using namespace XML;
 
@@ -97,6 +99,7 @@ namespace XMPP {
 			Tag* ttext = new Tag("text");
 			ttext->attributes()["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas";
 			errort->children().push_back(ttext);
+			errort->children().push_back(new CData(text));
 		}
 		stanza->children().push_back(errort);
 		return stanza;
@@ -115,4 +118,17 @@ namespace XMPP {
 		return ret;
 	}
 
+	void Stanza::clearChildren() {
+		foreach(child, this->children()) {
+			delete *child;
+		}
+		this->children().clear();
+	}
+
+	Stanza* Stanza::createIQResult(Stanza* stanza) {
+		swap(stanza->from(), stanza->to());
+		stanza->subtype() = "result";
+		stanza->clearChildren();
+		return stanza;
+	}
 }

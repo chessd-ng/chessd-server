@@ -68,6 +68,11 @@ namespace Util {
 			this->_nanoseconds == time._nanoseconds;
 	}
 
+	bool Time::operator!=(Time time) const {
+		return this->_seconds != time._seconds or
+			this->_nanoseconds != time._nanoseconds;
+	}
+
 	bool  Time::operator>=(Time time) const {
 		return this->_seconds > time._seconds or
 			(this->_seconds == time._seconds and

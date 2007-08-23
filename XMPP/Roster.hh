@@ -14,12 +14,8 @@
 
 namespace XMPP {
 
-	enum UserStatus {
-		Available,
-		Unavailable
-	};
-
-	typedef boost::function<void (UserStatus new_status)> UserStatusHandler;
+	typedef boost::function<void (bool available)> UserStatusHandler;
+	typedef boost::function<void (const XMPP::Jid& jid, bool available)> ChangeStatusHandler;
 
 	class Roster {
 		public:
@@ -27,8 +23,10 @@ namespace XMPP {
 			/*! \brief Constructor 
 			 *
 			 * \param stanza_sender is the function used to send stanzas
+			 * \param handler is called on every status change
 			 * */
-			Roster(const StanzaSender& stanza_sender);
+			Roster(const StanzaSender& stanza_sender,
+					const ChangeStatusHandler& handler = ChangeStatusHandler());
 
 			/*! \brief Destructor */
 			~Roster();
@@ -51,27 +49,30 @@ namespace XMPP {
 			 */
 			void removeUserMonitor(const Jid& user);
 
-			/*! \brief Get the user status
+			/*! \brief Get the user availability
 			 *
 			 * \param user is the user's jid.
-			 * \return Returns the user status.
+			 * \return Returns the user availability.
 			 */
-			UserStatus getUserStatus(const Jid& user) const;
+			bool isUserAvailable(const Jid& user) const;
 		private:
 			struct UserInfo {
-				UserStatus status;
+				bool available;
 				UserStatusHandler handler;
-				UserInfo() : status(Unavailable) { }
-				UserInfo(UserStatus status) : status(status) { }
+				UserInfo() : available(false) { }
+				UserInfo(bool available) : available(available) { }
 				UserInfo(UserStatusHandler handler) :
-					status(Unavailable),
+					available(false),
 					handler(handler) { }
 			};
+
+			void setUserStatus(const Jid& user, bool available);
+
 			std::map<Jid, UserInfo> users;
 
-			void setUserStatus(const Jid& user, UserStatus status);
-
 			StanzaSender stanza_sender;
+
+			ChangeStatusHandler status_handler;
 	};
 }
 

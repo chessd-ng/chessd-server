@@ -10,8 +10,9 @@ using namespace std;
 
 namespace XMPP {
 
-	Component::Component() :
-		stream("jabber:component:accept") { }
+	Component::Component(const std::string& node_name) :
+		stream("jabber:component:accept"),
+		node_name(node_name) { }
 
 	Component::~Component() { }
 
@@ -89,6 +90,8 @@ namespace XMPP {
 	}
 
 	void Component::send(Stanza* stanza) {
+		if(stanza->from().empty())
+			stanza->from() = this->node_name;
 		Tag *tag = stanza->tag();
 		this->stream.send(tag);
 	}

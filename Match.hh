@@ -22,8 +22,6 @@
  * efficiency and convenience. Should this be at the
  * server core? */
 
-typedef XMPP::Jid PlayerID;
-
 /*! \brief Available colors.
  *
  * Possible color of the players. Again, what happen
@@ -35,31 +33,39 @@ enum PlayerColor {
 	Black
 };
 
-/*! \brief An entity regarding a match. */
-struct MatchEntity {
-	MatchEntity(PlayerID player, Util::Time time, Util::Time inc, PlayerColor color) :
-		player(player),
+/*! \brief A player regarding a match. */
+struct MatchPlayer {
+	MatchPlayer(XMPP::Jid jid, Util::Time time, Util::Time inc, PlayerColor color) :
+		jid(jid),
 		time(time),
 		inc(inc),
 		color(color) { }
-	PlayerID player;
+	XMPP::Jid jid;
 	Util::Time time, inc;
 	PlayerColor color;
 };
 
-typedef std::vector<MatchEntity> MatchTeam;
+typedef std::vector<MatchPlayer> MatchTeam;
 
 typedef std::vector<MatchTeam> MatchTeams;
 
 /*! \brief An abstract match description. */
 struct Match {
 
-	/*! \brief Destructor */
-	virtual ~Match() { }
+	public:
 
-	/*! \brief The teams involved in the match */
-	virtual const MatchTeams& getTeams() const = 0;
+		/*! \brief Destructor */
+		virtual ~Match() { }
+
+		/*! \brief The teams involved in the match */
+		virtual const MatchTeams& getTeams() const = 0;
+
+		virtual std::string getCategory() const = 0;
 };
 
+struct MatchOffer {
+	std::string category;
+	std::vector<MatchPlayer> entities;
+};
 
 #endif

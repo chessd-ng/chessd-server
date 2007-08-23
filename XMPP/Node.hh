@@ -4,6 +4,7 @@
 #include <map>
 #include "handlers.hh"
 #include "Disco.hh"
+#include "../Util/IDSet.hh"
 
 
 namespace XMPP {
@@ -71,11 +72,25 @@ namespace XMPP {
 			Disco& disco() { return this->_disco; }
 			const Disco& disco() const { return this->_disco; }
 
+			/*! \brief Send an Iq of type get or set.
+			 *
+			 * Choose an id for the iq and send it.
+			 * When the result is received, it is passed to
+			 * on_result. When timeout occurs on_timeout is called.
+			 *
+			 * \param stazna is the iq.
+			 * \param on_result is the result callback.
+			 * \param on_timeout is the timeout callback.
+			 * */
+			void sendIq(Stanza* stanza, const StanzaHandler& on_result = StanzaHandler(),
+					const TimeoutHandler& on_timeout = TimeoutHandler());
+
+
 		private:
 
-			void notifyIq(Stanza* stanza);
-			void notifyMessage(Stanza* stanza);
-			void notifyPresence(Stanza* stanza);
+			void handleIq(Stanza* stanza);
+			void handleMessage(Stanza* stanza);
+			void handlePresence(Stanza* stanza);
 
 			typedef std::map<std::string, StanzaHandler> HandlerMap;
 			HandlerMap message_handlers;
@@ -84,6 +99,22 @@ namespace XMPP {
 			StanzaHandler stanza_sender;
 
 			Disco _disco;
+
+			Util::IDSet iq_ids;
+
+			struct IQTrack {
+				Jid jid;
+				StanzaHandler on_result;
+				TimeoutHandler on_timeout;
+				IQTrack(const Jid& jid,
+						const StanzaHandler& on_result,
+						const TimeoutHandler& on_timeout) :
+					jid(jid),
+					on_result(on_result),
+					on_timeout(on_timeout) { }
+			};
+
+			std::map<int, IQTrack> iq_tracks;
 	};
 
 }

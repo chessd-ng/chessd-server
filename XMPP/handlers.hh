@@ -15,6 +15,7 @@ namespace XMPP {
 	typedef boost::function<void (XML::Tag*)> TagHandler;
 	typedef boost::function<void (std::string&, bool)> LogHandler;
 	typedef boost::function<void ()> ShutdownHandler;
+	typedef boost::function<void ()> TimeoutHandler;
 }
 
 

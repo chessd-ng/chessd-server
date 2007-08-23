@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <set>
+#include <memory>
 #include "Match.hh"
 #include "Util/Sdb.hh"
 
@@ -14,8 +15,7 @@
  * communication should have something equally flexible,
  * such as the X forms in the xmpp. */
 
-/*  */
-typedef std::vector<MatchEntity> MatchRequest;
+typedef std::vector<XMPP::Jid> Team;
 
 /*! \brief A MatchRule's descriptor .
  *
@@ -27,7 +27,7 @@ class MatchRule {
 		virtual ~MatchRule() { }
 
 		/*! \brief Returns the category name */
-		virtual std::string category() = 0;
+		virtual std::string getCategory() const = 0;
 
 		/*! \brief check a given Match request.
 		 *
@@ -35,8 +35,8 @@ class MatchRule {
 		 * \param teamdb is the collection of available team
 		 * \return Returns a pointer to a match description on success, 0 otherwise.
 		 */
-		virtual Match* checkMatchRequest(const MatchRequest& match_request,
-				const Util::SimpleDatabase<MatchTeam>& teamdb) const = 0;
+		virtual Match* checkOffer(MatchOffer* match_offer,
+				const Util::SimpleDatabase<Team>& teamdb) const = 0;
 };
 
 #endif

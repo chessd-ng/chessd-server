@@ -91,6 +91,10 @@ namespace XMPP {
 					const std::string& condition,
 					const std::string& text = "");
 
+			void clearChildren();
+
+			static Stanza* createIQResult(Stanza* stanza);
+
 		private:
 			Jid _from, _to;
 			std::string _type, _subtype, _lang, _id;
