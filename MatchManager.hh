@@ -19,8 +19,6 @@
 #include "MatchDatabase.hh"
 
 
-#include "Util/Sdb.hh"
-
 class MatchManager {
 	public:
 		/*! \brief Constructor
@@ -94,10 +92,8 @@ class MatchManager {
 		/*! \brief A XMPP roster */
 		XMPP::Roster roster;
 
-		typedef Util::SimpleDatabase<Team> TeamDB;
-
 		/*! \brief Team database */
-		TeamDB teams;
+		TeamDatabase teams;
 
 		typedef std::map<std::string, MatchRule*>  RuleMap;
 		/*! \brief Registered rules */

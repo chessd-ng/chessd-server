@@ -6,6 +6,7 @@
 #include <memory>
 #include "Match.hh"
 #include "Util/Sdb.hh"
+#include "Team.hh"
 
 /* This match stuff is not flexible as it should be according
  * to the OO design. Each rule may require very different 
@@ -15,7 +16,6 @@
  * communication should have something equally flexible,
  * such as the X forms in the xmpp. */
 
-typedef std::vector<XMPP::Jid> Team;
 
 /*! \brief A MatchRule's descriptor .
  *
@@ -36,7 +36,7 @@ class MatchRule {
 		 * \return Returns a pointer to a match description on success, 0 otherwise.
 		 */
 		virtual Match* checkOffer(MatchOffer* match_offer,
-				const Util::SimpleDatabase<Team>& teamdb) const = 0;
+				const TeamDatabase& teams) const = 0;
 };
 
 #endif

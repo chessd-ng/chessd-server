@@ -13,7 +13,7 @@ namespace XMPP {
 	class Component {
 		public:
 			/*! \brief Constructor */
-			Component(const std::string& node_name);
+			Component(const std::string& node_name, const StanzaHandler& root_handler);
 
 			/*! \brief Destructor */
 			~Component();
@@ -55,7 +55,7 @@ namespace XMPP {
 			 * be forward to this handler.
 			 * \param handler is a funtion that handles the stanzas.
 			 */
-			void setRootStanzaHandler(const StanzaHandler& handler);
+			//void setRootStanzaHandler(const StanzaHandler& handler);
 
 			/*! \brief Send a stanza to the server.
 			 *
@@ -73,24 +73,17 @@ namespace XMPP {
 
 		private:
 
-			typedef std::map<std::string, StanzaHandler> HandlerMap;
-
 			Stream stream;
 
-			HandlerMap node_handlers;
+			std::string node_name;
 
 			StanzaHandler root_handler;
 
-			ConnectionHandler conn_handler;
+			typedef std::map<std::string, StanzaHandler> HandlerMap;
 
-			/*std::string password, host;
-			int post;*/
-
-			int status;
+			HandlerMap node_handlers;
 
 			bool auth(const std::string& password);
-
-			std::string node_name;
 	};
 
 }

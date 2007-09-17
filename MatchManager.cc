@@ -48,6 +48,7 @@ MatchManager::MatchManager(CoreInterface* interface, const XML::Tag& config) :
 	this->root_node.setIqHandler(boost::bind(&MatchManager::handleMatch, this, _1),
 			"http://c3sl.ufpr.br/chessd#match");
 
+	/* FIXME */
 	this->insertMatchRule(new MatchRuleStandard);
 }
 
@@ -84,7 +85,11 @@ void MatchManager::close() {
 
 void MatchManager::handleMatch(Stanza* stanza) {
 	Tag& query = *stanza->children().front();
-	string action = this->protocol.parseMatch(query);
+	try {
+		string action = this->protocol.parseMatch(query);
+	} catch (const char* msg) {
+		this->component.send(Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg));
+	}
 	if(action == "offer") {
 		this->handleMatchOffer(stanza);
 	} else if(action == "accept") {

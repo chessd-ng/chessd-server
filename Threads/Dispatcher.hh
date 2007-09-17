@@ -27,46 +27,34 @@ namespace Threads {
 			template <class R_TYPE> boost::function<R_TYPE ()>
 				createTunnel(const boost::function<R_TYPE ()>& function, bool sync = false) {
 					R_TYPE (Dispatcher::*p)(const boost::function<R_TYPE ()>&,bool)
-						= &Dispatcher::callback<R_TYPE>;
+						= &Dispatcher::call<R_TYPE>;
 					return boost::function<R_TYPE ()>(boost::bind(
 							p, this,
 							function, sync));
 				}
 			template <class R_TYPE, class T1> boost::function<R_TYPE (T1)>
 				createTunnel(const boost::function<R_TYPE (T1)>& function, bool sync = false) {
-					R_TYPE (Dispatcher::*p)(T1,const boost::function<R_TYPE (T1)>&,bool)
-						= &Dispatcher::callback<R_TYPE, T1>;
+					R_TYPE (Dispatcher::*p)(const boost::function<R_TYPE (T1)>&,T1,bool)
+						= &Dispatcher::call<R_TYPE, T1>;
 					return boost::function<R_TYPE (T1)>(boost::bind(
 							p, this,
+							function,
 							_1,
-							function, sync));
+							sync));
 				}
 			template <class R_TYPE, class T1, class T2> boost::function<R_TYPE (T1, T2)>
 				createTunnel(const boost::function<R_TYPE (T1, T2)>& function, bool sync = false) {
-					R_TYPE (Dispatcher::*p)(T1,T2,const boost::function<R_TYPE (T1, T2)>&,bool)
-						= &Dispatcher::callback<R_TYPE, T1, T2>;
+					R_TYPE (Dispatcher::*p)(const boost::function<R_TYPE (T1, T2)>&,T1,T2,bool)
+						= &Dispatcher::call<R_TYPE, T1, T2>;
 					return boost::function<R_TYPE (T1, T2)> (boost::bind(
 							p, this,
+							function,
 							_1, _2,
-							function, sync));
+							sync));
 				}
 
-		private:
-
-			Task task;
-
-			Queue<Message*> queue;
-
-			bool running;
-
-			void post(Message* message);
-
-			void dispatch();
-
-			void _stop();
-
-			/* define a callback for 0 parameters */
-			template <class R_TYPE> R_TYPE callback(const boost::function<R_TYPE>&
+			/* define a call for 0 parameters */
+			template <class R_TYPE> R_TYPE call(const boost::function<R_TYPE>&
 					function, bool sync) {
 				TypedMessage<R_TYPE>* message = new TypedMessage<R_TYPE>(function, sync);
 				this->post(message);
@@ -79,8 +67,8 @@ namespace Threads {
 				}
 			}
 
-			/* define a callback for 1 parameter */
-			template <class R_TYPE, class T1> R_TYPE callback(
+			/* define a call for 1 parameter */
+			template <class R_TYPE, class T1> R_TYPE call(
 					T1 t,
 					const boost::function<R_TYPE (T1)>& function,
 					bool sync) {
@@ -96,8 +84,8 @@ namespace Threads {
 				}
 			}
 
-			/* define a callback for 2 parameters */
-			template <class R_TYPE, class T1, class T2> R_TYPE callback(
+			/* define a call for 2 parameters */
+			template <class R_TYPE, class T1, class T2> R_TYPE call(
 					T1 t1, T2 t2,
 					const boost::function<R_TYPE (T1, T2)>& function,
 					bool sync) {
@@ -112,6 +100,21 @@ namespace Threads {
 					return R_TYPE();
 				}
 			}
+
+		private:
+
+			Task task;
+
+			Queue<Message*> queue;
+
+			bool running;
+
+			void post(Message* message);
+
+			void dispatch();
+
+			void _stop();
+
 	};
 
 }

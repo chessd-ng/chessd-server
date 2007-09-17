@@ -85,4 +85,11 @@ namespace XMPP {
 
 }
 
+/* Overloaded swap function for the Jid class */
+namespace std {
+	void swap(XMPP::Jid& j1, XMPP::Jid& j2) {
+		j1.swap(j2);
+	}
+}
+
 #endif

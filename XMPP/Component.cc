@@ -10,9 +10,10 @@ using namespace std;
 
 namespace XMPP {
 
-	Component::Component(const std::string& node_name) :
+	Component::Component(const std::string& node_name, const StanzaHandler& root_handler) :
 		stream("jabber:component:accept"),
-		node_name(node_name) { }
+		node_name(node_name),
+		root_handler(root_handler) { }
 
 	Component::~Component() { }
 
@@ -68,11 +69,8 @@ namespace XMPP {
 		it = this->node_handlers.find(stanza->to().node());
 		if(it != this->node_handlers.end())
 			it->second(stanza);
-		else if(not this->root_handler.empty())
+		else 
 			this->root_handler(stanza);
-		else {
-			delete stanza;
-			cout << "ignoring message" << endl;
 		}
 	}
 
@@ -95,5 +93,4 @@ namespace XMPP {
 		Tag *tag = stanza->tag();
 		this->stream.send(tag);
 	}
-
 }

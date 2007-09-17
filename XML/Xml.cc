@@ -346,8 +346,8 @@ namespace XML {
 			foreach(child_desc, type.children) {
 				bool done = false;
 				while(not done) {
-					CData* cdata;
-					Tag* tag;
+					CData* cdata = 0;
+					Tag* tag = 0;
 					if(child != xml.children().end() and (cdata=dynamic_cast<CData*>(*child))) {
 						if(not type.cdata and not isSpace(cdata->data()))
 							return false;

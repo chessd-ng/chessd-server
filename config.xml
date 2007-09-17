@@ -5,4 +5,10 @@
 		server_password="secret"
 		node_name="match.shiva"
 	/>
+	<game-manager
+		server_address="localhost"
+		server_port="5564"
+		server_password="secret"
+		node_name="game.shiva"
+	/>
 </server>
