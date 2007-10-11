@@ -55,10 +55,10 @@ class GameState {
 
 /* Swap overloads */
 namespace std {
-	void swap(BoardState& b1, BoardState& b2) {
+	inline void swap(BoardState& b1, BoardState& b2) {
 		b1.swap(b2);
 	}
-	void swap(GameState& g1, GameState& g2) {
+	inline void swap(GameState& g1, GameState& g2) {
 		g1.swap(g2);
 	}
 }
@@ -93,10 +93,13 @@ class Game {
 		virtual ~Game() { }
 
 		/*! \brief List of boards in the game */
-		virtual GameState state() const = 0;
+		virtual const GameState& state() const = 0;
 
 		/*! \brief The game category */
-		virtual std::string category() const = 0;
+		virtual const std::string& category() const = 0;
+
+		/*! \brief A title for the game */
+		virtual const std::string& title() const = 0;
 
 		/*! \brief Has the game ended?
 		 *
@@ -109,7 +112,7 @@ class Game {
 		 * \param movement is the description of the movement*/
 		virtual void move(const Player& player, const std::string& movement) = 0;
 
-		virtual TeamList teams() const = 0;
+		virtual const TeamList& teams() const = 0;
 };
 
 
