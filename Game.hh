@@ -6,8 +6,9 @@
 #include <vector>
 #include "Team.hh"
 #include "Rating.hh"
+#include "XML/Xml.hh"
 
-typedef std::map<std::string, std::string> AttributeMap;
+/*typedef std::map<std::string, std::string> AttributeMap;
 
 typedef AttributeMap PlayerState;
 typedef std::vector<PlayerState> PlayerStateList;
@@ -51,10 +52,10 @@ class GameState {
 		AttributeMap _attributes;
 		BoardStateList _boards;
 };
-
+*/
 
 /* Swap overloads */
-namespace std {
+/*namespace std {
 	inline void swap(BoardState& b1, BoardState& b2) {
 		b1.swap(b2);
 	}
@@ -62,6 +63,7 @@ namespace std {
 		g1.swap(g2);
 	}
 }
+*/
 
 class GameResult {
 	public:
@@ -88,6 +90,8 @@ class GameResult {
 		virtual void updateRating(std::map<Player, Rating>& ratings) const = 0;
 };
 
+typedef XML::Tag GameState;
+
 class Game {
 	public:
 		virtual ~Game() { }
@@ -100,6 +104,15 @@ class Game {
 
 		/*! \brief A title for the game */
 		virtual const std::string& title() const = 0;
+
+		/*! \brief The player has resigned */
+		virtual void resign(const Player& player) = 0;
+
+		/*! \brief The player has called a flag */
+		virtual void call_flag(const Player& player) = 0;
+
+		/*! \brief The players agreed on a draw */
+		virtual void draw() = 0;
 
 		/*! \brief Has the game ended?
 		 *
