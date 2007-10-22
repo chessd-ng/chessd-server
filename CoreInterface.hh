@@ -3,6 +3,7 @@
 
 #include <boost/function.hpp>
 #include "XMPP/Jid.hh"
+#include "Game.hh"
 
 typedef boost::function<void ()> ShutdownHandler;
 
@@ -15,20 +16,20 @@ class CoreInterface {
 
 		CoreInterface();
 
-		/*! \brief Set a function to be called on server shutdown
-		 *
-		 * \param handler is the function.
-		 * */
-		void setShutdownHandler(const ShutdownHandler& handler);
 
-		/*! \brief Request the Core to create a game.
+
+		/*! \brief Request the Core to start a game.
 		 *
 		 * The Core is responsible for spawning the game,
 		 * Returns true in case of success, false otherwise
 		 */
-		//bool createGame(const GameInfo& info);
+		void startGame(Game* game);
 
-		/*! \brief Ger an interface to the database.
+		void endGame(int game_id, GameResult* result);
+		void adjournGame(int game_id, GameResult* result);
+		void cancelGame(int game_id);
+
+		/*! \brief Get an interface to the database.
 		 *
 		 * This interface
 		 * is not thread safe so there should be one interface
@@ -36,6 +37,8 @@ class CoreInterface {
 		 * the returned object
 		 */
 		// DatabaseInterface* getDatabaseInterface();
+
+
 
 	private:
 

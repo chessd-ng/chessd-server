@@ -22,12 +22,16 @@ GameManager::GameManager(const XML::Tag& config, const XMPP::ErrorHandler& handl
 {
 	this->dispatcher.start();
 
+	//FIXME
+	GameProtocol::init("protocol");
+
 	/* Set features */
 	this->root_node.disco().features().insert("http://c3sl.ufpr.br/chessd#game");
 
 	/* Set game iqs */
 	this->root_node.setIqHandler(boost::bind(&GameManager::handleGame, this, _1),
 			"http://c3sl.ufpr.br/chessd#game");
+
 }
 
 GameManager::~GameManager() {
@@ -54,7 +58,7 @@ void GameManager::_close() {
 void GameManager::handleGame(Stanza* stanza) {
 	XML::Tag& query = stanza->children().front();
 	try {
-		string query_name = GameProtocol::parseGameQuery(query);
+		string query_name = GameProtocol::parseQuery(query);
 	} catch (const char* msg) {
 		this->root_node.sendStanza(Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg));
 	}
