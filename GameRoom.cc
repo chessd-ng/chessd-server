@@ -184,6 +184,7 @@ void GameRoom::notifyResult(GameResult* result) {
 }
 
 XMPP::Stanza* createStateStanza() {
+	return 0;
 }
 
 void GameRoom::notifyGameState() {

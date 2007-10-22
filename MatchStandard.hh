@@ -40,12 +40,14 @@ struct MatchStandard : public Match {
 		
 		virtual const PlayerList& players() const;
 
-		virtual std::string getCategory() const;
+		virtual const std::string& category() const;
 
 		virtual Game* createGame() const;
 
 	private:
-		std::pair<StandardMatchPlayer, StandardMatchPlayer> _players;
+		PlayerList _players;
+		std::pair<StandardMatchPlayer, StandardMatchPlayer> _match_players;
+		const std::string _category;
 };
 
 #endif

@@ -12,20 +12,16 @@ MatchDatabase::~MatchDatabase() {
 int MatchDatabase::insertMatch(Match* match) {
 	int id = this->match_ids.acquireID();
 	this->matchs.insert(make_pair(id, new MatchInfo(match)));
-	foreach(team, match->getTeams()) {
-		foreach(player, *team) {
-			this->player_matchs[player->jid].insert(id);
-		}
+	foreach(player, match->players()) {
+		this->player_matchs[*player].insert(id);
 	}
 	return id;
 }
 
 MatchDatabase::MatchInfo::MatchInfo(Match* match) : match(match), pending_count(0) {
-	foreach(team, match->getTeams()) {
-		foreach(player, *team) {
-			this->accepted_players[player->jid]=0;
-			this->pending_count ++;
-		}
+	foreach(player, match->players()) {
+		this->accepted_players[*player]=0;
+		this->pending_count ++;
 	}
 }
 
@@ -60,10 +56,8 @@ Match* MatchDatabase::closeMatch(int id) {
 	map<int, MatchInfo*>::iterator it = this->matchs.find(id);
 	MatchInfo* match_info = it->second;
 	Match* match = match_info->match.release();
-	foreach(team, match->getTeams()) {
-		foreach(player, *team) {
-			this->player_matchs[player->jid].erase(id);
-		}
+	foreach(player, match->players()) {
+		this->player_matchs[*player].erase(id);
 	}
 	this->match_ids.releaseID(id);
 	this->matchs.erase(it);

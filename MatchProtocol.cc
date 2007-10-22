@@ -20,31 +20,31 @@ void MatchProtocol::init(const std::string& path) {
 		throw "Could not load match_decline.desc";
 }
 
-MatchOffer* MatchProtocol::parseMatchOffer(XML::Tag& query) {
+//MatchOffer* MatchProtocol::parseMatchOffer(XML::Tag& query) {
 	/* Validate format */
-	if(not MatchProtocol::match_offer_desc.validateXML(query))
-		throw "Invalid syntax";
+//	if(not MatchProtocol::match_offer_desc.validateXML(query))
+//		throw "Invalid syntax";
 	/* Get the query's children */
-	XML::ChildrenList::iterator it = query.children().begin();
+//	XML::ChildrenList::iterator it = query.children().begin();
 	/* Create de offer, make sure it will be deleted on exception */
-	auto_ptr<MatchOffer> offer(new MatchOffer);
+//	auto_ptr<MatchOffer> offer(new MatchOffer);
 	/* Get the category */
-	XML::Tag& tag = dynamic_cast<XML::Tag&> (*it);
-	offer->category = tag.getAttribute("category");
+//	XML::Tag& tag = dynamic_cast<XML::Tag&> (*it);
+//	offer->category = tag.getAttribute("category");
 	/* Iterate through players */
-	for(++it; it != query.children().end(); ++it) {
-		XML::Tag& tag=dynamic_cast<XML::Tag&> (*it);
-		/* check if the color is valid */
-		if(tag.getAttribute("color")!="w" and tag.getAttribute("color")!="b")
-			throw "Invalid color";
+//	for(++it; it != query.children().end(); ++it) {
+//		XML::Tag& tag=dynamic_cast<XML::Tag&> (*it);
+//		/* check if the color is valid */
+//		if(tag.getAttribute("color")!="w" and tag.getAttribute("color")!="b")
+//			throw "Invalid color";
 
-		offer->entities.push_back(MatchPlayer(tag.getAttribute("jid"),
-					Util::str2int(tag.getAttribute("time")) * 60 * Util::Seconds,
-					Util::str2int(tag.getAttribute("inc")) * Util::Seconds,
-					tag.getAttribute("color")=="w"?White:Black));
-	}
-	return offer.release();
-}
+//		offer->entities.push_back(MatchPlayer(tag.getAttribute("jid"),
+//					Util::str2int(tag.getAttribute("time")) * 60 * Util::Seconds,
+//					Util::str2int(tag.getAttribute("inc")) * Util::Seconds,
+//					tag.getAttribute("color")=="w"?White:Black));
+//	}
+//	return offer.release();
+//}
 
 std::string MatchProtocol::parseMatch(XML::Tag& query) {
 	/* Validate format */
@@ -65,14 +65,14 @@ int MatchProtocol::parseMatchDecline(XML::Tag& query) {
 	return Util::str2int(query.getChild("match").getAttribute("id"));
 }
 
-XML::Tag* MatchProtocol::notifyMatchOffer(const Match& match, int id) {
+/*XML::Tag* MatchProtocol::notifyMatchOffer(const Match& match, int id) {
 	XML::TagGenerator generator;
 	generator.openTag("query");
 	generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#match");
 	generator.addAttribute("action", "offer");
 	generator.openTag("match");
 	generator.addAttribute("id", Util::int2str(id));
-	generator.addAttribute("category", match.getCategory());
+	generator.addAttribute("category", match.category());
 	generator.closeTag();
 	foreach(team, match.getTeams()) {
 		generator.openTag("team");
@@ -87,7 +87,7 @@ XML::Tag* MatchProtocol::notifyMatchOffer(const Match& match, int id) {
 		generator.closeTag();
 	}
 	return generator.closeTag();
-}
+}*/
 
 XML::Tag* MatchProtocol::notifyMatchResult(const Match& match, int id, bool accepted) {
 	XML::TagGenerator generator;
