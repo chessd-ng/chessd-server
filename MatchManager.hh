@@ -4,13 +4,14 @@
 #include <map>
 #include <set>
 #include <memory>
+#include <boost/ptr_container/ptr_map.hpp>
 #include "CoreInterface.hh"
 #include "XMPP/Component.hh"
-#include "XMPP/Node.hh"
+#include "XMPP/RootNode.hh"
 #include "XMPP/Disco.hh"
 #include "XMPP/Roster.hh"
 #include "Threads/Dispatcher.hh"
-#include "ComponentListener.hh"
+#include "ComponentWrapper.hh"
 #include "Util/Timer.hh"
 
 #include "Match.hh"
@@ -26,7 +27,7 @@ class MatchManager {
 		 * \param core_interface is the interface to the core.
 		 * \param config is the configuration for this component.
 		 */
-		MatchManager(CoreInterface* core_interface, const XML::Tag& config);
+		MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& handleError);
 
 		/*! \brief Destructor
 		 *
@@ -36,9 +37,9 @@ class MatchManager {
 
 		/*! \brief Connect to the server.
 		 *
-		 * \return Returns true on success, false otherwise.
+		 * \throw Throws an exception on error.
 		 */
-		bool connect();
+		void connect();
 
 		/*! \brief Insert a match rule
 		 *
@@ -71,6 +72,10 @@ class MatchManager {
 
 		void notifyUserStatus(const XMPP::Jid jid, bool available);
 
+		void _handleError(const std::string& error);
+
+		void handleStanza(XMPP::Stanza* stanza);
+
 		/*! \brief We run in a separated thread as a dispatcher */
 		Threads::Dispatcher dispatcher;
 
@@ -78,16 +83,13 @@ class MatchManager {
 		bool running;
 
 		/*! \brief Interface to the core */
-		std::auto_ptr<CoreInterface> core_interface;
+		CoreInterface core_interface;
 
-		/*! \brief A XMPP component */
-		XMPP::Component component;
-
-		/*! \brief A component listener */
-		ComponentListener listener;
+		/*! \brief A component wrapper */
+		ComponentWrapper component;
 
 		/*! \brief A XMPP node*/
-		XMPP::Node root_node;
+		XMPP::RootNode root_node;
 
 		/*! \brief A XMPP roster */
 		XMPP::Roster roster;
@@ -95,7 +97,7 @@ class MatchManager {
 		/*! \brief Team database */
 		TeamDatabase teams;
 
-		typedef std::map<std::string, MatchRule*>  RuleMap;
+		typedef boost::ptr_map<std::string, MatchRule>  RuleMap;
 		/*! \brief Registered rules */
 		RuleMap rules;
 
@@ -113,7 +115,7 @@ class MatchManager {
 		/*! \brief The server password */
 		std::string server_password;
 
-		MatchProtocol protocol;
+		XMPP::ErrorHandler handleError;
 };
 
 #endif

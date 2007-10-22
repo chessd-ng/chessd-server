@@ -7,8 +7,8 @@
 	/>
 	<game-manager
 		server_address="localhost"
-		server_port="5564"
+		server_port="5561"
 		server_password="secret"
-		node_name="game.shiva"
+		node_name="games.shiva"
 	/>
 </server>

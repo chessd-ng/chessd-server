@@ -18,11 +18,12 @@ namespace XMPP {
 			 * \param type if the node type.
 			 * \param name is the node name.
 			 */
-			Node(const StanzaSender& sender,
-					const std::string& name = "",
-					const std::string& category = "",
-					const std::string& type = "");
-			~Node();
+			Node(const StanzaHandler& send_stanza,
+					const Jid& jid,
+					const std::string& name,
+					const std::string& category,
+					const std::string& type);
+			virtual ~Node();
 
 			/*! \brief Set a handler for message stanzas.
 			 *
@@ -85,6 +86,8 @@ namespace XMPP {
 			void sendIq(Stanza* stanza, const StanzaHandler& on_result = StanzaHandler(),
 					const TimeoutHandler& on_timeout = TimeoutHandler());
 
+			void sendStanza(Stanza* stanza);
+
 
 		private:
 
@@ -96,7 +99,7 @@ namespace XMPP {
 			HandlerMap message_handlers;
 			HandlerMap iq_handlers;
 			StanzaHandler presence_handler;
-			StanzaHandler stanza_sender;
+			StanzaHandler send_stanza;
 
 			Disco _disco;
 
@@ -115,6 +118,8 @@ namespace XMPP {
 			};
 
 			std::map<int, IQTrack> iq_tracks;
+
+			Jid jid;
 	};
 
 }

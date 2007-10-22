@@ -1,75 +1,104 @@
 #include "GameManager.hh"
 #include "GameProtocol.hh"
+#include "Util/utils.hh"
 
-GameManager::GameManager(const XML::Tag& config) :
-	running(false),
-	component(config.getAttribute("node_name"),
-			this->dispatcher.createTunnel(boost:bind(&Node::handleStanza, &this->root_node))),
+using namespace XMPP;
+using namespace std;
+
+GameManager::GameManager(const XML::Tag& config, const XMPP::ErrorHandler& handle_error) :
+	component(
+			ComponentWrapperHandlers(boost::bind(&GameManager::handleError, this, _1)),
+			config.getAttribute("node_name"),
+			boost::bind(&GameManager::handleStanza, this, _1)),
+	root_node(boost::bind(&ComponentWrapper::sendStanza, &this->component, _1),
+			XMPP::Jid(config.getAttribute("node_name")),
+			"Game Manager", "service", "game"),
 	node_name(config.getAttribute("node_name")),
-	listener(this->component),
-	root_node(boost::bind(&Component::send, &this->component, _1), "Game Manager", "service", "game"),
 	server_address(config.getAttribute("server_address")),
 	server_port(Util::str2int(config.getAttribute("server_port"))),
 	server_password(config.getAttribute("server_password")),
-	insert_game_tunnel(this->dispatcher.createTunnel(
-				boost::bind(&GameManager::_insertGame, this, _1, _2)))
+	handle_error(handle_error),
+	running(false)
 {
+	this->dispatcher.start();
+
 	/* Set features */
 	this->root_node.disco().features().insert("http://c3sl.ufpr.br/chessd#game");
 
-	/* Set match iqs */
-	this->root_node.setIqHandler(boost::bind(&MatchManager::handleGame, this, _1),
+	/* Set game iqs */
+	this->root_node.setIqHandler(boost::bind(&GameManager::handleGame, this, _1),
 			"http://c3sl.ufpr.br/chessd#game");
 }
 
 GameManager::~GameManager() {
-	if(this->running)
-		this->close();
+	this->close();
+	this->dispatcher.stop();
 }
 
-bool GameManager::connect() {
-	if(not this->component.connect(this->server_address, this->server_port, this->server_password)) {
-		return false; // TODO throw an exception
-	} else {
-		this->running = true;
-		this->dispatcher.start();
-		this->listener.start();
-	}
+void GameManager::connect() {
+	this->running = true;
+	this->component.connect(this->server_address, this->server_port, this->server_password);
 }
 
 void GameManager::close() {
-	this->listener.stop();
-	this->dispatcher.stop();
-	this->component.close();
-	this->running = false;
+	this->dispatcher.queue(boost::bind(&GameManager::_close, this));
+}
+
+void GameManager::_close() {
+	if(this->running) {
+		this->running = false;
+		this->component.close();
+	}
 }
 
 void GameManager::handleGame(Stanza* stanza) {
-	Tag& query = *stanza->children().front();
+	XML::Tag& query = stanza->children().front();
 	try {
-		std::string = GameProtocol::parseGameQuery(query);
+		string query_name = GameProtocol::parseGameQuery(query);
 	} catch (const char* msg) {
-		this->component.send(Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg));
+		this->root_node.sendStanza(Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg));
 	}
 	// nothing to do here yet
 	delete stanza;
 }
 
-void GameManager::insertGame(Game* game, int game_id) {
-	this->insert_game_tunnel(game, game_id);
+void GameManager::insertGame(int game_id, Game* game) {
+	this->dispatcher.queue(boost::bind(&GameManager::_insertGame, this, game_id, game));
 }
 
-void GameManager::_insertGame(Game* game, int game_id) {
-	GameRoom* game_room = new GameRoom(game, game_id,
-			boost::bind(&GameManager::handleGameResult, this, _1, game_id));
-	this->component.setStanzaHandler(this->dispatcher.createTunnel(boost::bind(
-					&GameRoom::handleStanza, game_room, _1)), "game_" + Utils::int2str(game_id));
-	this->root_node.disco().items().insert(XMPP::DiscoItem("game_" + Utils::int2str(game_id),
-				XMPP::Jid(this->node_name + "@game_" + Utils::int2str(game_id))));
-	game_rooms.insert(game_id, game_room);
+void GameManager::_insertGame(int game_id, Game* game) {
+	int room_id = this->room_ids.acquireID();
+	std::string room_name = "game_" + Util::int2str(room_id);
+	/* Create the game room */
+	GameRoom* game_room = new GameRoom(game_id, game, room_name,
+			GameRoomHandlers(boost::bind(&ComponentWrapper::sendStanza, &this->component, _1),
+				boost::bind(&GameManager::closeGameRoom, this, room_id)));
+	/* Register the new jabber node */
+	this->root_node.setStanzaHandler(room_name,
+			boost::bind(&GameRoom::handleStanza, game_room, _1));
+	/* Add the new jabber node to the disco */
+	this->root_node.disco().items().insert(new XMPP::DiscoItem(room_name,
+				XMPP::Jid(this->node_name + "@" + room_name)));
+	game_rooms.insert(room_id, game_room);
 }
 
-GameRoom::GameRoom(Game* game, int game_id): game(game), game_id(game_id) { }
+void GameManager::closeGameRoom(int room_id) {
+	this->dispatcher.queue(boost::bind(&GameManager::_closeGameRoom, this, room_id));
+}
 
-GameRoom::~GameRoom() {
+void GameManager::_closeGameRoom(int room_id) {
+	this->room_ids.releaseID(room_id);
+	string room_name = "game_" + Util::int2str(room_id);
+	this->root_node.removeStanzaHandler(room_name);
+	this->root_node.disco().items().erase(room_name);
+	this->game_rooms.erase(room_id);
+}
+
+void GameManager::handleStanza(XMPP::Stanza* stanza) {
+	this->dispatcher.queue(boost::bind(&XMPP::RootNode::handleStanza, &this->root_node, stanza));
+}	
+
+void GameManager::handleError(const std::string& error) {
+	this->close();
+	this->handle_error(error);
 }

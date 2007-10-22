@@ -9,6 +9,9 @@ namespace XMPP {
 		public:
 			Jid(const std::string& jid);
 			Jid(const Jid& jid);
+			Jid(const std::string& node,
+					const std::string& domain,
+					const std::string& resource);
 			Jid();
 			~Jid();
 
@@ -87,7 +90,7 @@ namespace XMPP {
 
 /* Overloaded swap function for the Jid class */
 namespace std {
-	void swap(XMPP::Jid& j1, XMPP::Jid& j2) {
+	inline void swap(XMPP::Jid& j1, XMPP::Jid& j2) {
 		j1.swap(j2);
 	}
 }

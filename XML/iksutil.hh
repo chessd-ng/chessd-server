@@ -8,7 +8,7 @@
 
 namespace XML {
 	/* Transform a Tag into a iksemel tree */
-	iks* tag2iks(const XML::Tag* tag);
+	iks* tag2iks(const XML::Tag& tag);
 
 	/* Transform a iksemel tree into a Tag */
 	XML::Tag* iks2tag(iks* tree); 

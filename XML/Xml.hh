@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <stack>
+#include <boost/ptr_container/ptr_vector.hpp>
 
 namespace XML {
 
@@ -16,7 +17,7 @@ namespace XML {
 	};
 
 	typedef std::map<std::string, std::string> AttributeMap;
-	typedef std::vector<Item*> ChildrenList;
+	typedef boost::ptr_vector<Item> ChildrenList;
 
 	class Tag : public Item {
 		public:

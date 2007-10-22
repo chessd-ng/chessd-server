@@ -5,8 +5,9 @@
 #include <set>
 #include <memory>
 #include "Match.hh"
-#include "Util/Sdb.hh"
 #include "Team.hh"
+#include "TeamDatabase.hh"
+#include "XML/Xml.hh"
 
 /* This match stuff is not flexible as it should be according
  * to the OO design. Each rule may require very different 
@@ -16,6 +17,11 @@
  * communication should have something equally flexible,
  * such as the X forms in the xmpp. */
 
+
+/*struct MatchOffer {
+	std::string category;
+	std::vector<MatchPlayer> entities;
+};*/
 
 /*! \brief A MatchRule's descriptor .
  *
@@ -35,7 +41,7 @@ class MatchRule {
 		 * \param teamdb is the collection of available team
 		 * \return Returns a pointer to a match description on success, 0 otherwise.
 		 */
-		virtual Match* checkOffer(MatchOffer* match_offer,
+		virtual Match* checkOffer(XML::Tag& match_offer,
 				const TeamDatabase& teams) const = 0;
 };
 

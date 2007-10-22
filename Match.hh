@@ -6,6 +6,8 @@
 
 #include "XMPP/Jid.hh"
 #include "Util/Timer.hh"
+#include "Game.hh"
+#include "Team.hh"
 
 /* This match stuff is not flexible as it should be according
  * to the OO design. Each rule may require very different 
@@ -28,13 +30,13 @@
  * if someone want to implment a game that has more
  * than two colors? */
 
-enum PlayerColor {
+/*enum PlayerColor {
 	White,
 	Black
-};
+};*/
 
 /*! \brief A player regarding a match. */
-struct MatchPlayer {
+/*struct MatchPlayer {
 	MatchPlayer(XMPP::Jid jid, Util::Time time, Util::Time inc, PlayerColor color) :
 		jid(jid),
 		time(time),
@@ -47,7 +49,7 @@ struct MatchPlayer {
 
 typedef std::vector<MatchPlayer> MatchTeam;
 
-typedef std::vector<MatchTeam> MatchTeams;
+typedef std::vector<MatchTeam> MatchTeams;*/
 
 /*! \brief An abstract match description. */
 struct Match {
@@ -57,15 +59,15 @@ struct Match {
 		/*! \brief Destructor */
 		virtual ~Match() { }
 
-		/*! \brief The teams involved in the match */
-		virtual const MatchTeams& getTeams() const = 0;
+		/*! \brief The players involved in the match */
+		virtual const PlayerList& players() const = 0;
 
-		virtual std::string getCategory() const = 0;
-};
+		virtual const std::string& category() const = 0;
 
-struct MatchOffer {
-	std::string category;
-	std::vector<MatchPlayer> entities;
+		virtual Game* createGame() const = 0;
+
+		/*! \brief The offer notification */
+		virtual XML::Tag* notification() const = 0;
 };
 
 #endif

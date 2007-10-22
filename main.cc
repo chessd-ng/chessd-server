@@ -19,15 +19,18 @@ void log_traffic(const std::string& data, bool incoming) {
 int main(void) {
 	try {
 		XML::Tag* config = XML::loadXmlFile("config.xml");
-		Core* core = new Core(config);
+		Core::init(*config);
+		Core& core = Core::singleton();
 		delete config;
-		if(not core->connect()) {
-			cout << "Connection to server failed." << endl;
+		try {
+			core.connect();
+		} catch(const char* error) {
+			cout << error << endl;
 			return 1;
 		}
 		string cmd;
 		cin >> cmd;
-		delete core;
+		Core::destroy();
 	} catch (const char* msg) {
 		cout << "Error: " << msg << endl;
 	}

@@ -3,94 +3,67 @@
 
 #include <iksemel.h>
 #include <iostream>
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 using namespace XML;
-using namespace std;
 
 namespace XMPP {
 
-	Component::Component(const std::string& node_name, const StanzaHandler& root_handler) :
-		stream("jabber:component:accept"),
-		node_name(node_name),
-		root_handler(root_handler) { }
+	Component::Component(const std::string& component_name, 
+			ComponentHandlers handlers) :
+		component_name(component_name),
+		handlers(handlers),
+		not_authed(1) { }
 
 	Component::~Component() { }
 
-	bool Component::connect(const std::string& host, int port, const std::string& password) {
-		bool success;
-		success = this->stream.connect(host, port);
-		if(not success)
-			return false;
-		success = this->auth(password);
-		if(not success)
-			return false;
-		else
-			return true;
-	}
-
-	void Component::close() {
-		this->stream.close();
-	}
-
-	bool Component::auth(const std::string& password) {
-		boost::scoped_ptr<Tag> tag(this->stream.recv());
-		if(tag.get() == 0)
-			return false;
-		if (tag->name() != "stream:stream") {
-			return false;
-		} else if(not tag->hasAttribute("id")) {
-			return false;
+	void Component::handleTag(Tag* tag) {
+		if(not not_authed) {
+			this->handlers.handleStanza(new Stanza(tag));
 		} else {
-			string data = tag->getAttribute("id") + password;
-			char hash[128];
-			iks_sha(data.c_str(), hash);
-			Tag* tag_tmp = new Tag("handshake");
-			tag_tmp->children().push_back(new CData(hash));
-			if(not this->stream.send(tag_tmp))
-				return false;
-		}
-		tag.reset(this->stream.recv());
-		if(tag.get() == 0)
-			return false;
-		if(tag->name() == "handshake") {
-			return true;
-		} else {
-			return false;
+			try {
+				this->auth(tag);
+			} catch (const char* error) {
+				this->handlers.handleError(error);
+			}
 		}
 	}
 
-	void Component::deliverStanza(int timeout) {
-		Tag* tag = this->stream.recv(timeout);
-		if(tag == 0)
-			return;
-		Stanza* stanza = new Stanza(tag);
-		HandlerMap::const_iterator it;
-		it = this->node_handlers.find(stanza->to().node());
-		if(it != this->node_handlers.end())
-			it->second(stanza);
-		else 
-			this->root_handler(stanza);
+	void Component::sendStanza(Stanza* stanza) {
+		/*if(stanza->from().empty())
+			stanza->from() = this->component_name;
+		Tag *tag = stanza->tag();*/
+		this->handlers.sendTag(stanza->tag());
+	}
+
+	void Component::auth(XML::Tag* _tag) {
+		std::auto_ptr<Tag> tag(_tag);
+		if(not_authed == 1) {
+			if (tag->name() != "stream:stream") {
+				throw "Athentication error: Invalid protocol";
+			} else if(not tag->hasAttribute("id")) {
+				throw "Athentication error: Invalid protocol";
+			} else {
+				std::string data = tag->getAttribute("id") + this->password;
+				char hash[128];
+				iks_sha(data.c_str(), hash);
+				Tag* tag_tmp = new Tag("handshake");
+				tag_tmp->children().push_back(new CData(hash));
+				this->handlers.sendTag(tag_tmp);
+				this->not_authed = 2;
+			}
+		} else if(not_authed == 2) {
+			if(tag->name() == "handshake") {
+				this->not_authed = 0;
+				this->handlers.connected();
+			} else {
+				throw "Athentication error: Permission Denied";
+			}
 		}
 	}
 
-	void Component::setStanzaHandler(const StanzaHandler& handler,
-			const string& node) {
-		this->node_handlers[node] = handler;
-	}
-
-	void Component::removeStanzaHandler(const string& node) {
-		this->node_handlers.erase(node);
-	}
-
-	void Component::setRootStanzaHandler(const StanzaHandler& handler) {
-		this->root_handler = handler;
-	}
-
-	void Component::send(Stanza* stanza) {
-		if(stanza->from().empty())
-			stanza->from() = this->node_name;
-		Tag *tag = stanza->tag();
-		this->stream.send(tag);
+	void Component::connect(const std::string& password) {
+		this->password = password;
+		this->not_authed = 1;
 	}
 }

@@ -20,6 +20,8 @@ namespace XMPP {
 	};
 
 	static int hook(void* user_data, int type, iks* node) {
+		if(node == 0)
+			return IKS_OK;
 		Stream::HookInfo* hinfo = (Stream::HookInfo*) user_data;
 		Tag* tag = iks2tag(node);
 		iks_delete(node);
@@ -51,11 +53,13 @@ namespace XMPP {
 		free(this->ns);
 	}
 
-	bool Stream::connect(const string& host, int port) {
+	void Stream::connect(const string& host, int port) {
 		int ret;
 		ret = iks_connect_tcp(this->hinfo->parser, host.c_str(), port);
 		this->active = (ret == IKS_OK);
-		return this->active;
+		if(not this->active) {
+			throw "Connection failed";
+		}
 	}
 
 	void Stream::close() {
@@ -63,7 +67,7 @@ namespace XMPP {
 		this->active = false;
 	}
 
-	Tag* Stream::recv(int timeout) {
+	Tag* Stream::recvTag(int timeout) {
 		int ret = IKS_OK;
 		if(this->hinfo->incoming.empty()) {
 			ret = iks_recv(this->hinfo->parser, timeout);
@@ -82,16 +86,17 @@ namespace XMPP {
 		}
 	}
 
-	bool Stream::send(Tag* tag) {
+	void Stream::sendTag(Tag* tag) {
 		cout << tag->xml() << endl;
-		iks* tree = tag2iks(tag);
+		iks* tree = tag2iks(*tag);
 		delete tag;
 		int ret = iks_send(this->hinfo->parser, tree);
 		iks_delete(tree);
 		if(ret != IKS_OK) {
 			this->active = false;
 			iks_disconnect(this->hinfo->parser);
+			throw "Connection lost";
 		}
-		return this->active;
 	}
+
 }

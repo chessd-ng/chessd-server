@@ -4,62 +4,63 @@
 
 using namespace std;
 
-MatchProtocol::MatchProtocol(const std::string& path) {
-	if(not this->match_offer_desc.loadFromFile(path + "/match_offer.desc"))
+XML::Description MatchProtocol::match_offer_desc;
+XML::Description MatchProtocol::match_desc;
+XML::Description MatchProtocol::match_accept_desc;
+XML::Description MatchProtocol::match_decline_desc;
+
+void MatchProtocol::init(const std::string& path) {
+	if(not MatchProtocol::match_offer_desc.loadFromFile(path + "/match_offer.desc"))
 		throw "Could not load match_offer.desc";
-	if(not this->match_desc.loadFromFile(path + "/match.desc"))
+	if(not MatchProtocol::match_desc.loadFromFile(path + "/match.desc"))
 		throw "Could not load match.desc";
-	if(not this->match_accept_desc.loadFromFile(path + "/match_accept.desc"))
+	if(not MatchProtocol::match_accept_desc.loadFromFile(path + "/match_accept.desc"))
 		throw "Could not load match_accept.desc";
-	if(not this->match_decline_desc.loadFromFile(path + "/match_decline.desc"))
+	if(not MatchProtocol::match_decline_desc.loadFromFile(path + "/match_decline.desc"))
 		throw "Could not load match_decline.desc";
-}
-
-MatchProtocol::~MatchProtocol() {
-
 }
 
 MatchOffer* MatchProtocol::parseMatchOffer(XML::Tag& query) {
 	/* Validate format */
-	if(not this->match_offer_desc.validateXML(query))
+	if(not MatchProtocol::match_offer_desc.validateXML(query))
 		throw "Invalid syntax";
 	/* Get the query's children */
 	XML::ChildrenList::iterator it = query.children().begin();
 	/* Create de offer, make sure it will be deleted on exception */
 	auto_ptr<MatchOffer> offer(new MatchOffer);
 	/* Get the category */
-	XML::Tag* tag = dynamic_cast<XML::Tag*> (*it);
-	offer->category = tag->getAttribute("category");
+	XML::Tag& tag = dynamic_cast<XML::Tag&> (*it);
+	offer->category = tag.getAttribute("category");
 	/* Iterate through players */
 	for(++it; it != query.children().end(); ++it) {
-		XML::Tag* tag=dynamic_cast<XML::Tag*> (*it);
+		XML::Tag& tag=dynamic_cast<XML::Tag&> (*it);
 		/* check if the color is valid */
-		if(tag->getAttribute("color")!="w" and tag->getAttribute("color")!="b")
+		if(tag.getAttribute("color")!="w" and tag.getAttribute("color")!="b")
 			throw "Invalid color";
 
-		offer->entities.push_back(MatchPlayer(tag->getAttribute("jid"),
-					Util::str2int(tag->getAttribute("time")) * 60 * Util::Seconds,
-					Util::str2int(tag->getAttribute("inc")) * Util::Seconds,
-					tag->getAttribute("color")=="w"?White:Black));
+		offer->entities.push_back(MatchPlayer(tag.getAttribute("jid"),
+					Util::str2int(tag.getAttribute("time")) * 60 * Util::Seconds,
+					Util::str2int(tag.getAttribute("inc")) * Util::Seconds,
+					tag.getAttribute("color")=="w"?White:Black));
 	}
 	return offer.release();
 }
 
 std::string MatchProtocol::parseMatch(XML::Tag& query) {
 	/* Validate format */
-	if(not this->match_desc.validateXML(query))
+	if(not MatchProtocol::match_desc.validateXML(query))
 		throw "Invalid syntax";
 	return query.getAttribute("action");
 }
 
 int MatchProtocol::parseMatchAccept(XML::Tag& query) {
-	if(not this->match_accept_desc.validateXML(query))
+	if(not MatchProtocol::match_accept_desc.validateXML(query))
 		throw "Invalid syntax";
 	return Util::str2int(query.getChild("match").getAttribute("id"));
 }
 
 int MatchProtocol::parseMatchDecline(XML::Tag& query) {
-	if(not this->match_decline_desc.validateXML(query))
+	if(not MatchProtocol::match_decline_desc.validateXML(query))
 		throw "Invalid syntax";
 	return Util::str2int(query.getChild("match").getAttribute("id"));
 }

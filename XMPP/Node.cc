@@ -6,12 +6,14 @@ using namespace std;
 
 namespace XMPP {
 
-	Node::Node(const StanzaSender& sender,
+	Node::Node(const StanzaHandler& sender,
+			const Jid& jid,
 			const std::string& name,
 			const std::string& category,
 			const std::string& type) :
-		stanza_sender(sender),
-		_disco(sender, name, category, type) {
+		send_stanza(sender),
+		_disco(sender, name, category, type), 
+	jid(jid){
 			this->setIqHandler(boost::bind(&Disco::handleIqInfo, &this->_disco, _1),
 					"http://jabber.org/protocol/disco#info");
 			this->setIqHandler(boost::bind(&Disco::handleIqItems, &this->_disco, _1),
@@ -45,24 +47,29 @@ namespace XMPP {
 		this->presence_handler = StanzaHandler();
 	}
 
+	void Node::sendStanza(Stanza* stanza) {
+		stanza->from() = jid;
+		this->send_stanza(stanza);
+	}
+
 	void Node::handleIq(Stanza* stanza) {
 		try {
 			if(not stanza->children().empty() and not stanza->id().empty()) {
 				if(stanza->subtype() == "set" or stanza->subtype() == "get") {
 					HandlerMap::const_iterator it;
-					const string& ns = stanza->children().front()->attributes()["xmlns"];
+					const string& ns = stanza->children().front().attributes()["xmlns"];
 					it = this->iq_handlers.find(ns);
 					if(it == this->iq_handlers.end()) {
 						Stanza* error = Stanza::createErrorStanza(stanza,
 								"cancel", "feature-not-implemented");
-						this->stanza_sender(error);
+						this->sendStanza(error);
 					} else {
 						it->second(stanza);
 					}
 				} else if((stanza->subtype() == "result" or stanza->subtype() == "error") and
 						Util::isNumber(stanza->id())) {
 					int id = Util::str2int(stanza->id());
-					if(not Util::hasKey(this->iq_tracks, id))
+					if(not Util::has_key(this->iq_tracks, id))
 						throw "";
 					const IQTrack& iq_track = this->iq_tracks.find(id)->second;
 					if(iq_track.jid != stanza->from())
@@ -83,7 +90,7 @@ namespace XMPP {
 		} catch(const char* msg) {
 			Stanza* error = Stanza::createErrorStanza
 				(stanza, "modify", "bad-request", msg);
-			this->stanza_sender(error);
+			this->sendStanza(error);
 		}
 	}
 
@@ -94,14 +101,14 @@ namespace XMPP {
 			if(it == this->message_handlers.end()) {
 				Stanza* error = Stanza::createErrorStanza(stanza,
 						"cancel", "feature-not-implemented");
-				this->stanza_sender(error);
+				this->sendStanza(error);
 			} else {
 				it->second(stanza);
 			}
 		} else {
 			Stanza* error = Stanza::createErrorStanza(stanza,
 					"modify", "bad-request");
-			this->stanza_sender(error);
+			this->sendStanza(error);
 		}
 	}
 
@@ -123,7 +130,7 @@ namespace XMPP {
 		} else {
 			Stanza* error = Stanza::createErrorStanza(stanza,
 					"modify", "bad-request");
-			this->stanza_sender(error);
+			this->sendStanza(error);
 		}
 	}
 
@@ -131,7 +138,7 @@ namespace XMPP {
 		int id = this->iq_ids.acquireID();
 		stanza->id() = Util::int2str(id);
 		this->iq_tracks.insert(make_pair(id, IQTrack(stanza->to(), on_result, on_timeout)));
-		this->stanza_sender(stanza);
+		this->sendStanza(stanza);
 	}
 
 }

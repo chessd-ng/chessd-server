@@ -8,24 +8,25 @@ using namespace std;
 
 namespace XML {
 
-	static iks* _tag2iks(const Tag* tag, ikstack* stack) {
-		iks* iktree = iks_new_within(tag->name().c_str(), stack);
+	static iks* _tag2iks(const Tag& tag, ikstack* stack) {
+		iks* iktree = iks_new_within(tag.name().c_str(), stack);
 		AttributeMap::const_iterator a_it;
-		for(a_it = tag->attributes().begin(); a_it != tag->attributes().end(); ++a_it)
+		for(a_it = tag.attributes().begin(); a_it != tag.attributes().end(); ++a_it)
 			iks_insert_attrib(iktree, a_it->first.c_str(), a_it->second.c_str());
 		ChildrenList::const_iterator c_it;
-		for(c_it = tag->children().begin(); c_it != tag->children().end(); ++c_it) {
-			Tag* tag_child;
-			CData* cdata_child;
-			if((tag_child = dynamic_cast<Tag*>(*c_it)))
+		for(c_it = tag.children().begin(); c_it != tag.children().end(); ++c_it) {
+			if(typeid(*c_it)==typeid(Tag)) {
+				const Tag& tag_child = dynamic_cast<const Tag&>(*c_it);
 				iks_insert_node(iktree, _tag2iks(tag_child,stack));
-			else if((cdata_child = dynamic_cast<CData*>(*c_it)))
-				iks_insert_cdata(iktree, cdata_child->data().c_str(), cdata_child->data().size());
+			} else if(typeid(*c_it)==typeid(CData)) {
+				const CData& cdata_child = dynamic_cast<const CData&>(*c_it);
+				iks_insert_cdata(iktree, cdata_child.data().c_str(), cdata_child.data().size());
+			}
 		}
 		return iktree;
 	}
 
-	iks* tag2iks(const Tag* tag) {
+	iks* tag2iks(const Tag& tag) {
 		ikstack* stack = iks_stack_new(256, 256);
 		return _tag2iks(tag, stack);
 	}

@@ -7,6 +7,7 @@
 #include <memory>
 
 #include <boost/function.hpp>
+#include <boost/utility/result_of.hpp>
 
 namespace Threads {
 
@@ -23,11 +24,11 @@ namespace Threads {
 			Semaphore* semaphore;
 	};
 
-	template <class R_TYPE> class TypedMessage;
+	template <class R_TYPE, class CALLABLE> class TypedMessage;
 
-	template <class R_TYPE> class TypedMessage : public Message {
+	template <class R_TYPE, class CALLABLE> class TypedMessage : public Message {
 		public:
-			typedef boost::function<R_TYPE() > message_function;
+			typedef CALLABLE message_function;
 
 			TypedMessage(const message_function& message, bool sync)
 				: Message(sync), message(message) { }
@@ -50,9 +51,9 @@ namespace Threads {
 			R_TYPE ret;
 	};
 
-	template <> class TypedMessage<void> : public Message {
+	template <class CALLABLE> class TypedMessage<void, CALLABLE> : public Message {
 		public:
-			typedef boost::function<void()> message_function;
+			typedef CALLABLE message_function;
 
 			TypedMessage(const message_function& message, bool sync)
 				: Message(sync), message(message) { }
@@ -73,6 +74,9 @@ namespace Threads {
 			message_function message;
 	};
 
+	template <class CALLABLE> Message* createMessage(const CALLABLE& callable, bool sync) {
+		return new TypedMessage<typename boost::result_of<CALLABLE()>::type, CALLABLE>(callable, sync);
+	}
 }
 
 #endif

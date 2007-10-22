@@ -1,5 +1,6 @@
 #include <iostream>
 #include <algorithm>
+#include <boost/bind.hpp>
 
 #include "Muc.hh"
 #include "../Util/utils.hh"
@@ -13,71 +14,77 @@ namespace XMPP {
 			const std::string& role, const Jid& jid) :
 		nick(nick), affiliation(affiliation), role(role), jid(jid) { }
 
-	Muc::Muc(const StanzaSender& sender, Node* node, const Jid& jid) : stanza_sender(sender),
-	disco_node(node), jid(jid) {
-		this->disco_node->features().insert("http://jabber.org/protocol/muc");
+	Muc::Muc(Node& node, const Jid& jid) : node(node), jid(jid) {
+		this->node.disco().features().insert("presence");
+		this->node.setPresenceHandler(boost::bind(&Muc::handlePresence, this, _1));
+
+		this->node.disco().features().insert("http://jabber.org/protocol/muc");
+		this->node.setMessageHandler(boost::bind(&Muc::handleGroupChat, this, _1), "groupchat");
 	}
 
 	Muc::~Muc() { }
 
 	void Muc::handlePresence(Stanza* stanza) {
 		if(stanza->subtype().empty()) {
-			this->addUser(stanza);
+			if(not this->addUser(stanza->to().resource(), stanza->from()))
+				this->node.sendStanza(Stanza::createErrorStanza(stanza, "modify", "bad-request"));
+			else
+				delete stanza;
 		} else if(stanza->subtype() == "unavailable") {
-			this->removeUser(stanza);
+			if(not this->removeUser(stanza->from(), ""))
+				this->node.sendStanza(Stanza::createErrorStanza(stanza, "modify", "bad-request"));
+			else
+				delete stanza;
 		} else {
-			stanza = Stanza::createErrorStanza(stanza, "modify",
-					"bad-request");
-			this->stanza_sender(stanza);
+			stanza = Stanza::createErrorStanza(stanza, "modify", "bad-request");
+			this->node.sendStanza(stanza);
 		}
 	}
 
-	void Muc::addUser(Stanza* stanza) {
-		string nick = stanza->to().resource();
+	bool Muc::addUser(const std::string& nick, const Jid& user_jid) {
 		if(nick.empty()) {
-			stanza = Stanza::createErrorStanza(stanza, "modify",
-					"jid-malformed");
-			this->stanza_sender(stanza);
+			return false;
 		} else  {
-			UserList::iterator itj = find_if(this->users().begin(),
-					this->users().end(),
-					CompareMember(&MucUser::jid, stanza->from()));
-			UserList::iterator itn = find_if(this->users().begin(),
-					this->users().end(),
-					CompareMember(&MucUser::nick, nick));
+			MucUserSet::iterator itj = this->users().find_jid(user_jid);
+			MucUserSet::iterator itn = this->users().find_nick(nick);
 			if(itj == this->users().end()) {
 				if(itn != this->users().end()) {
-					stanza = Stanza::createErrorStanza(stanza, "modify",
-							"conflict");
-					this->stanza_sender(stanza);
+					return false;
 				} else  {
-					this->presentUsers(stanza->from());
-					this->users().push_back(MucUser(nick, "member",
-								"participant", stanza->from()));
-					this->disco_node->items().insert(DiscoItem(nick, stanza->to()));
-					delete stanza;
-					stanza = this->createPresenceStanza(this->users().back());
+					this->presentUsers(user_jid);
+					this->users().insert(new MucUser(nick, "member",
+								"participant", user_jid));
+					this->node.disco().items().insert(
+							new DiscoItem(nick, Jid(this->jid.node(), jid.domain(), nick)));
+					Stanza* stanza = this->createPresenceStanza(*this->users().find_jid(user_jid));
 					this->broadcast(stanza);
 				}
-			} else {
-				delete stanza;
 			}
 		}
+		return true;
 	}
 
 	void Muc::broadcast(Stanza* stanza) {
-		UserList::const_iterator it;
-		for(it = this->users().begin(); it != this->users().end(); ++it) {
+		foreach(it, this->users()) {
 			Stanza* tmp = stanza->clone();
 			tmp->to() = it->jid;
-			this->stanza_sender(tmp);
+			this->node.sendStanza(tmp);
+		}
+		delete stanza;
+	}
+
+	void Muc::broadcastIq(Stanza* stanza, const StanzaHandler& on_result,
+			const TimeoutHandler& on_timeout) {
+		foreach(it, this->users()) {
+			Stanza* tmp = stanza->clone();
+			tmp->to() = it->jid;
+			this->node.sendIq(tmp, on_result, on_timeout);
 		}
 		delete stanza;
 	}
 
 	void Muc::presentUsers(const Jid& jid) {
-		UserList::const_iterator it;
-		for(it = this->users().begin(); it != this->users().end(); ++it) {
+		foreach(it, this->users()) {
 			Stanza* stanza = this->createPresenceStanza(*it);
 			stanza->to() = jid;
 			this->stanza_sender(stanza);
@@ -99,36 +106,30 @@ namespace XMPP {
 		return stanza;
 	}
 
-	void Muc::removeUser(Stanza* stanza) {
-		UserList::iterator it = find_if(this->users().begin(),
-				this->users().end(),
-				CompareMember(&MucUser::jid, stanza->from()));
+	bool Muc::removeUser(const Jid& user_jid, const std::string& status) {
+		MucUserSet::iterator it = this->users().find_jid(user_jid);
 		if(it != this->users().end()) {
-			Tag* status = 0;
+			/*Tag* status = 0;
 			if(not stanza->children().empty() and
 					stanza->children().front()->name() == "status") {
 				status = stanza->children().front();
 				stanza->children().erase(stanza->children().begin());
-			}
-			delete stanza;
-			stanza = this->createPresenceStanza(*it);
+			}*/
+			Stanza* stanza = this->createPresenceStanza(*it);
 			stanza->subtype() = "unavailable";
 			this->broadcast(stanza);
 			Jid jid = this->jid;
 			jid.resource() = it->nick;
-			this->disco_node->items().erase(DiscoItem(it->nick, jid));
+			this->node.disco().items().erase(jid);
 			this->users().erase(it);
 		} else {
-			stanza = Stanza::createErrorStanza(stanza, "cancel",
-					"not-acceptable");
-			this->stanza_sender(stanza);
+			return false;
 		}
+		return true;
 	}
 
 	void Muc::handleGroupChat(Stanza* stanza) {
-		UserList::const_iterator it = find_if(this->users().begin(),
-				this->users().end(),
-				CompareMember(&MucUser::jid, stanza->from()));
+		MucUserSet::iterator it = this->users().find_jid(stanza->from());
 		if(it != this->users().end()) {
 			stanza->from().swap(stanza->to());
 			stanza->from().resource() = it->nick;

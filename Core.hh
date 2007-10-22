@@ -6,6 +6,7 @@
 #include "XML/Xml.hh"
 
 #include "MatchManager.hh"
+#include "GameManager.hh"
 
 #include <string>
 #include <set>
@@ -19,7 +20,6 @@
 class Core {
 	public:
 
-		Core(const XML::Tag* config);
 
 		~Core();
 
@@ -27,10 +27,23 @@ class Core {
 		 *
 		 * \param config holds all configurable information.
 		 */
-		bool connect();
+		void connect();
+
+		static Core& singleton() { return *Core::_singleton; }
+
+		static void init(const XML::Tag& config); 
+
+		static void destroy();
 
 	private:
+		Core(const XML::Tag& config);
+
+		void handleError(const std::string& error);
+
 		MatchManager match_manager;
+		GameManager game_manager;
+
+		static Core* _singleton;
 };
 
 #endif

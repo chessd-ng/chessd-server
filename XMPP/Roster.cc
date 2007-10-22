@@ -5,7 +5,7 @@
 using namespace std;
 
 namespace XMPP {
-	Roster::Roster(const StanzaSender& stanza_sender, const ChangeStatusHandler& status_handler) :
+	Roster::Roster(const StanzaHandler& stanza_sender, const ChangeStatusHandler& status_handler) :
 		stanza_sender(stanza_sender),
 		status_handler(status_handler) { }
 

@@ -4,7 +4,7 @@
 class Rating {
 	public:
 		Rating() { }
-		Rating(int rating, double sem_nome) : _rating(rating), _sem_nome(sem_nome) { }
+		Rating(int rating, double volatility) : _rating(rating), _volatility(volatility) { }
 		int rating() const { return this->_rating; }
 		int& rating() { return this->_rating; }
 		double volatility() const { return this->_volatility; }

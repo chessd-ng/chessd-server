@@ -24,92 +24,116 @@ namespace Threads {
 			void stop();
 
 			/* creates a function wrapper through the tunnel */
-			template <class R_TYPE> boost::function<R_TYPE ()>
-				createTunnel(const boost::function<R_TYPE ()>& function, bool sync = false) {
+			/*template <class CALLABLE> typename boost::function<boost::result_of<CALLABLE()> ()>
+				createTunnel0(const CALLABLE& function, bool sync = false) {
+					typedef typename boost::result_of<CALLABLE()>::type R_TYPE;
 					R_TYPE (Dispatcher::*p)(const boost::function<R_TYPE ()>&,bool)
-						= &Dispatcher::call<R_TYPE>;
+						= &Dispatcher::_call0<R_TYPE>;
 					return boost::function<R_TYPE ()>(boost::bind(
 							p, this,
 							function, sync));
 				}
+			template <class CALLABLE, class T1> typename boost::function<boost::result_of<CALLABLE(T1)> ()>
+				createTunnel1(const CALLABLE& function, bool sync = false) {
+					typedef typename boost::result_of<CALLABLE()>::type R_TYPE;
+					R_TYPE (Dispatcher::*p)(T1, const boost::function<R_TYPE ()>&,bool)
+						= &Dispatcher::_call1<R_TYPE>;
+					return boost::function<R_TYPE ()>(boost::bind(
+							p, this,
+							_1,
+							function,
+							sync));
+				}
 			template <class R_TYPE, class T1> boost::function<R_TYPE (T1)>
-				createTunnel(const boost::function<R_TYPE (T1)>& function, bool sync = false) {
-					R_TYPE (Dispatcher::*p)(const boost::function<R_TYPE (T1)>&,T1,bool)
-						= &Dispatcher::call<R_TYPE, T1>;
+				createTunnel1(const boost::function<R_TYPE (T1)>& function, bool sync = false) {
+					R_TYPE (Dispatcher::*p)(T1, const boost::function<R_TYPE (T1)>&,bool)
+						= &Dispatcher::_call1<R_TYPE, T1>;
 					return boost::function<R_TYPE (T1)>(boost::bind(
 							p, this,
-							function,
 							_1,
+							function,
 							sync));
 				}
 			template <class R_TYPE, class T1, class T2> boost::function<R_TYPE (T1, T2)>
-				createTunnel(const boost::function<R_TYPE (T1, T2)>& function, bool sync = false) {
-					R_TYPE (Dispatcher::*p)(const boost::function<R_TYPE (T1, T2)>&,T1,T2,bool)
-						= &Dispatcher::call<R_TYPE, T1, T2>;
+				createTunnel2(const boost::function<R_TYPE (T1, T2)>& function, bool sync = false) {
+					R_TYPE (Dispatcher::*p)(T1,T2,const boost::function<R_TYPE (T1, T2)>&,bool)
+						= &Dispatcher::_call2<R_TYPE, T1, T2>;
 					return boost::function<R_TYPE (T1, T2)> (boost::bind(
 							p, this,
-							function,
 							_1, _2,
+							function,
 							sync));
-				}
+				}*/
 
-			/* define a call for 0 parameters */
-			template <class R_TYPE> R_TYPE call(const boost::function<R_TYPE>&
-					function, bool sync) {
-				TypedMessage<R_TYPE>* message = new TypedMessage<R_TYPE>(function, sync);
-				this->post(message);
+			template <class CALLABLE> typename boost::result_of<CALLABLE()>::type
+				queue(const CALLABLE& function, bool sync = false) {
+				typedef TypedMessage<typename boost::result_of<CALLABLE()>::type, CALLABLE> message_type;
+				message_type* message = new message_type(function, sync);
+				this->_queue.push(message);
 				if(sync) {
-					std::auto_ptr< TypedMessage<R_TYPE> > m_ptr(message);
+					std::auto_ptr<message_type> m_ptr(message);
 					return message->wait();
 				} else {
 					/* leave the message to the dispatcher */
-					return R_TYPE();
-				}
-			}
-
-			/* define a call for 1 parameter */
-			template <class R_TYPE, class T1> R_TYPE call(
-					T1 t,
-					const boost::function<R_TYPE (T1)>& function,
-					bool sync) {
-				TypedMessage<R_TYPE>* message = new TypedMessage<R_TYPE>(
-						boost::bind(function, t), sync);
-				this->post(message);
-				if(sync) {
-					std::auto_ptr< TypedMessage<R_TYPE> > m_ptr(message);
-					return message->wait();
-				} else {
-					/* leave the message to the dispatcher */
-					return R_TYPE();
-				}
-			}
-
-			/* define a call for 2 parameters */
-			template <class R_TYPE, class T1, class T2> R_TYPE call(
-					T1 t1, T2 t2,
-					const boost::function<R_TYPE (T1, T2)>& function,
-					bool sync) {
-				TypedMessage<R_TYPE>* message = new TypedMessage<R_TYPE>(
-						boost::bind(function, t1, t2), sync);
-				this->post(message);
-				if(sync) {
-					std::auto_ptr< TypedMessage<R_TYPE> > m_ptr(message);
-					return message->wait();
-				} else {
-					/* leave the message to the dispatcher */
-					return R_TYPE();
+					return typename boost::result_of<CALLABLE()>::type();
 				}
 			}
 
 		private:
 
+			/* define a call for 0 parameters */
+			/*template <class CALLABLE> typename boost::result_of<CALLABLE()>::type
+				_call0(const CALLABLE& function, bool sync = false) {
+				typedef TypedMessage<boost::result_of<CALLABLE()>::type, CALLABLE> message_type;
+				message_type* message = new message_type(function, sync);
+				if(sync) {
+					std::auto_ptr<message_type> m_ptr(message);
+					return message->wait();
+				} else {
+					return R_TYPE();
+				}
+			}*/
+
+			/* define a call for 1 parameter */
+			/*template <class CALLABLE, class T1> boost::result_of<CALLABLE()>::type _call1(
+					T1 t,
+					const CALLABLE& function,
+					bool sync = false) {
+				typedef typename boost::result_of<CALLABLE()>::type R_TYPE;
+				typedef typename TypedMessage<R_TYPE, boost::function<R_TYPE()> > message_type;
+				message_type* message = new message_type(boost::bind(function, t), sync);
+				this->post(message);
+				if(sync) {
+					std::auto_ptr<message_type> m_ptr(message);
+					return message->wait();
+				} else {
+					return R_TYPE();
+				}
+			}*/
+
+			/* define a call for 1 parameter */
+			/*template <class CALLABLE, class T1, class T2> boost::result_of<CALLABLE()>::type _call2(
+					T1 t1,
+					T2 t2,
+					const CALLABLE& function,
+					bool sync = false) {
+				typedef typename boost::result_of<CALLABLE()>::type R_TYPE;
+				typedef typename TypedMessage<R_TYPE, boost::function<R_TYPE()> > message_type;
+				message_type* message = new message_type(boost::bind(function, t1, t2), sync);
+				this->post(message);
+				if(sync) {
+					std::auto_ptr<message_type> m_ptr(message);
+					return message->wait();
+				} else {
+					return R_TYPE();
+				}
+			}*/
+
 			Task task;
 
-			Queue<Message*> queue;
+			Queue<Message*> _queue;
 
 			bool running;
-
-			void post(Message* message);
 
 			void dispatch();
 

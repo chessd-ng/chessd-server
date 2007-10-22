@@ -13,13 +13,11 @@ namespace XML {
 	Tag::Tag(const Tag& tag) : _name(tag.name()), _attributes(tag.attributes())   {
 		ChildrenList::const_iterator it;
 		for(it = tag.children().begin(); it != tag.children().end(); ++it) {
-			this->children().push_back((*it)->clone());
+			this->children().push_back(it->clone());
 		}
 	}
 
-	Tag::~Tag() {
-		this->clearChildren();
-	}
+	Tag::~Tag() { }
 
 	void Tag::xml(string& str) const {
 		str += '<';
@@ -39,7 +37,7 @@ namespace XML {
 			str += '>';
 			ChildrenList::const_iterator it;
 			for(it = this->children().begin(); it != this->children().end(); ++it)
-				(*it)->xml(str);
+				it->xml(str);
 			str += "</";
 			str += this->name();
 			str += ">";
@@ -71,9 +69,7 @@ namespace XML {
 	}
 
 	void Tag::clearChildren() {
-		foreach(child, this->children()) {
-			delete *child;
-		}
+		this->children().clear();
 	}
 
 	TagGenerator::TagGenerator() : last(0) { }
@@ -118,25 +114,23 @@ namespace XML {
 	}
 
 	const Tag& Tag::getChild(const std::string& name) const {
-		ChildrenList::const_iterator it;
-		for(it = this->children().begin();
-				it != this->children().end();
-				++it) {
-			const Tag* tag = dynamic_cast<Tag*>(*it);
-			if(tag and tag->name() == name)
-				return *tag;
+		foreach(it, this->children()) {
+			if(typeid(*it)==typeid(Tag)) {
+				const Tag& tag = dynamic_cast<const Tag&>(*it);
+				if(tag.name() == name)
+					return tag;
+			}
 		}
-		throw "Unrecoverable error";
+		throw "Tag not found";
 	}
 
 	Tag& Tag::getChild(const std::string& name) {
-		ChildrenList::const_iterator it;
-		for(it = this->children().begin();
-				it != this->children().end();
-				++it) {
-			Tag* tag = dynamic_cast<Tag*>(*it);
-			if(tag and tag->name() == name)
-				return *tag;
+		foreach(it, this->children()) {
+			if(typeid(*it)==typeid(Tag)) {
+				Tag& tag = dynamic_cast<Tag&>(*it);
+				if(tag.name() == name)
+					return tag;
+			}
 		}
 		throw "Unrecoverable error";
 	}
@@ -157,30 +151,30 @@ namespace XML {
 		bool root_found=false;
 		bool error = false;
 		foreach(child, xml->children()) {
-			Tag* tag = dynamic_cast<Tag*>(*child);
-			if(tag) {
-				if(tag->name() == "root") {
+			if(typeid(*child) == typeid(Tag)) {
+				Tag& tag = dynamic_cast<Tag&>(*child);
+				if(tag.name() == "root") {
 					if(root_found) {
 						error = true; break;
 					}
-					if(not tag->hasAttribute("name")) {
+					if(not tag.hasAttribute("name")) {
 						error = true; break;
 					}
-					this->root_name = tag->getAttribute("name");
-					if(not tag->hasAttribute("type")) {
-						if(not this->parseType(*tag,"%root_type")) {
+					this->root_name = tag.getAttribute("name");
+					if(not tag.hasAttribute("type")) {
+						if(not this->parseType(tag,"%root_type")) {
 							error = true; break;
 						}
 						this->root_type="%root_type";
 					} else {
-						this->root_type = tag->getAttribute("type");
+						this->root_type = tag.getAttribute("type");
 					}
 					root_found=true;
-				} else if(tag->name() == "type") {
-					if(not tag->hasAttribute("name")) {
+				} else if(tag.name() == "type") {
+					if(not tag.hasAttribute("name")) {
 						error = true; break;
 					}
-					if(not this->parseType(*tag, tag->getAttribute("name"))) {
+					if(not this->parseType(tag, tag.getAttribute("name"))) {
 						error = true; break;
 					}
 				} else {
@@ -194,10 +188,10 @@ namespace XML {
 			error = true;
 		}
 		foreach(type, this->types) foreach(child, type->second.children) {
-			if(not hasKey(this->types, child->type))
+			if(not has_key(this->types, child->type))
 				error = true;
 		}
-		if(not hasKey(this->types, this->root_type))
+		if(not has_key(this->types, this->root_type))
 			error = true;
 		return not error;
 	}
@@ -206,16 +200,16 @@ namespace XML {
 		TypeDesc type;
 		bool error = false;
 		foreach(child, xml.children()) {
-			const Tag* tag = dynamic_cast<const Tag*>(*child);
-			if(tag) {
-				if(tag->name()=="attribute") {
-					if(not tag->hasAttribute("name")) {
+			if(typeid(*child) == typeid(Tag)) {
+				const Tag& tag = dynamic_cast<const Tag&>(*child);
+				if(tag.name()=="attribute") {
+					if(not tag.hasAttribute("name")) {
 						error = true; break;
 					}
-					const std::string& att_name = tag->getAttribute("name");
+					const std::string& att_name = tag.getAttribute("name");
 					bool required;
-					if(tag->hasAttribute("required")) {
-						if(tag->getAttribute("required") == "true")
+					if(tag.hasAttribute("required")) {
+						if(tag.getAttribute("required") == "true")
 							required = true;
 						else
 							required = false;
@@ -223,19 +217,19 @@ namespace XML {
 						required=true;
 					}
 					bool fixed;
-					if(tag->hasAttribute("fixed") and tag->getAttribute("fixed") == "true")
+					if(tag.hasAttribute("fixed") and tag.getAttribute("fixed") == "true")
 						fixed=true;
 					else
 						fixed=false;
 					std::string def_val;
-					if(tag->hasAttribute("default")) {
-						def_val=tag->getAttribute("default");
+					if(tag.hasAttribute("default")) {
+						def_val=tag.getAttribute("default");
 					}
 					FieldType att_type;
-					if(tag->hasAttribute("format")) {
-						if(tag->getAttribute("format") == "string") {
+					if(tag.hasAttribute("format")) {
+						if(tag.getAttribute("format") == "string") {
 							att_type=FieldString;
-						} else if(tag->getAttribute("format") == "number") {
+						} else if(tag.getAttribute("format") == "number") {
 							att_type=FieldNumber;
 						} else {
 							error=true; break;
@@ -245,48 +239,48 @@ namespace XML {
 					}
 					type.attributes.insert(make_pair(att_name,
 								AttributeDesc(att_type, required, fixed, def_val)));
-				} else if(tag->name()=="cdata") {
+				} else if(tag.name()=="cdata") {
 					type.cdata=true;
-				} else if(tag->name()=="child") {
-					if(not tag->hasAttribute("name")) {
+				} else if(tag.name()=="child") {
+					if(not tag.hasAttribute("name")) {
 						error = true; break;
 					}
-					const string& ch_name = tag->getAttribute("name");
+					const string& ch_name = tag.getAttribute("name");
 					int minOccur;
-					if(tag->hasAttribute("min")) {
-						if(not isNumber(tag->getAttribute("min"))) {
+					if(tag.hasAttribute("min")) {
+						if(not isNumber(tag.getAttribute("min"))) {
 							error=true; break;
 						}
-						minOccur=str2int(tag->getAttribute("min"));
+						minOccur=str2int(tag.getAttribute("min"));
 					} else {
 						minOccur=1;
 					}
 					int maxOccur;
-					if(tag->hasAttribute("max")) {
-						if(tag->getAttribute("max") == "unbounded") {
+					if(tag.hasAttribute("max")) {
+						if(tag.getAttribute("max") == "unbounded") {
 							maxOccur=0x7fffffff; 
 						} else {
-							if(not isNumber(tag->getAttribute("max"))) {
+							if(not isNumber(tag.getAttribute("max"))) {
 								error = true; break;
 							}
-							maxOccur=str2int(tag->getAttribute("max"));
+							maxOccur=str2int(tag.getAttribute("max"));
 						}
 					} else {
 						maxOccur=1;
 					}
 					string ch_type;
-					if(tag->hasAttribute("type")) {
-						ch_type = tag->getAttribute("type");
+					if(tag.hasAttribute("type")) {
+						ch_type = tag.getAttribute("type");
 					} else {
 						ch_type = int2str(this->type_count++);
-						if(not this->parseType(*tag, ch_type)) {
+						if(not this->parseType(tag, ch_type)) {
 							error = true; break;
 						}
 					}
 					type.children.push_back(ChildDesc(ch_name, ch_type, minOccur, maxOccur));
-				} else if(tag->name()=="any_children") {
+				} else if(tag.name()=="any_children") {
 					type.any_children = true;
-				} else if(tag->name()=="any_Attributes") {
+				} else if(tag.name()=="any_Attributes") {
 					type.any_attributes = true;
 				} else {
 					error = true;
@@ -314,11 +308,14 @@ namespace XML {
 		return this->_validate(tag, this->types[this->root_type]);
 	}
 
+	static bool is_cdata(const Item& item) {
+		return typeid(item) == typeid(CData);
+	}
 	bool Description::_validate(Tag& xml, const TypeDesc& type) {
 		/* FIXME it can be done more efficiently */
 		if(not type.any_attributes) {
 			foreach(attribute, xml.attributes()) {
-				if(not hasKey(type.attributes, attribute->first))
+				if(not has_key(type.attributes, attribute->first))
 					return false;
 			}
 			foreach(att_desc, type.attributes) {
@@ -341,21 +338,21 @@ namespace XML {
 			}
 		}
 		if(not type.any_children) {
-			ChildrenList::const_iterator child = xml.children().begin();
+			ChildrenList::iterator child = xml.children().begin();
 			int last_count = 0;
 			foreach(child_desc, type.children) {
 				bool done = false;
 				while(not done) {
-					CData* cdata = 0;
-					Tag* tag = 0;
-					if(child != xml.children().end() and (cdata=dynamic_cast<CData*>(*child))) {
-						if(not type.cdata and not isSpace(cdata->data()))
+					if(child != xml.children().end() and typeid(*child)==typeid(CData)) {
+						const CData& cdata=dynamic_cast<const CData&>(*child);
+						if(not type.cdata and not isSpace(cdata.data()))
 							return false;
 						++child;
-					} else if(child != xml.children().end() and (tag=dynamic_cast<Tag*>(*child)) and tag->name()==child_desc->name) {
+					} else if(child != xml.children().end() and typeid(*child)==typeid(Tag) and dynamic_cast<const Tag&>(*child).name()==child_desc->name) {
 						++last_count;
 						++child;
-						if(not this->_validate(*tag, this->types.find(child_desc->type)->second))
+						if(not this->_validate(dynamic_cast<Tag&>(*child),
+									this->types.find(child_desc->type)->second))
 							return false;
 					} else  {
 						if(last_count < child_desc->minOccur or last_count > child_desc->maxOccur)
@@ -367,19 +364,7 @@ namespace XML {
 			}
 		}
 		if(not type.cdata) {
-			int remove_count = 0;
-			ChildrenList::iterator tmp = xml.children().begin();
-			foreach(it, xml.children()) {
-				const CData* cdata = dynamic_cast<const CData*>(*it);
-				if(cdata) {
-					remove_count++;
-					delete *it;
-				} else {
-					swap(*it, *tmp);
-					++tmp;
-				}
-			}
-			xml.children().erase(xml.children().end()-remove_count, xml.children().end());
+			xml.children().erase_if(is_cdata);
 		}
 		return true;
 	}

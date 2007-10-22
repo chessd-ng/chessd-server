@@ -12,7 +12,7 @@ std::string MatchRuleStandard::getCategory() const {
 	return "standard";
 }
 
-Match* MatchRuleStandard::checkOffer(MatchOffer* _match_offer, const Util::SimpleDatabase<Team>&) const {
+Match* MatchRuleStandard::checkOffer(MatchOffer* _match_offer, const TeamDatabase&) const {
 	std::auto_ptr<MatchOffer> match_offer(_match_offer);
 	if(match_offer->entities.size() != 2)
 		throw "Wrong number of players";
@@ -39,4 +39,8 @@ const MatchTeams& MatchStandard::getTeams() const {
 
 std::string MatchStandard::getCategory() const {
 	return "standard";
+}
+
+Game* MatchStandard::createGame() const {
+	return 0;
 }

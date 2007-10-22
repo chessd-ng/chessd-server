@@ -11,12 +11,11 @@ namespace XMPP {
 
 	Stanza::Stanza(const std::string& type) : _type(type) { }
 
-	Stanza::~Stanza() {
-		TagList::iterator it;
-		for(it = this->children().begin(); it != this->children().end(); ++it)
-			delete *it;
-	}
+	Stanza::~Stanza() { }
 
+	static bool is_cdata(const XML::Item& item) {
+		return typeid(item) == typeid(XML::CData);
+	}
 	Stanza::Stanza(Tag* tag) {
 		this->type().swap(tag->name());
 		this->subtype().swap(tag->attributes()["type"]);
@@ -24,20 +23,8 @@ namespace XMPP {
 		this->from() = Jid(tag->attributes()["from"]);
 		this->lang().swap(tag->attributes()["xml:lang"]);
 		this->id().swap(tag->attributes()["id"]);
-		/* this will destroy the original tag */
-		/* remove non tag children */
-		ChildrenList::iterator it;
-		for(it = tag->children().begin(); it != tag->children().end(); ++it) {
-			Tag* tag = dynamic_cast<Tag*>(*it);
-			if(not tag) {
-				delete *it;
-			} else {
-				this->children().push_back(tag);
-			}
-		}
-		/* XXX */
-		tag->children().clear();
-		/* XXX */
+		tag->children().erase_if(is_cdata);
+		this->children().transfer(this->children().end(), tag->children());
 		delete tag;
 	}
 
@@ -54,9 +41,7 @@ namespace XMPP {
 		if(not this->id().empty())
 			tag->attributes()["id"].swap(this->id());
 		TagList::iterator it;
-		for(it = this->children().begin(); it != this->children().end(); ++it)
-			tag->children().push_back(*it);
-		this->children().clear();
+		tag->children().transfer(tag->children().end(), this->children());
 		delete this;
 		return tag;
 	}
@@ -78,7 +63,7 @@ namespace XMPP {
 		tmp += ">";
 		TagList::const_iterator it;
 		for(it = this->children().begin(); it != this->children().end(); ++it)
-			(*it)->xml(tmp);
+			it->xml(tmp);
 		tmp += "</" + this->type() + ">";
 		return tmp;
 	}
@@ -114,14 +99,11 @@ namespace XMPP {
 		ret->lang() = this->lang();
 		TagList::const_iterator it;
 		for(it = this->children().begin(); it != this->children().end(); ++it)
-			ret->children().push_back((Tag*)(*it)->clone());
+			ret->children().push_back((Tag*)it->clone());
 		return ret;
 	}
 
 	void Stanza::clearChildren() {
-		foreach(child, this->children()) {
-			delete *child;
-		}
 		this->children().clear();
 	}
 

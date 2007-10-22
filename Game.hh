@@ -65,22 +65,32 @@ class GameState {
 }
 */
 
+enum TeamResult {
+	WINNER,
+	DRAWER,
+	LOSER,
+	UNDEFINED
+};
+
+typedef std::vector<std::pair<Team, TeamResult> > TeamResultList;
+
 class GameResult {
 	public:
 		virtual ~GameResult() { }
 		
 		/*! \brief The game category */
-		virtual std::string category() const = 0;
+		virtual const std::string& category() const = 0;
 
 		/*! \brief The reason why the game ended */
-		virtual std::string end_reason() const = 0;
+		virtual const std::string& end_reason() const = 0;
 
 		/*! \brief List of all players in the game */
-		virtual PlayerList players() const = 0;
+		virtual const PlayerList& players() const = 0;
 
-		virtual TeamList winners() const = 0;
-		virtual TeamList drawers() const = 0;
-		virtual TeamList losers() const = 0;
+		virtual const TeamResultList& results() const = 0;
+
+		/*! \brief The game history */
+		virtual XML::Tag* history() const = 0;
 
 		/*! \brief Update the player ratings
 		 *
@@ -90,14 +100,14 @@ class GameResult {
 		virtual void updateRating(std::map<Player, Rating>& ratings) const = 0;
 };
 
-typedef XML::Tag GameState;
+//typedef XML::Tag GameState;
 
 class Game {
 	public:
 		virtual ~Game() { }
 
-		/*! \brief List of boards in the game */
-		virtual const GameState& state() const = 0;
+		/*! \brief Current state of the game */
+		virtual XML::Tag* state() const = 0;
 
 		/*! \brief The game category */
 		virtual const std::string& category() const = 0;
@@ -113,6 +123,9 @@ class Game {
 
 		/*! \brief The players agreed on a draw */
 		virtual void draw() = 0;
+
+		/*! \brief The players agreed on a draw */
+		virtual void adjourn() = 0;
 
 		/*! \brief Has the game ended?
 		 *

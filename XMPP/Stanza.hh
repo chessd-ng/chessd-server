@@ -5,9 +5,11 @@
 #include "Jid.hh"
 #include "../XML/Xml.hh"
 
+#include <boost/ptr_container/ptr_vector.hpp>
+
 namespace XMPP {
 
-	typedef std::vector<XML::Tag*> TagList;
+	typedef boost::ptr_vector<XML::Tag> TagList;
 
 	enum ErrorType {
 		ErrorCancel,

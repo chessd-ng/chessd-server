@@ -35,7 +35,7 @@ namespace XMPP {
 			 * \param port is the port to connect.
 			 * \return Returns true on success, false otherwise
 			 */
-			bool connect(const std::string& host, int port);
+			void connect(const std::string& host, int port);
 
 			/*! \brief Close the connection to the server */
 			void close();
@@ -47,7 +47,7 @@ namespace XMPP {
 			 * \return Return true on success, false otherwise. If false is
 			 * returned than the connection status should be checked with isActive
 			 */
-			bool send(XML::Tag* tag);
+			void sendTag(XML::Tag* tag);
 
 			/*! \brief Receive a tag from stream.
 			 *
@@ -56,7 +56,7 @@ namespace XMPP {
 			 * \return A pointer to the Tag received or NULL if timeout expires or if
 			 * the connection was lost. The caller receives the Tag's ownership.
 			 */
-			XML::Tag* recv(int timeout = -1);
+			XML::Tag* recvTag(int timeout);
 
 			/*! \brief Get the connection status.
 			 *

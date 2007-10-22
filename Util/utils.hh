@@ -97,7 +97,7 @@ namespace Util {
 	}
 
 	/* Check wether a map has a key */
-	template <class Map, class Key> bool hasKey(const Map& m, const Key& k) {
+	template <class Map, class Key> bool has_key(const Map& m, const Key& k) {
 		return m.find(k) != m.end();
 	}
 

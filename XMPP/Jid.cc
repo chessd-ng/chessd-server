@@ -23,6 +23,13 @@ namespace XMPP {
 
 	Jid::Jid(const Jid& jid) : _node(jid.node()), _domain(jid.domain()), _resource(jid.resource()) { }
 
+	Jid::Jid(const std::string& node,
+			const std::string& domain,
+			const std::string& resource) :
+		_node(node),
+		_domain(domain),
+		_resource(resource) { }
+
 	Jid::Jid() { }
 
 	Jid::~Jid() { }

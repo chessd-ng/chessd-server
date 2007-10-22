@@ -11,23 +11,41 @@ class MatchRuleStandard : public MatchRule {
 
 		virtual std::string getCategory() const;
 
-		virtual Match* checkOffer(MatchOffer* match_offer,
-				const Util::SimpleDatabase<Team>& teamdb) const;
+		virtual Match* checkOffer(XML::Tag& match_offer,
+				const TeamDatabase& teamdb) const;
+};
+
+enum StandardPlayerColor {
+	White,
+	Black
+};
+
+struct StandardMatchPlayer {
+	StandardMatchPlayer(XMPP::Jid jid, Util::Time time, Util::Time inc, StandardPlayerColor color) :
+		jid(jid),
+		time(time),
+		inc(inc),
+		color(color) { }
+	XMPP::Jid jid;
+	Util::Time time, inc;
+	StandardPlayerColor color;
 };
 
 struct MatchStandard : public Match {
 	public:
 
-		MatchStandard(std::pair<MatchPlayer,MatchPlayer> players);
+		MatchStandard(std::pair<StandardMatchPlayer, StandardMatchPlayer> players);
 
 		virtual ~MatchStandard();
 		
-		virtual const MatchTeams& getTeams() const;
+		virtual const PlayerList& players() const;
 
 		virtual std::string getCategory() const;
 
+		virtual Game* createGame() const;
+
 	private:
-		MatchTeams teams;
+		std::pair<StandardMatchPlayer, StandardMatchPlayer> _players;
 };
 
 #endif

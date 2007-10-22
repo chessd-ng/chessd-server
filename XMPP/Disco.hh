@@ -6,6 +6,9 @@
 
 #include <set>
 #include <map>
+#include <functional>
+#include <boost/ptr_container/ptr_map.hpp>
+#include <boost/iterator/transform_iterator.hpp>
 
 namespace XMPP {
 
@@ -13,14 +16,62 @@ namespace XMPP {
 
 	/*! \brief A XMPP disco item. */
 	struct DiscoItem {
-		const std::string name;
-		const Jid jid;
-		DiscoItem(const std::string& name,
-				const Jid& jid);
-		bool operator<(const DiscoItem& item) const;
+		public:
+			DiscoItem(const std::string& name, const Jid& jid);
+
+			const std::string& name() const { return this->_name; }
+			const Jid& jid() const { return this->_jid; }
+		private:
+			const std::string _name;
+			const Jid _jid;
 	};
 
-	typedef std::set<DiscoItem> DiscoItemSet;
+	struct DiscoItemSet {
+		private:
+			typedef boost::ptr_map<Jid, DiscoItem> item_map;
+			typedef boost::ptr_map<Jid, DiscoItem>::iterator iterator_map;
+			typedef boost::ptr_map<Jid, DiscoItem>::const_iterator const_iterator_map;
+			struct iterator_transformer :
+				public std::unary_function<item_map::value_type, DiscoItem> {
+				DiscoItem& operator()(const item_map::value_type& v) const {
+					return *v.second;
+				}
+			};
+			struct const_iterator_transformer :
+				public std::unary_function<item_map::value_type, DiscoItem> {
+				const DiscoItem& operator()(const item_map::value_type& v) {
+					return *v.second;
+				}
+			};
+		public:
+			DiscoItemSet() { }
+			~DiscoItemSet() { }
+
+			typedef boost::transform_iterator<DiscoItemSet::iterator_transformer, iterator_map> iterator;
+			typedef boost::transform_iterator<DiscoItemSet::const_iterator_transformer, const_iterator_map> const_iterator;
+
+			iterator begin() {
+				return iterator(this->items.begin());
+			}
+			iterator end() {
+				return iterator(this->items.end());
+			}
+			const_iterator begin() const {
+				return const_iterator(this->items.begin());
+			}
+			const_iterator end() const {
+				return const_iterator(this->items.end());
+			}
+			void insert(DiscoItem* item) {
+				Jid jid = item->jid();
+				this->items.insert(jid, item);
+			}
+			void erase(const Jid& jid) {
+				this->items.erase(jid);
+			}
+		private:
+			item_map items;
+	};
 
 	/*! \brief A implementation of the XMPP Disco extension. */
 	class Disco {
@@ -29,7 +80,7 @@ namespace XMPP {
 			 *
 			 * \param sender is a function used to send the stanzas
 			 */
-			Disco(const StanzaSender& sender,
+			Disco(const StanzaHandler& sender,
 					const std::string& name = "",
 					const std::string& category = "",
 					const std::string& type = "");
@@ -73,7 +124,7 @@ namespace XMPP {
 
 		private:
 
-			StanzaSender stanza_sender;
+			StanzaHandler stanza_sender;
 
 			const std::string _name, _category, _type;
 

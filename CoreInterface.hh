@@ -13,6 +13,8 @@ class CoreInterface {
 		/*! \brief destroys the interface */
 		~CoreInterface();
 
+		CoreInterface();
+
 		/*! \brief Set a function to be called on server shutdown
 		 *
 		 * \param handler is the function.
@@ -36,10 +38,6 @@ class CoreInterface {
 		// DatabaseInterface* getDatabaseInterface();
 
 	private:
-
-		friend class Core;
-
-		CoreInterface(Core& core);
 
 		void shutdown();
 

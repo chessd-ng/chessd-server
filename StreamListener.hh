@@ -4,23 +4,43 @@
 #include "XMPP/handlers.hh"
 #include "XMPP/Component.hh"
 #include "Threads/Task.hh"
+#include "Threads/Queue.hh"
 
-class StreamListener : public Threads::Task {
+
+struct StreamListenerHandlers {
+	XMPP::TagHandler handleTag;
+	XMPP::ErrorHandler handleError;
+	StreamListenerHandlers(
+			const XMPP::TagHandler& handleTag,
+			const XMPP::ErrorHandler& handleError) :
+		handleTag(handleTag),
+		handleError(handleError) { }
+};
+
+class StreamListener {
 	public:
-		StreamListener(const XMPP::TagHandler& handler, XMPP::Stream& stream);
+		StreamListener(const StreamListenerHandlers& handlers, XMPP::Stream& stream);
 
-		virtual ~StreamListener();
+		~StreamListener();
 
-		virtual void run();
+		void start();
 
 		void stop();
 
-		void handleTag(XML::Tag* tag);
+		void sendTag(XML::Tag* tag);
 
 	private:
-		TagHandler handler;
-		Stream& stream;
+		StreamListenerHandlers handlers;
+		XMPP::Stream& stream;
 		bool running;
+
+		Threads::Task task_recv;
+		Threads::Task task_send;
+
+		void run_recv();
+		void run_send();
+
+		Threads::Queue<XML::Tag*> tag_queue;
 };
 
 #endif

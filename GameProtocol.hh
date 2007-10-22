@@ -1,7 +1,7 @@
 #ifndef GAMEPROTOOL_HH
 #define GAMEPROTOOL_HH
 
-#include "XMP/Xml.hh"
+#include "XML/Xml.hh"
 
 class GameProtocol {
 	public:
@@ -10,8 +10,13 @@ class GameProtocol {
 		~GameProtocol();
 
 		static std::string parseGameQuery(XML::Tag& query);
+
+		static std::string parseGameRoomQuery(XML::Tag& query);
+
+		static std::string parseGameMove(XML::Tag& query);
+
 	private:
-		XMP::Description game_query_desc;
+		XML::Description game_query_desc;
 
 };
 

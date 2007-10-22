@@ -25,7 +25,7 @@ namespace XMPP {
 			 * \param stanza_sender is the function used to send stanzas
 			 * \param handler is called on every status change
 			 * */
-			Roster(const StanzaSender& stanza_sender,
+			Roster(const StanzaHandler& stanza_sender,
 					const ChangeStatusHandler& handler = ChangeStatusHandler());
 
 			/*! \brief Destructor */
@@ -70,7 +70,7 @@ namespace XMPP {
 
 			std::map<Jid, UserInfo> users;
 
-			StanzaSender stanza_sender;
+			StanzaHandler stanza_sender;
 
 			ChangeStatusHandler status_handler;
 	};
