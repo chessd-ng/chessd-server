@@ -7,7 +7,10 @@
 
 namespace Util {
 
-#define foreach(it, cont) for(typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define foreach(it, cont) for(bool __continue__ = true; __continue__;) \
+						for(typeof(cont)& __cont__ = (cont);__continue__; __continue__ = false) \
+						for(typeof(__cont__.begin()) it = __cont__.begin(); it != __cont__.end(); ++it)
+
 #define foreach_it(it, begin, end) for(typeof(begin) it = begin; it != end; ++it)
 #define foreach_pair(it, pair) for(typeof(pair.first) it = pair.first; it != pair.second; ++it)
 
