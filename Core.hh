@@ -11,6 +11,10 @@
 #include <string>
 #include <set>
 
+#include "Game.hh"
+
+#include "Rating.hh"
+
 /*! \brief This class is the implementation of the server core.
  *
  *  It is responsible to interconnect all of the elements of
@@ -35,7 +39,18 @@ class Core {
 
 		static void destroy();
 
+		void startGame(Game* game);
+		void endGame(int game_id, GameResult* result);
+		void adjournGame(int game_id, GameResult* result);
+		void cancelGame(int game_id);
+
 	private:
+
+		void _startGame(Game* game);
+		void _endGame(int game_id, GameResult* result);
+		void _adjournGame(int game_id, GameResult* result);
+		void _cancelGame(int game_id);
+
 		Core(const XML::Tag& config);
 
 		void handleError(const std::string& error);
@@ -44,6 +59,12 @@ class Core {
 		GameManager game_manager;
 
 		static Core* _singleton;
+
+		Threads::Dispatcher dispatcher;
+
+		Util::IDSet game_ids;
+
+		std::map<std::pair<XMPP::Jid, std::string>, Rating> ratings;
 };
 
 #endif

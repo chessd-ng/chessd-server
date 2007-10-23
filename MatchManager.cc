@@ -196,6 +196,8 @@ void MatchManager::notifyMatchResult(int id, bool accepted) {
 		stanza.to() = *player;
 		this->root_node.sendIq(stanza.clone());
 	}
+	if(accepted)
+		this->core_interface.startGame(match->createGame());
 	delete match;
 }
 

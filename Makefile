@@ -1,8 +1,8 @@
 OBJECTS = main.o Threads/Pool.o Threads/Task.o XMPP/Stream.o XML/Xml.o XMPP/Component.o XMPP/Jid.o XMPP/Stanza.o XMPP/Node.o XMPP/Disco.o XMPP/Roster.o XMPP/Muc.o Threads/Dispatcher.o Util/Timer.o Pairing/Game.o Pairing/Player.o Pairing/Tourney.o Pairing/TourneyPlayers.o XML/iksutil.o Core.o MatchManager.o CoreInterface.o MatchProtocol.o Util/IDSet.o MatchStandard.o MatchDatabase.o XMPP/RootNode.o ComponentWrapper.o GameManager.o GameRoom.o GameProtocol.o Agreement.o
 
 
-CXXFLAGS=-Wall -ggdb3 -D_GLIBCXX_DEBUG
-#CXXFLAGS=-Wall -O3 -fomit-frame-pointer -funroll-loops -march=native
+#CXXFLAGS=-Wall -ggdb3 -D_GLIBCXX_DEBUG
+CXXFLAGS=-Wall -O3 -fomit-frame-pointer -funroll-loops -march=native
 LIBS=-lrt -lpthread -liksemel
 TARGET=chessd
 CC=gcc
