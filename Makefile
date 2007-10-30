@@ -1,53 +1,52 @@
 SOURCES = \
-		  Threads/Pool.cc \
-		  Threads/Dispatcher.cc \
-		  Threads/Task.cc \
-		  XMPP/Component.cc \
-		  XMPP/Stream.cc \
-		  XMPP/Muc.cc \
-		  XMPP/Node.cc \
-		  XMPP/Stanza.cc \
-		  XMPP/Disco.cc \
-		  XMPP/Jid.cc \
-		  XMPP/Roster.cc \
-		  XMPP/RootNode.cc \
-		  XML/iksutil.cc \
-		  XML/Xml.cc \
-		  Core.cc \
-		  MatchManager.cc \
-		  GameRoom.cc \
-		  StreamListener.cc \
-		  Pairing/Player.cc \
-		  Pairing/Game.cc \
-		  Pairing/TourneyPlayers.cc \
-		  Pairing/Tourney.cc \
-		  Util/Identifier.cc \
-		  Util/IDSet.cc \
-		  Util/Timer.cc \
-		  GameProtocol.cc \
-		  main.cc \
-		  MatchStandard.cc \
-		  GameManager.cc \
-		  Game.cc \
-		  MatchProtocol.cc \
-		  Agreement.cc \
-		  CoreInterface.cc \
-		  ComponentWrapper.cc \
-		  MatchDatabase.cc
+		  src/Threads/Pool.cc \
+		  src/Threads/Dispatcher.cc \
+		  src/Threads/Task.cc \
+		  src/XMPP/Component.cc \
+		  src/XMPP/Stream.cc \
+		  src/XMPP/Muc.cc \
+		  src/XMPP/Node.cc \
+		  src/XMPP/Stanza.cc \
+		  src/XMPP/Disco.cc \
+		  src/XMPP/Jid.cc \
+		  src/XMPP/Roster.cc \
+		  src/XMPP/RootNode.cc \
+		  src/XML/iksutil.cc \
+		  src/XML/Xml.cc \
+		  src/Core.cc \
+		  src/MatchManager.cc \
+		  src/GameRoom.cc \
+		  src/StreamListener.cc \
+		  src/Pairing/Player.cc \
+		  src/Pairing/Game.cc \
+		  src/Pairing/TourneyPlayers.cc \
+		  src/Pairing/Tourney.cc \
+		  src/Util/Identifier.cc \
+		  src/Util/IDSet.cc \
+		  src/Util/Timer.cc \
+		  src/GameProtocol.cc \
+		  src/main.cc \
+		  src/MatchStandard.cc \
+		  src/GameManager.cc \
+		  src/Game.cc \
+		  src/MatchProtocol.cc \
+		  src/Agreement.cc \
+		  src/CoreInterface.cc \
+		  src/ComponentWrapper.cc \
+		  src/MatchDatabase.cc
 
+SRCDIR = src
 OBJDIR = obj
 DEPSDIR = .deps
-OBJECTS = $(patsubst %.cc,${OBJDIR}/%.o,${SOURCES})
-DEPS = $(patsubst %.cc,${DEPSDIR}/%.d,${SOURCES})
-#DIRS = $(sort $(dir ${OBJECTS})) $(sort $(dir ${DEPS}))
-
-
 CXXFLAGS=-Wall -g -D_GLIBCXX_DEBUG
 #CXXFLAGS=-Wall -O3 -fomit-frame-pointer -funroll-loops -march=native
 LDLIBS=-lrt -lpthread -liksemel
 TARGET=chessd
 CC=gcc
 CXX=g++
+
+OBJECTS = $(patsubst ${SRCDIR}/%.cc,${OBJDIR}/%.o,${SOURCES})
+DEPS = $(patsubst ${SRCDIR}/%.cc,${DEPSDIR}/%.d,${SOURCES})
 
 all: ${TARGET}
 	@echo "done"
@@ -57,11 +56,11 @@ all: ${TARGET}
 ${TARGET}: ${OBJECTS}
 	${CXX} -o ${TARGET} ${OBJECTS} ${CXXFLAGS} ${LDLIBS}
 
-.deps/%.d: %.cc
+.deps/%.d: ${SRCDIR}/%.cc
 	@mkdir -p $(dir $@)
 	${CXX} ${CXXFLAGS} -MM $< | sed 's/\(^[^ \.]*\)\.o/${OBJDIR}\/\1.o ${DEPSDIR}\/\1.d/' > $@
 
-obj/%.o: %.cc
+obj/%.o: ${SRCDIR}/%.cc
 	@mkdir -p $(dir $@)
 	${CXX} -o $@ -c ${CXXFLAGS} $<
 
