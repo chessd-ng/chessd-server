@@ -1,9 +1,9 @@
 #ifndef MATCHSTANDARD_HH
 #define MATCHSTANDARD_HH
 
-#include "MatchRule.hh"
+#include "MatchChess.hh"
 
-class MatchRuleStandard : public MatchRule {
+class MatchRuleStandard : public MatchRuleChess {
 	public:
 		MatchRuleStandard();
 
@@ -11,43 +11,23 @@ class MatchRuleStandard : public MatchRule {
 
 		virtual std::string getCategory() const;
 
-		virtual Match* checkOffer(XML::Tag& match_offer,
-				const TeamDatabase& teamdb) const;
+		virtual Match* checkOffer(const XML::Tag& match_offer,
+				const TeamDatabase& teams) const ;
 };
 
-enum StandardPlayerColor {
-	White,
-	Black
-};
-
-struct StandardMatchPlayer {
-	StandardMatchPlayer(XMPP::Jid jid, Util::Time time, Util::Time inc, StandardPlayerColor color) :
-		jid(jid),
-		time(time),
-		inc(inc),
-		color(color) { }
-	XMPP::Jid jid;
-	Util::Time time, inc;
-	StandardPlayerColor color;
-};
-
-struct MatchStandard : public Match {
+struct MatchStandard : public MatchChess {
 	public:
 
-		MatchStandard(std::pair<StandardMatchPlayer, StandardMatchPlayer> players);
+		MatchStandard(const StandardPlayerList &players);
 
 		virtual ~MatchStandard();
 		
-		virtual const PlayerList& players() const;
-
 		virtual const std::string& category() const;
 
 		virtual Game* createGame() const;
 
 	private:
-		PlayerList _players;
-		std::pair<StandardMatchPlayer, StandardMatchPlayer> _match_players;
-		const std::string _category;
+		std::string _category;
 };
 
 #endif

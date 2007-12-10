@@ -41,7 +41,7 @@ class MatchRule {
 		 * \param teamdb is the collection of available team
 		 * \return Returns a pointer to a match description on success, 0 otherwise.
 		 */
-		virtual Match* checkOffer(XML::Tag& match_offer,
+		virtual Match* checkOffer(const XML::Tag& match_offer,
 				const TeamDatabase& teams) const = 0;
 };
 
