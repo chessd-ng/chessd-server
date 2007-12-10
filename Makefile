@@ -11,11 +11,10 @@ SOURCES = \
 		  src/MatchDatabase.cc \
 		  src/MatchManager.cc \
 		  src/MatchProtocol.cc \
-		  src/MatchStandard.cc \
 		  src/Pairing/Game.cc \
 		  src/Pairing/Player.cc \
-		  src/Pairing/Tourney.cc \
 		  src/Pairing/TourneyPlayers.cc \
+		  src/Pairing/Tourney.cc \
 		  src/Query.cc \
 		  src/QueryBase.cc \
 		  src/RatingManager.cc \
@@ -38,7 +37,18 @@ SOURCES = \
 		  src/XMPP/Stanza.cc \
 		  src/XMPP/StanzaBase.cc \
 		  src/XMPP/Stream.cc \
-		  src/main.cc
+		  src/main.cc \
+		  src/GameChess.cc \
+		  src/GameStandard.cc \
+		  src/MatchChess.cc \
+		  src/MatchStandard.cc \
+		  src/libchess/Board.cc \
+		  src/libchess/Chess.cc \
+		  src/libchess/ChessMove.cc \
+		  src/libchess/Piece.cc \
+		  src/libchess/State.cc \
+		  src/libchess/rules.cc
+
 
 SRCDIR = src
 OBJDIR = obj
