@@ -1,46 +1,52 @@
 SOURCES = \
-		  src/Threads/Pool.cc \
+		  src/Agreement.cc \
+		  src/ComponentBase.cc \
+		  src/ComponentWrapper.cc \
+		  src/Core.cc \
+		  src/CoreInterface.cc \
+		  src/Game.cc \
+		  src/GameManager.cc \
+		  src/GameProtocol.cc \
+		  src/GameRoom.cc \
+		  src/MatchDatabase.cc \
+		  src/MatchManager.cc \
+		  src/MatchProtocol.cc \
+		  src/MatchStandard.cc \
+		  src/Pairing/Game.cc \
+		  src/Pairing/Player.cc \
+		  src/Pairing/Tourney.cc \
+		  src/Pairing/TourneyPlayers.cc \
+		  src/Query.cc \
+		  src/QueryBase.cc \
+		  src/RatingManager.cc \
+		  src/StreamListener.cc \
 		  src/Threads/Dispatcher.cc \
+		  src/Threads/Pool.cc \
 		  src/Threads/Task.cc \
+		  src/Util/IDSet.cc \
+		  src/Util/Identifier.cc \
+		  src/Util/Timer.cc \
+		  src/XML/Xml.cc \
+		  src/XML/iksutil.cc \
 		  src/XMPP/Component.cc \
-		  src/XMPP/Stream.cc \
-		  src/XMPP/Muc.cc \
-		  src/XMPP/Node.cc \
-		  src/XMPP/Stanza.cc \
 		  src/XMPP/Disco.cc \
 		  src/XMPP/Jid.cc \
-		  src/XMPP/Roster.cc \
+		  src/XMPP/Muc.cc \
+		  src/XMPP/Node.cc \
 		  src/XMPP/RootNode.cc \
-		  src/XML/iksutil.cc \
-		  src/XML/Xml.cc \
-		  src/Core.cc \
-		  src/MatchManager.cc \
-		  src/GameRoom.cc \
-		  src/StreamListener.cc \
-		  src/Pairing/Player.cc \
-		  src/Pairing/Game.cc \
-		  src/Pairing/TourneyPlayers.cc \
-		  src/Pairing/Tourney.cc \
-		  src/Util/Identifier.cc \
-		  src/Util/IDSet.cc \
-		  src/Util/Timer.cc \
-		  src/GameProtocol.cc \
-		  src/main.cc \
-		  src/MatchStandard.cc \
-		  src/GameManager.cc \
-		  src/Game.cc \
-		  src/MatchProtocol.cc \
-		  src/Agreement.cc \
-		  src/CoreInterface.cc \
-		  src/ComponentWrapper.cc \
-		  src/MatchDatabase.cc
+		  src/XMPP/Roster.cc \
+		  src/XMPP/Stanza.cc \
+		  src/XMPP/StanzaBase.cc \
+		  src/XMPP/Stream.cc \
+		  src/main.cc
 
 SRCDIR = src
 OBJDIR = obj
 DEPSDIR = .deps
-CXXFLAGS=-Wall -g -D_GLIBCXX_DEBUG
-#CXXFLAGS=-Wall -O3 -fomit-frame-pointer -funroll-loops -march=native
-LDLIBS=-lrt -lpthread -liksemel
+CXXFLAGS=-Wall -ggdb3 -D_GLIBCXX_DEBUG
+#CXXFLAGS=-Wall -O3 -fomit-frame-pointer -pg -march=native
+#CXXFLAGS=-Wall -O3 -fomit-frame-pointer -march=native
+LDLIBS=-I${HOME}/.usr/lib -lrt -lpthread -liksemel
 TARGET=chessd
 CC=gcc
 CXX=g++
@@ -58,7 +64,7 @@ ${TARGET}: ${OBJECTS}
 
 .deps/%.d: ${SRCDIR}/%.cc
 	@mkdir -p $(dir $@)
-	${CXX} ${CXXFLAGS} -MM $< | sed 's/\(^[^ \.]*\)\.o/${OBJDIR}\/\1.o ${DEPSDIR}\/\1.d/' > $@
+	${CXX} ${CXXFLAGS} -MM $< | sed 's/^[^:]*:/$(subst /,\/,$(patsubst ${SRCDIR}/%.cc,${OBJDIR}/%.o,$<)) $(subst /,\/,$@):/' > $@
 
 obj/%.o: ${SRCDIR}/%.cc
 	@mkdir -p $(dir $@)
@@ -72,5 +78,5 @@ clean-target:
 clean-obj:
 	rm -rf ${OBJDIR}
 
-clean-depends:
+clean-deps:
 	rm -rf ${DEPSDIR}

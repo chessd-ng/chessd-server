@@ -33,7 +33,7 @@ namespace XMPP {
 		/*if(stanza->from().empty())
 			stanza->from() = this->component_name;
 		Tag *tag = stanza->tag();*/
-		this->handlers.sendTag(stanza->tag());
+		this->handlers.sendTag(Stanza::createTag(stanza));
 	}
 
 	void Component::auth(XML::Tag* _tag) {

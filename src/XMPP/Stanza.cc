@@ -9,15 +9,27 @@ using namespace XML;
 
 namespace XMPP {
 
-	Stanza::Stanza(const std::string& type) : _type(type) { }
+	Stanza::Stanza(const std::string& type) : StanzaBase(type) { }
+
+	Stanza::Stanza(Moved<StanzaBase> stanza_base) : StanzaBase(stanza_base) { }
+
+	Stanza::Stanza(const Stanza& stanza) :
+		StanzaBase(stanza) {
+		foreach(it, stanza.children())
+			this->children().push_back(it->clone());
+	}
+
+	Stanza::Stanza(Moved<Stanza> stanza) :
+		StanzaBase(move<StanzaBase>(*stanza)) {
+		swap(this->children(), stanza->children());
+	}
 
 	Stanza::~Stanza() { }
 
 	static bool is_cdata(const XML::Item& item) {
 		return typeid(item) == typeid(XML::CData);
 	}
-	Stanza::Stanza(Tag* tag) {
-		this->type().swap(tag->name());
+	Stanza::Stanza(Tag* tag) : StanzaBase(tag->name()) {
 		this->subtype().swap(tag->attributes()["type"]);
 		this->to() = Jid(tag->attributes()["to"]);
 		this->from() = Jid(tag->attributes()["from"]);
@@ -28,41 +40,48 @@ namespace XMPP {
 		delete tag;
 	}
 
-	Tag* Stanza::tag() {
-		Tag* tag = new Tag(this->type());
-		if(not this->subtype().empty())
-			tag->attributes()["type"].swap(this->subtype());
-		if(not this->lang().empty())
-			tag->attributes()["xml:lang"].swap(this->lang());
-		if(not this->from().empty())
-			tag->attributes()["from"] = this->from().full();
-		if(not this->to().empty())
-			tag->attributes()["to"] = this->to().full();
-		if(not this->id().empty())
-			tag->attributes()["id"].swap(this->id());
-		TagList::iterator it;
-		tag->children().transfer(tag->children().end(), this->children());
-		delete this;
+	Stanza::Stanza(Moved<Tag> tag) : StanzaBase(tag->name()) {
+		this->subtype().swap(tag->attributes()["type"]);
+		this->to() = Jid(tag->attributes()["to"]);
+		this->from() = Jid(tag->attributes()["from"]);
+		this->lang().swap(tag->attributes()["xml:lang"]);
+		this->id().swap(tag->attributes()["id"]);
+		tag->children().erase_if(is_cdata);
+		this->children().transfer(this->children().end(), tag->children());
+	}
+
+	Tag* Stanza::createTag(Stanza* stanza) {
+		Tag* tag = new Tag(stanza->type());
+		if(not stanza->subtype().empty())
+			tag->attributes()["type"].swap(stanza->subtype());
+		if(not stanza->lang().empty())
+			tag->attributes()["xml:lang"].swap(stanza->lang());
+		if(not stanza->from().empty())
+			tag->attributes()["from"] = stanza->from().full();
+		if(not stanza->to().empty())
+			tag->attributes()["to"] = stanza->to().full();
+		if(not stanza->id().empty())
+			tag->attributes()["id"].swap(stanza->id());
+		tag->children().transfer(tag->children().end(), stanza->children());
+		delete stanza;
 		return tag;
 	}
 
 	string Stanza::xml() const {
 		string tmp;
-		tmp += "<";
-		tmp += this->type() + " ";
+		tmp += "<" + this->type();
 		if(not this->from().empty())
-			tmp += "from='" + this->from().full() + "'";
+			tmp += " from='" + this->from().full() + "'";
 		if(not this->to().empty())
-			tmp += "to='" + this->to().full() + "'";
+			tmp += " to='" + this->to().full() + "'";
 		if(not this->subtype().empty())
-			tmp += "type='" + this->subtype() + "'";
+			tmp += " type='" + this->subtype() + "'";
 		if(not this->lang().empty())
-			tmp += "xml:lang='" + this->lang() + "'";
+			tmp += " xml:lang='" + this->lang() + "'";
 		if(not this->id().empty())
-			tmp += "id='" + this->id() + "'";
+			tmp += " id='" + this->id() + "'";
 		tmp += ">";
-		TagList::const_iterator it;
-		for(it = this->children().begin(); it != this->children().end(); ++it)
+        foreach(it, this->children())
 			it->xml(tmp);
 		tmp += "</" + this->type() + ">";
 		return tmp;
@@ -97,8 +116,7 @@ namespace XMPP {
 		ret->from() = this->from();
 		ret->to() = this->to();
 		ret->lang() = this->lang();
-		TagList::const_iterator it;
-		for(it = this->children().begin(); it != this->children().end(); ++it)
+        foreach(it, this->children())
 			ret->children().push_back((Tag*)it->clone());
 		return ret;
 	}

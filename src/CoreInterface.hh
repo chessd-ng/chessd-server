@@ -5,7 +5,10 @@
 #include "XMPP/Jid.hh"
 #include "Game.hh"
 
+typedef std::map<std::string, Rating> UserRatings;
+
 typedef boost::function<void ()> ShutdownHandler;
+typedef boost::function<void (UserRatings*)> RatingCallback;
 
 class Core;
 
@@ -29,22 +32,13 @@ class CoreInterface {
 		void adjournGame(int game_id, GameResult* result);
 		void cancelGame(int game_id);
 
-		/*! \brief Get an interface to the database.
-		 *
-		 * This interface
-		 * is not thread safe so there should be one interface
-		 * for each thread, the caller takes the ownership of
-		 * the returned object
-		 */
-		// DatabaseInterface* getDatabaseInterface();
-
+		void fetchUserRatings(const XMPP::Jid& user, const RatingCallback& callback);
 
 
 	private:
 
 		void shutdown();
 
-		Core& core;
 };
 
 #endif

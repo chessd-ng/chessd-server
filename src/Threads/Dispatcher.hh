@@ -65,18 +65,10 @@ namespace Threads {
 							sync));
 				}*/
 
-			template <class CALLABLE> typename boost::result_of<CALLABLE()>::type
-				queue(const CALLABLE& function, bool sync = false) {
-				typedef TypedMessage<typename boost::result_of<CALLABLE()>::type, CALLABLE> message_type;
-				message_type* message = new message_type(function, sync);
+			template <class CALLABLE> void queue(const CALLABLE& function) {
+				typedef TypedMessage<CALLABLE> message_type;
+				message_type* message = new message_type(function);
 				this->_queue.push(message);
-				if(sync) {
-					std::auto_ptr<message_type> m_ptr(message);
-					return message->wait();
-				} else {
-					/* leave the message to the dispatcher */
-					return typename boost::result_of<CALLABLE()>::type();
-				}
 			}
 
 		private:

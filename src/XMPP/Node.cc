@@ -57,7 +57,7 @@ namespace XMPP {
 			if(not stanza->children().empty() and not stanza->id().empty()) {
 				if(stanza->subtype() == "set" or stanza->subtype() == "get") {
 					HandlerMap::const_iterator it;
-					const string& ns = stanza->children().front().attributes()["xmlns"];
+					const string& ns = stanza->children().tags().front().attributes()["xmlns"];
 					it = this->iq_handlers.find(ns);
 					if(it == this->iq_handlers.end()) {
 						Stanza* error = Stanza::createErrorStanza(stanza,

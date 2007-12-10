@@ -61,6 +61,7 @@ namespace XMPP {
 			 * /param handler is a function.
 			 */
 			void setPresenceHandler(const StanzaHandler& handler);
+
 			/*! \brief Remove the presence handler. */
 			void removePresenceHandler();
 

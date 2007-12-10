@@ -27,11 +27,11 @@ namespace XMPP {
 		}
 	}
 
-	void RootNode::setStanzaHandler(const string& node, const StanzaHandler& handler) {
+	void RootNode::setNodeHandler(const string& node, const StanzaHandler& handler) {
 		this->node_handlers.insert(make_pair(node,handler));
 	}
 
-	void RootNode::removeStanzaHandler(const string& node) {
+	void RootNode::removeNodeHandler(const string& node) {
 		this->node_handlers.erase(node);
 	}
 }

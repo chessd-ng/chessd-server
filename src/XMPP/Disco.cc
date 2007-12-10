@@ -26,7 +26,7 @@ namespace XMPP {
 	}
 
 	void Disco::handleIqInfo(Stanza* stanza) {
-		Tag& query = stanza->children().front();
+		Tag& query = stanza->children().tags().front();
 		swap(stanza->to(),stanza->from());
 		stanza->subtype() = "result";
 		Tag* identity = new Tag("identity");
@@ -44,7 +44,7 @@ namespace XMPP {
 	}
 
 	void Disco::handleIqItems(Stanza* stanza) {
-		Tag& query = stanza->children().front();
+		Tag& query = stanza->children().tags().front();
 		swap(stanza->to(),stanza->from());
 		stanza->subtype() = "result";
 		foreach(item, this->items()) {

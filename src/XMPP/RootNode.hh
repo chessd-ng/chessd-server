@@ -33,13 +33,25 @@ namespace XMPP {
 			/*! \brief set a handler for a node
 			 *
 			 */
-			void setStanzaHandler(const std::string& node_name, const StanzaHandler& handler);
+			void setNodeHandler(const std::string& node_name, const StanzaHandler& handler);
 
-			void removeStanzaHandler(const std::string& node_name);
+			void removeNodeHandler(const std::string& node_name);
 
 		private:
 			typedef std::map<std::string, StanzaHandler> HandlerMap;
 			std::map<std::string, StanzaHandler> node_handlers;
+
+			struct NodeStanzaHandler : std::unary_function<Stanza*, void> {
+				public:
+					NodeStanzaHandler(RootNode& root_node) : root_node(root_node) { }
+					void operator()(Stanza* stanza) { root_node.handleStanza(stanza); }
+				private:
+					RootNode& root_node;
+			};
+		public:
+			NodeStanzaHandler stanzaHandler() {
+				return NodeStanzaHandler(*this);
+			}
 	};
 
 }

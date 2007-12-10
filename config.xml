@@ -1,14 +1,20 @@
 <server>
-	<match-manager
+	<rating-manager
 		server_address="localhost"
-		server_port="5563"
+		server_port="5560"
 		server_password="secret"
-		node_name="match.shiva"
+		node_name="ratings.shiva"
 	/>
 	<game-manager
 		server_address="localhost"
 		server_port="5561"
 		server_password="secret"
 		node_name="games.shiva"
+	/>
+	<match-manager
+		server_address="localhost"
+		server_port="5562"
+		server_password="secret"
+		node_name="match.shiva"
 	/>
 </server>

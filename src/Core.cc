@@ -8,15 +8,18 @@ Core* Core::_singleton = 0;
 
 Core::Core(const XML::Tag& config_xml) :
 	match_manager(config_xml.getChild("match-manager"), boost::bind(&Core::handleError, this, _1)),
-	game_manager(config_xml.getChild("game-manager"), boost::bind(&Core::handleError, this, _1)) { }
+	game_manager(config_xml.getChild("game-manager"), boost::bind(&Core::handleError, this, _1)),
+	rating_manager(config_xml.getChild("rating-manager"), boost::bind(&Core::handleError, this, _1)) { }
 
 void Core::connect() {
 	this->dispatcher.start();
 	this->match_manager.connect();
 	this->game_manager.connect();
+	this->rating_manager.connect();
 }
 
 Core::~Core() {
+	this->rating_manager.close();
 	this->game_manager.close();
 	this->match_manager.close();
 	this->dispatcher.stop();
@@ -55,11 +58,11 @@ void Core::_endGame(int game_id, GameResult* result) {
 	this->game_ids.releaseID(game_id);
 	std::map<Player, Rating> tmp;
 	foreach(player, result->players()) {
-		tmp.insert(std::make_pair(*player, this->ratings[std::make_pair(*player, result->category())]));
+		tmp.insert(std::make_pair(*player, this->ratings[*player][result->category()]));
 	}
 	result->updateRating(tmp);
 	foreach(player, result->players()) {
-		this->ratings[make_pair(*player, result->category())] = tmp[*player];
+		this->ratings[*player][result->category()] = tmp[*player];
 	}
 	delete result;
 }
@@ -78,3 +81,11 @@ void Core::_startGame(Game* game) {
 	this->game_manager.insertGame(game_id, game);
 }
 
+void Core::fetchUserRatings(const XMPP::Jid& user, const RatingCallback& callback) {
+	this->dispatcher.queue(boost::bind(&Core::_fetchUserRatings, this, user, callback));
+}
+
+void Core::_fetchUserRatings(const XMPP::Jid& user, const RatingCallback& callback) {
+	UserRatings* user_ratings = new UserRatings(this->ratings[user]);
+	callback(user_ratings);
+}

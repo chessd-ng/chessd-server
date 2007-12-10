@@ -13,7 +13,7 @@ namespace XML {
 		AttributeMap::const_iterator a_it;
 		for(a_it = tag.attributes().begin(); a_it != tag.attributes().end(); ++a_it)
 			iks_insert_attrib(iktree, a_it->first.c_str(), a_it->second.c_str());
-		ChildrenList::const_iterator c_it;
+		ItemList::const_iterator c_it;
 		for(c_it = tag.children().begin(); c_it != tag.children().end(); ++c_it) {
 			if(typeid(*c_it)==typeid(Tag)) {
 				const Tag& tag_child = dynamic_cast<const Tag&>(*c_it);

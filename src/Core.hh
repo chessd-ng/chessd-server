@@ -7,18 +7,21 @@
 
 #include "MatchManager.hh"
 #include "GameManager.hh"
+#include "RatingManager.hh"
 
 #include <string>
 #include <set>
 
 #include "Game.hh"
-
 #include "Rating.hh"
 
 /*! \brief This class is the implementation of the server core.
  *
  *  It is responsible to interconnect all of the elements of
  *  the server. */
+
+typedef std::map<std::string, Rating> UserRatings;
+typedef boost::function<void (UserRatings*)> RatingCallback;
 
 
 class Core {
@@ -44,12 +47,15 @@ class Core {
 		void adjournGame(int game_id, GameResult* result);
 		void cancelGame(int game_id);
 
+		void fetchUserRatings(const XMPP::Jid&, const RatingCallback& callback);
+
 	private:
 
 		void _startGame(Game* game);
 		void _endGame(int game_id, GameResult* result);
 		void _adjournGame(int game_id, GameResult* result);
 		void _cancelGame(int game_id);
+		void _fetchUserRatings(const XMPP::Jid&, const RatingCallback& callback);
 
 		Core(const XML::Tag& config);
 
@@ -57,6 +63,7 @@ class Core {
 
 		MatchManager match_manager;
 		GameManager game_manager;
+		RatingManager rating_manager;
 
 		static Core* _singleton;
 
@@ -64,7 +71,7 @@ class Core {
 
 		Util::IDSet game_ids;
 
-		std::map<std::pair<XMPP::Jid, std::string>, Rating> ratings;
+		std::map<XMPP::Jid, std::map<std::string, Rating> > ratings;
 };
 
 #endif

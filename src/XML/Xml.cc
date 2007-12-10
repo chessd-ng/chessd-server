@@ -8,16 +8,21 @@ using namespace std;
 using namespace Util;
 
 namespace XML {
-	Item::~Item() { }
-
-	Tag::Tag(const Tag& tag) : _name(tag.name()), _attributes(tag.attributes())   {
-		ChildrenList::const_iterator it;
-		for(it = tag.children().begin(); it != tag.children().end(); ++it) {
-			this->children().push_back(it->clone());
+	Tag::Tag(const Tag& tag) :
+		_name(tag.name()),
+		_attributes(tag.attributes()),
+		_tag_view(this->children()),
+		_cdata_view(this->children()) {
+			foreach(child, tag.children()) {
+				this->children().push_back(child->clone());
+			}
 		}
-	}
 
-	Tag::~Tag() { }
+	Tag::Tag(Moved<Tag> tag) :
+		_tag_view(this->children()),
+		_cdata_view(this->children()) {
+			this->swap(*tag);
+		}
 
 	void Tag::xml(string& str) const {
 		str += '<';
@@ -35,7 +40,7 @@ namespace XML {
 			str += "/>";
 		} else {
 			str += '>';
-			ChildrenList::const_iterator it;
+			ItemList::const_iterator it;
 			for(it = this->children().begin(); it != this->children().end(); ++it)
 				it->xml(str);
 			str += "</";
@@ -44,7 +49,7 @@ namespace XML {
 		}
 	}
 
-	Item* Tag::clone() const {
+	Tag* Tag::clone() const {
 		return new Tag(*this);
 	}
 
@@ -54,7 +59,8 @@ namespace XML {
 		this->children().swap(tag.children());
 	}
 
-	Item* CData::clone() const {
+	
+	CData* CData::clone() const {
 		return new CData(*this);
 	}
 
@@ -66,10 +72,6 @@ namespace XML {
 		string tmp;
 		this->xml(tmp);
 		return tmp;
-	}
-
-	void Tag::clearChildren() {
-		this->children().clear();
 	}
 
 	TagGenerator::TagGenerator() : last(0) { }
@@ -114,25 +116,21 @@ namespace XML {
 	}
 
 	const Tag& Tag::getChild(const std::string& name) const {
-		foreach(it, this->children()) {
-			if(typeid(*it)==typeid(Tag)) {
-				const Tag& tag = dynamic_cast<const Tag&>(*it);
-				if(tag.name() == name)
-					return tag;
-			}
+		foreach(tag, this->tags()) {
+			if(tag->name() == name)
+				return *tag;
 		}
-		throw "Tag not found";
+		assert(false);
+		//throw "Tag not found";
 	}
 
 	Tag& Tag::getChild(const std::string& name) {
-		foreach(it, this->children()) {
-			if(typeid(*it)==typeid(Tag)) {
-				Tag& tag = dynamic_cast<Tag&>(*it);
-				if(tag.name() == name)
-					return tag;
-			}
+		foreach(tag, this->tags()) {
+			if(tag->name() == name)
+				return *tag;
 		}
-		throw "Unrecoverable error";
+		assert(false);
+		//throw "Unrecoverable error";
 	}
 
 	Description::Description() : type_count(0) { }
@@ -338,7 +336,7 @@ namespace XML {
 			}
 		}
 		if(not type.any_children) {
-			ChildrenList::iterator child = xml.children().begin();
+			ItemList::iterator child = xml.children().begin();
 			int last_count = 0;
 			foreach(child_desc, type.children) {
 				bool done = false;

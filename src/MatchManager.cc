@@ -79,7 +79,7 @@ void MatchManager::close() {
 }
 
 void MatchManager::handleMatch(Stanza* stanza) {
-	Tag& query = stanza->children().front();
+	Tag& query = stanza->children().tags().front();
 	string action;
 	try {
 		action = MatchProtocol::parseMatch(query);
@@ -105,7 +105,7 @@ void MatchManager::handleMatchOffer(Stanza* _stanza) {
 	Jid requester = stanza->from();
 	try {
 		/* parse message */
-		XML::Tag& offer = *stanza->children().begin();
+		XML::Tag& offer = stanza->children().tags().front();
 		//offer = auto_ptr<MatchOffer>(MatchProtocol::parseMatchOffer(*stanza->children().begin()));
 
 		/* check players availability and whether
@@ -164,7 +164,7 @@ void MatchManager::notifyMatchOffer(int id) {
 void MatchManager::handleMatchAccept(Stanza* stanza) {
 	try {
 		cout << "incoming accept" << endl;
-		XML::Tag& query = stanza->children().front();
+		XML::Tag& query = stanza->children().tags().front();
 		int id = MatchProtocol::parseMatchAccept(query);
 		if(this->match_db.acceptMatch(id, stanza->from()))
 			this->notifyMatchResult(id, true);
@@ -176,7 +176,7 @@ void MatchManager::handleMatchAccept(Stanza* stanza) {
 
 void MatchManager::handleMatchDecline(Stanza* stanza) {
 	try {
-		XML::Tag& query = stanza->children().front();
+		XML::Tag& query = stanza->children().tags().front();
 		int id = MatchProtocol::parseMatchDecline(query);
 		if(not this->match_db.hasPlayer(id, stanza->from()))
 			throw "Invalid id";

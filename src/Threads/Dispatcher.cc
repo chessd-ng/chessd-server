@@ -18,11 +18,7 @@ namespace Threads {
 		while(this->running) {
 			Message* message = this->_queue.pop();
 			message->send();
-			/* if the message is asynchronous it has
-			 * to be deleted here, because the sender
-			 * is not waiting for it*/
-			if(not message->isSync())
-				delete message;
+			delete message;
 		}
 	}
 

@@ -56,7 +56,7 @@ void GameManager::_close() {
 }
 
 void GameManager::handleGame(Stanza* stanza) {
-	XML::Tag& query = stanza->children().front();
+	XML::Tag& query = *stanza->children().tags().begin();
 	try {
 		string query_name = GameProtocol::parseQuery(query);
 	} catch (const char* msg) {
@@ -78,7 +78,7 @@ void GameManager::_insertGame(int game_id, Game* game) {
 			GameRoomHandlers(boost::bind(&ComponentWrapper::sendStanza, &this->component, _1),
 				boost::bind(&GameManager::closeGameRoom, this, room_id)));
 	/* Register the new jabber node */
-	this->root_node.setStanzaHandler(room_name,
+	this->root_node.setNodeHandler(room_name,
 			boost::bind(&GameRoom::handleStanza, game_room, _1));
 	/* Add the new jabber node to the disco */
 	this->root_node.disco().items().insert(new XMPP::DiscoItem(room_name,
@@ -93,7 +93,7 @@ void GameManager::closeGameRoom(int room_id) {
 void GameManager::_closeGameRoom(int room_id) {
 	this->room_ids.releaseID(room_id);
 	string room_name = "game_" + Util::int2str(room_id);
-	this->root_node.removeStanzaHandler(room_name);
+	this->root_node.removeNodeHandler(room_name);
 	this->root_node.disco().items().erase(room_name);
 	this->game_rooms.erase(room_id);
 }

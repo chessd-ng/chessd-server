@@ -57,7 +57,7 @@ void GameRoom::handleGame(XMPP::Stanza* stanza) {
 	try {
 		if(not this->game_active)
 			throw "The game is not active";
-		action = GameProtocol::parseQuery(stanza->children().front());
+		action = GameProtocol::parseQuery(*stanza->children().tags().begin());
 		if(not Util::has_key(this->all_players, stanza->from()))
 			throw "You are not playing the game";
 	} catch (const char * msg) {
@@ -99,7 +99,7 @@ void GameRoom::check_end_game() {
 
 void GameRoom::handleGameMove(XMPP::Stanza* stanza) {
 	try {
-		std::string move = GameProtocol::parseMove(stanza->children().front());
+		std::string move = GameProtocol::parseMove(*stanza->children().tags().begin());
 		this->game->move(stanza->from(), move);
 		stanza = XMPP::Stanza::createIQResult(stanza);
 		this->node.sendStanza(stanza);
