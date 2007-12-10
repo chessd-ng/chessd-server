@@ -13,6 +13,7 @@ void log_traffic(const std::string& data, bool incoming) {
 	cout << "-----------" << endl;
 	cout << data << endl;
 	cout << "-----------------------------" << endl;
+    return;
 }
 
 int main(void) {
