@@ -347,11 +347,11 @@ namespace XML {
 							return false;
 						++child;
 					} else if(child != xml.children().end() and typeid(*child)==typeid(Tag) and dynamic_cast<const Tag&>(*child).name()==child_desc->name) {
-						++last_count;
-						++child;
 						if(not this->_validate(dynamic_cast<Tag&>(*child),
 									this->types.find(child_desc->type)->second))
 							return false;
+						++last_count;
+						++child;
 					} else  {
 						if(last_count < child_desc->minOccur or last_count > child_desc->maxOccur)
 							return false;

@@ -87,7 +87,7 @@ namespace XMPP {
 		foreach(it, this->users()) {
 			Stanza* stanza = this->createPresenceStanza(*it);
 			stanza->to() = jid;
-			this->stanza_sender(stanza);
+			this->node.sendStanza(stanza);
 		}
 	}
 
@@ -136,7 +136,7 @@ namespace XMPP {
 			this->broadcast(stanza);
 		} else {
 			stanza = Stanza::createErrorStanza(stanza, "cancel", "not-acceptable");
-			this->stanza_sender(stanza);
+			this->node.sendStanza(stanza);
 		}
 	}
 

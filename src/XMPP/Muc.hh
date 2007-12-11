@@ -98,6 +98,10 @@ namespace XMPP {
 
 			const MucUserSet& users() const { return this->_users; }
 
+            bool isOccupant(const XMPP::Jid& user_jid) {
+                return this->users().find_jid(user_jid) != this->users().end();
+            }
+
 			void broadcastIq(Stanza* stanza, const StanzaHandler& on_result = StanzaHandler(),
 					const TimeoutHandler& on_timeout = TimeoutHandler());
 
@@ -108,8 +112,6 @@ namespace XMPP {
 			void handleGroupChat(Stanza* stanza);
 
 			void presentUsers(const Jid& jid);
-
-			StanzaHandler stanza_sender;
 
 			Node& node;
 

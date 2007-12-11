@@ -48,7 +48,8 @@ namespace XMPP {
 	}
 
 	void Node::sendStanza(Stanza* stanza) {
-		stanza->from() = jid;
+        if(stanza->from().empty())
+            stanza->from() = jid;
 		this->send_stanza(stanza);
 	}
 

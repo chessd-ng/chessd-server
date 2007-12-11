@@ -14,7 +14,7 @@ MatchRuleStandard::~MatchRuleStandard() {
 }
 
 std::string MatchRuleStandard::getCategory() const {
-	return "Standard";
+	return "standard";
 }
 
 Match* MatchRuleStandard::checkOffer(const XML::Tag& _match_offer, const TeamDatabase&) const {
@@ -26,7 +26,7 @@ Match* MatchRuleStandard::checkOffer(const XML::Tag& _match_offer, const TeamDat
 */
 MatchStandard::MatchStandard(const StandardPlayerList &players) :
 	MatchChess(players),
-	_category("Standard")
+	_category("standard")
 {
 }
 

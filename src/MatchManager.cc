@@ -78,51 +78,43 @@ void MatchManager::close() {
 	}
 }
 
-void MatchManager::handleMatch(Stanza* stanza) {
-	Tag& query = stanza->children().tags().front();
-	string action;
+void MatchManager::handleMatch(Stanza* _stanza) {
+    std::auto_ptr<Stanza> stanza(_stanza);
+    std::auto_ptr<Query> query;
 	try {
-		action = MatchProtocol::parseMatch(query);
+        query = std::auto_ptr<Query>(new Query(move(*stanza)));
 	} catch (const char* msg) {
-		this->component.sendStanza(Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg));
+		this->component.sendStanza(
+                Stanza::createErrorStanza(
+                        stanza.release(),
+                        "cancel",
+                        "bad-request",
+                        msg));
 		return;
 	}
-	if(action == "offer") {
-		this->handleMatchOffer(stanza);
-	} else if(action == "accept") {
-		this->handleMatchAccept(stanza);
-	} else if(action == "decline") {
-		this->handleMatchDecline(stanza);
+	if(query->action() == "offer") {
+		this->handleMatchOffer(query.release());
+	} else if(query->action() == "accept") {
+		this->handleMatchAccept(query.release());
+	} else if(query->action() == "decline") {
+		this->handleMatchDecline(query.release());
 	} else {
-		this->component.sendStanza(Stanza::createErrorStanza(stanza, "cancel", "bad-request"));
+		this->component.sendStanza(
+                Stanza::createErrorStanza(
+                        Query::createStanza(move(*query)),
+                        "cancel",
+                        "bad-request"));
 	}
 }
 
-void MatchManager::handleMatchOffer(Stanza* _stanza) {
+void MatchManager::handleMatchOffer(Query* _query) {
 	//auto_ptr<MatchOffer> offer;
 	auto_ptr<Match> match;
-	auto_ptr<Stanza> stanza(_stanza);
-	Jid requester = stanza->from();
+	auto_ptr<Query> query(_query);
+	Jid requester = query->from();
 	try {
 		/* parse message */
-		XML::Tag& offer = stanza->children().tags().front();
-		//offer = auto_ptr<MatchOffer>(MatchProtocol::parseMatchOffer(*stanza->children().begin()));
-
-		/* check players availability and whether
-		 * to sender is one of the entities */
-		/*bool sanity = false;
-		foreach(player, offer->entities) {
-			if(not this->roster.isUserAvailable(player->jid))
-				throw "User is unavailable";
-			if(player->jid == requester) sanity = true;
-			int count = 0;
-			foreach(p2, offer->entities) {
-				if(p2->jid == player->jid) count++;
-			}
-			if(count>1)
-				throw "Players must not repeat";
-		}
-		if(not sanity) throw "Invalid message";*/
+		XML::Tag& offer = query->children().tags().front();
 		if(not offer.hasAttribute("category"))
 			throw "Invalid message";
 		const std::string& category = offer.getAttribute("category");
@@ -131,64 +123,93 @@ void MatchManager::handleMatchOffer(Stanza* _stanza) {
 		match = auto_ptr<Match>((*this->rules.find(category)).second->checkOffer(offer,
 				this->teams));
 	} catch (const char* msg) {
-		this->component.sendStanza(Stanza::createErrorStanza(stanza.release(), "cancel", "bad-request", msg));
+		this->component.sendStanza(
+                Stanza::createErrorStanza(
+                        Query::createStanza(move(*query)),
+                        "cancel",
+                        "bad-request",
+                        msg));
 		return;
 	}
 	int id = this->match_db.insertMatch(match.release());
-	this->component.sendStanza(Stanza::createIQResult(stanza.release()));
-	this->notifyMatchOffer(id);
-	/*
-	query* = MatchProtocol::answerMatchOffer(match_ref, id);
-	stanza->children().push_back(query);
-	stanza->subtype() = "set";
-	foreach(team, match_ref.getTeams()) {
-		foreach(player, *team) {
-			stanza->to() = player->jid;
-			this->root_node.sendIq(stanza->clone());
-		}
-	}
-	*/
+    this->match_db.acceptMatch(id, requester);
+	this->component.sendStanza(Stanza::createIQResult(Query::createStanza(move(*query))));
+	this->notifyMatchOffer(id, requester);
 }
 
-void MatchManager::notifyMatchOffer(int id) {
+void MatchManager::notifyMatchOffer(int id, const Jid& requester) {
 	const Match& match = this->match_db.getMatch(id);
 	Stanza stanza("iq");
 	stanza.subtype() = "set";
-	stanza.children().push_back(match.notification());
+	Tag* tag = match.notification();
+    tag->setAttribute("id", Util::int2str(id));
+    stanza.children().push_back(tag);
 	foreach(player, match.players()) {
-		stanza.to() = *player;
-		this->root_node.sendIq(stanza.clone());
+        if(*player != requester) {
+            stanza.to() = *player;
+            this->root_node.sendIq(stanza.clone());
+        }
 	}
 }
 
-void MatchManager::handleMatchAccept(Stanza* stanza) {
+void MatchManager::handleMatchAccept(Query* _query) {
+    std::auto_ptr<Query> query(_query);
 	try {
 		cout << "incoming accept" << endl;
-		XML::Tag& query = stanza->children().tags().front();
-		int id = MatchProtocol::parseMatchAccept(query);
-		if(this->match_db.acceptMatch(id, stanza->from()))
-			this->notifyMatchResult(id, true);
-		this->component.sendStanza(Stanza::createIQResult(stanza));
+        if(query->children().tags().begin() ==  query->children().tags().end())
+            throw "Invalid message";
+		XML::Tag& match = query->children().tags().front();
+        if(match.name() != "match" or not match.hasAttribute("id"))
+            throw "Invalid message";
+		int id = Util::str2int(match.getAttribute("id"));
+        if(this->match_db.acceptMatch(id, query->from())) {
+            this->closeMatch(id, true);
+        }
+		this->component.sendStanza(
+                Stanza::createIQResult(
+                        Query::createStanza(move(*query))));
 	} catch (const char* msg) {
-		this->component.sendStanza(Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg));
+		this->component.sendStanza(
+                Stanza::createErrorStanza(
+                        Query::createStanza(move(*query)),
+                        "cancel",
+                        "bad-request",
+                        msg));
 	}
 }
 
-void MatchManager::handleMatchDecline(Stanza* stanza) {
+void MatchManager::handleMatchDecline(Query* _query) {
+    std::auto_ptr<Query> query(_query);
 	try {
-		XML::Tag& query = stanza->children().tags().front();
-		int id = MatchProtocol::parseMatchDecline(query);
-		if(not this->match_db.hasPlayer(id, stanza->from()))
+		XML::Tag& match = query->children().tags().front();
+        if(match.name() != "match" or not match.hasAttribute("id"))
+            throw "Invalid message";
+		int id = Util::str2int(match.getAttribute("id"));
+		if(not this->match_db.hasPlayer(id, query->from()))
 			throw "Invalid id";
-		this->component.sendStanza(Stanza::createIQResult(stanza));
-		this->notifyMatchResult(id, false);
+		this->component.sendStanza(
+                Stanza::createIQResult(
+                        Query::createStanza(move(*query))));
+        this->closeMatch(id, false);
 	} catch (const char* msg) {
-		this->component.sendStanza(Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg));
+		this->component.sendStanza(
+                Stanza::createErrorStanza(
+                        Query::createStanza(move(*query)),
+                        "cancel",
+                        "bad-request",
+                        msg));
 	}
 }
 
-void MatchManager::notifyMatchResult(int id, bool accepted) {
-	Match* match = this->match_db.closeMatch(id);
+void MatchManager::closeMatch(int id, bool accepted) {
+    Match* match = this->match_db.closeMatch(id);
+    if(accepted) {
+        this->core_interface.startGame(match->createGame());
+    }
+    this->notifyMatchResult(match, id, accepted);
+}
+
+void MatchManager::notifyMatchResult(Match* match, int id, bool accepted) {
 	Stanza stanza("iq");
 	stanza.subtype() = "set";
 	stanza.children().push_back(MatchProtocol::notifyMatchResult(*match, id, accepted));
@@ -196,8 +217,6 @@ void MatchManager::notifyMatchResult(int id, bool accepted) {
 		stanza.to() = *player;
 		this->root_node.sendIq(stanza.clone());
 	}
-	if(accepted)
-		this->core_interface.startGame(match->createGame());
 	delete match;
 }
 
@@ -205,7 +224,7 @@ void MatchManager::notifyUserStatus(XMPP::Jid jid, bool available) {
 	if(not available) {
 		set<int> matchs = this->match_db.getPlayerMatchs(jid);
 		foreach(id, matchs) {
-			this->notifyMatchResult(*id, false);
+            this->closeMatch(*id, false);
 		}
 	}
 }

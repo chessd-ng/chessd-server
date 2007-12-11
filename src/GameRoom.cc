@@ -32,6 +32,7 @@ GameRoom::GameRoom(int game_id,
 
 	/* Set features */
 	this->node.disco().features().insert("http://c3sl.ufpr.br/chessd#game");
+	this->node.disco().features().insert("http://jabber.org/protocol/muc");
 
 	/* Set game iqs */
 	this->node.setIqHandler(boost::bind(&GameRoom::handleGame, this, _1),
@@ -44,6 +45,8 @@ GameRoom::GameRoom(int game_id,
 			this->all_players.insert(*player);
 		}
 	}
+
+    this->notifyPlayers();
 }
 
 GameRoom::~GameRoom() { }
@@ -52,14 +55,29 @@ void GameRoom::handleStanza(XMPP::Stanza* stanza) {
 	this->node.handleStanza(stanza);
 }
 
+void GameRoom::notifyPlayers() {
+    XMPP::Stanza stanza("iq");
+	XML::Tag* query = new XML::Tag("query");
+	stanza.subtype()="set";
+	query->setAttribute("xmlns", "http://c3sl.ufpr.br/chessd#game");
+	query->setAttribute("action", "start");
+	stanza.children().push_back(query);
+    foreach(player, this->all_players) {
+        stanza.to() = *player;
+        this->node.sendStanza(stanza.clone());
+    }
+}
+
 void GameRoom::handleGame(XMPP::Stanza* stanza) {
 	std::string action;
 	try {
 		if(not this->game_active)
 			throw "The game is not active";
-		action = GameProtocol::parseQuery(*stanza->children().tags().begin());
 		if(not Util::has_key(this->all_players, stanza->from()))
-			throw "You are not playing the game";
+			throw "Only players can do that";
+        if(not this->muc.isOccupant(stanza->from()))
+			throw "Only occupants are allowed to send queries to the game";
+		action = GameProtocol::parseQuery(*stanza->children().tags().begin());
 	} catch (const char * msg) {
 		stanza = XMPP::Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg);
 		this->node.sendStanza(stanza);
@@ -67,6 +85,8 @@ void GameRoom::handleGame(XMPP::Stanza* stanza) {
 	}
 	if(action == "move") {
 		this->handleGameMove(stanza);
+	} else if(action == "state") {
+		this->handleGameState(stanza);
 	} else if(action == "resign") {
 		this->handleGameResign(stanza);
 	} else if(action == "draw-accept") {
@@ -107,8 +127,22 @@ void GameRoom::handleGameMove(XMPP::Stanza* stanza) {
 	} catch (const char* msg) {
 		stanza = XMPP::Stanza::createErrorStanza(stanza, "modify", "bad-request", msg);
 		this->node.sendStanza(stanza);
-		return;
 	}
+}
+
+void GameRoom::handleGameState(XMPP::Stanza* stanza) {
+    this->notifyGameState(stanza);
+}
+
+void GameRoom::notifyGameState(XMPP::Stanza* stanza) {
+	stanza = XMPP::Stanza::createIQResult(stanza);
+	XML::Tag* query = new XML::Tag("query");
+	stanza->subtype()="set";
+	query->setAttribute("xmlns", "http://c3sl.ufpr.br/chessd#game");
+	query->setAttribute("action", "state");
+    query->children().push_back(game->state());
+	stanza->children().push_back(query);
+    this->node.sendIq(stanza);
 }
 
 void GameRoom::handleGameResign(XMPP::Stanza* stanza) {
@@ -214,6 +248,7 @@ XMPP::Stanza* createMoveStanza(XML::Tag* state, const std::string& long_move) {
 	XML::TagGenerator tag_generator;
 	XMPP::Stanza* stanza = new XMPP::Stanza("iq");
 	stanza->subtype() = "set";
+	tag_generator.openTag("query");
 	tag_generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#game");
 	tag_generator.addAttribute("action", "move");
 	tag_generator.openTag("move");
@@ -237,7 +272,6 @@ void GameRoom::adjournGame() {
 }
 
 void GameRoom::cancelGame() {
-	//this->game->cancel();
 	this->core.cancelGame(this->game_id);
 	this->game_active = false;
 }

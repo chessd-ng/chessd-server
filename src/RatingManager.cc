@@ -54,7 +54,7 @@ static XMPP::Jid parseFetchRating(const Query& query) {
     const XML::Tag& tag = *query.children().tags().begin();
     if(not tag.hasAttribute("jid") or tag.name()!="rating")
         throw "Invalid format";
-    return tag.getAttribute("jid");
+    return Jid(tag.getAttribute("jid"));
 }
 
 void RatingManager::handleFetchRating(Query query) {
