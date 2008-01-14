@@ -32,7 +32,7 @@ MatchManager::MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& han
 	roster(boost::bind(&RootNode::sendStanza, &this->root_node, _1),
 			boost::bind(&MatchManager::notifyUserStatus, this, _1, _2)),
 	server_address(config.getAttribute("server_address")),
-	server_port(Util::str2int(config.getAttribute("server_port"))),
+	server_port(Util::parse_string<int>(config.getAttribute("server_port"))),
 	server_password(config.getAttribute("server_password")),
 	handleError(handleError)
 {
@@ -145,7 +145,7 @@ void MatchManager::notifyMatchOffer(int id, const Jid& requester) {
 	Stanza stanza("iq");
 	stanza.subtype() = "set";
 	Tag* tag = match.notification();
-    tag->setAttribute("id", Util::int2str(id));
+    tag->setAttribute("id", Util::to_string(id));
     stanza.children().push_back(tag);
 	foreach(player, match.players()) {
         if(*player != requester) {
@@ -164,7 +164,7 @@ void MatchManager::handleMatchAccept(Query* _query) {
 		XML::Tag& match = query->children().tags().front();
         if(match.name() != "match" or not match.hasAttribute("id"))
             throw "Invalid message";
-		int id = Util::str2int(match.getAttribute("id"));
+		int id = Util::parse_string<int>(match.getAttribute("id"));
         if(this->match_db.acceptMatch(id, query->from())) {
             this->closeMatch(id, true);
         }
@@ -187,7 +187,7 @@ void MatchManager::handleMatchDecline(Query* _query) {
 		XML::Tag& match = query->children().tags().front();
         if(match.name() != "match" or not match.hasAttribute("id"))
             throw "Invalid message";
-		int id = Util::str2int(match.getAttribute("id"));
+		int id = Util::parse_string<int>(match.getAttribute("id"));
 		if(not this->match_db.hasPlayer(id, query->from()))
 			throw "Invalid id";
 		this->component.sendStanza(

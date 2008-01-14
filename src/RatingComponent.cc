@@ -10,7 +10,7 @@ RatingComponentParams::RatingComponentParams(const XML::Tag& config_xml) :
     ComponentBaseParams(
         config_xml.getAttribute("node_name"),
         config_xml.getAttribute("server_address"),
-        Util::str2int(config_xml.getAttribute("server_port")),
+        Util::parse_string<int>(config_xml.getAttribute("server_port")),
         config_xml.getAttribute("server_password")) { }
 
 RatingComponent::RatingComponent(
@@ -100,10 +100,10 @@ void RatingComponent::fetchRating(const Query& query, const RatingDBInterface& i
         generator.openTag("rating");
         generator.addAttribute("jid", tag->getAttribute("jid"));
         generator.addAttribute("category", tag->getAttribute("category"));
-        generator.addAttribute("rating", Util::int2str(rating.rating()));
-        generator.addAttribute("wins", Util::int2str(rating.wins()));
-        generator.addAttribute("draws", Util::int2str(rating.draws()));
-        generator.addAttribute("losses", Util::int2str(rating.losses()));
+        generator.addAttribute("rating", Util::to_string(rating.rating()));
+        generator.addAttribute("wins", Util::to_string(rating.wins()));
+        generator.addAttribute("draws", Util::to_string(rating.draws()));
+        generator.addAttribute("losses", Util::to_string(rating.losses()));
         generator.closeTag();
     }
     generator.closeTag();

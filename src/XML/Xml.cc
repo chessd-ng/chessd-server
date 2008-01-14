@@ -249,7 +249,7 @@ namespace XML {
 						if(not isNumber(tag.getAttribute("min"))) {
 							error=true; break;
 						}
-						minOccur=str2int(tag.getAttribute("min"));
+						minOccur=parse_string<int>(tag.getAttribute("min"));
 					} else {
 						minOccur=1;
 					}
@@ -261,7 +261,7 @@ namespace XML {
 							if(not isNumber(tag.getAttribute("max"))) {
 								error = true; break;
 							}
-							maxOccur=str2int(tag.getAttribute("max"));
+							maxOccur=parse_string<int>(tag.getAttribute("max"));
 						}
 					} else {
 						maxOccur=1;
@@ -270,7 +270,7 @@ namespace XML {
 					if(tag.hasAttribute("type")) {
 						ch_type = tag.getAttribute("type");
 					} else {
-						ch_type = int2str(this->type_count++);
+						ch_type = to_string(this->type_count++);
 						if(not this->parseType(tag, ch_type)) {
 							error = true; break;
 						}

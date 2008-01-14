@@ -23,7 +23,7 @@ DatabaseManager::DatabaseManager(const DatabaseManagerParams& params) :
 {
     this->connection_string =
         " host=" + params.host +
-        " port=" + Util::int2str(params.port) +
+        " port=" + Util::to_string(params.port) +
         " dbname=" + params.db_name +
         " user=" + params.user +
         " password=" + params.password +

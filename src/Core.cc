@@ -13,7 +13,7 @@ Core::Core(const XML::Tag& config_xml) :
     database_manager(DatabaseManagerParams(
         config_xml.getChild("database").getAttribute("db_name"),
         config_xml.getChild("database").getAttribute("host"),
-        Util::str2int(config_xml.getChild("database").getAttribute("port")),
+        Util::parse_string<int>(config_xml.getChild("database").getAttribute("port")),
         config_xml.getChild("database").getAttribute("user"),
         config_xml.getChild("database").getAttribute("password"))),
 	rating_database(this->database_manager),

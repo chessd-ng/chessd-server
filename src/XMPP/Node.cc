@@ -69,7 +69,7 @@ namespace XMPP {
 					}
 				} else if((stanza->subtype() == "result" or stanza->subtype() == "error") and
 						Util::isNumber(stanza->id())) {
-					int id = Util::str2int(stanza->id());
+					int id = Util::parse_string<int>(stanza->id());
 					if(not Util::has_key(this->iq_tracks, id))
 						throw "";
 					const IQTrack& iq_track = this->iq_tracks.find(id)->second;
@@ -137,7 +137,7 @@ namespace XMPP {
 
 	void Node::sendIq(Stanza* stanza, const StanzaHandler& on_result, const TimeoutHandler& on_timeout) {
 		int id = this->iq_ids.acquireID();
-		stanza->id() = Util::int2str(id);
+		stanza->id() = Util::to_string(id);
 		this->iq_tracks.insert(make_pair(id, IQTrack(stanza->to(), on_result, on_timeout)));
 		this->sendStanza(stanza);
 	}

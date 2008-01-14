@@ -15,7 +15,7 @@ GameManager::GameManager(const XML::Tag& config, const XMPP::ErrorHandler& handl
 			"Game Manager", "service", "game"),
 	node_name(config.getAttribute("node_name")),
 	server_address(config.getAttribute("server_address")),
-	server_port(Util::str2int(config.getAttribute("server_port"))),
+	server_port(Util::parse_string<int>(config.getAttribute("server_port"))),
 	server_password(config.getAttribute("server_password")),
 	handle_error(handle_error),
 	running(false)
@@ -72,7 +72,7 @@ void GameManager::insertGame(int game_id, Game* game) {
 
 void GameManager::_insertGame(int game_id, Game* game) {
 	int room_id = this->room_ids.acquireID();
-	Jid room_jid = Jid("game_" + Util::int2str(room_id), this->node_name);
+	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
 	/* Create the game room */
 	GameRoom* game_room = new GameRoom(game_id, game, room_jid,
 			GameRoomHandlers(boost::bind(&ComponentWrapper::sendStanza, &this->component, _1),
@@ -92,7 +92,7 @@ void GameManager::closeGameRoom(int room_id) {
 
 void GameManager::_closeGameRoom(int room_id) {
 	this->room_ids.releaseID(room_id);
-	Jid room_jid = Jid("game_" + Util::int2str(room_id), this->node_name);
+	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
 	this->root_node.removeNodeHandler(room_jid.node());
 	this->root_node.disco().items().erase(room_jid);
 	this->game_rooms.erase(room_id);

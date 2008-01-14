@@ -56,13 +56,13 @@ std::string MatchProtocol::parseMatch(XML::Tag& query) {
 int MatchProtocol::parseMatchAccept(XML::Tag& query) {
 	if(not MatchProtocol::match_accept_desc.validateXML(query))
 		throw "Invalid syntax";
-	return Util::str2int(query.getChild("match").getAttribute("id"));
+	return Util::parse_string<int>(query.getChild("match").getAttribute("id"));
 }
 
 int MatchProtocol::parseMatchDecline(XML::Tag& query) {
 	if(not MatchProtocol::match_decline_desc.validateXML(query))
 		throw "Invalid syntax";
-	return Util::str2int(query.getChild("match").getAttribute("id"));
+	return Util::parse_string<int>(query.getChild("match").getAttribute("id"));
 }
 
 /*XML::Tag* MatchProtocol::notifyMatchOffer(const Match& match, int id) {
@@ -95,7 +95,7 @@ XML::Tag* MatchProtocol::notifyMatchResult(const Match& match, int id, bool acce
 	generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#match");
 	generator.addAttribute("action", accepted?"accept":"decline");
 	generator.openTag("match");
-	generator.addAttribute("id", Util::int2str(id));
+	generator.addAttribute("id", Util::to_string<int>(id));
 	generator.closeTag();
 	return generator.closeTag();
 }
