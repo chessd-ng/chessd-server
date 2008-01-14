@@ -1,7 +1,7 @@
 #ifndef POOL_HH
 #define POOL_HH
 
-#include "../Util/Singleton.hh"
+#include "Util/Singleton.hh"
 #include "Queue.hh"
 #include "Task.hh"
 #include "SafeObject.hh"

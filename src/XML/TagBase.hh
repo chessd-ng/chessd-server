@@ -1,9 +1,9 @@
 #ifndef TAGBASE_HH
 #define TAGBASE_HH
 
-#include "../Util/utils.hh"
-#include "../View.hh"
-#include "../CastFunctor.hh"
+#include "Util/utils.hh"
+#include "View.hh"
+#include "CastFunctor.hh"
 
 #include "Item.hh"
 #include "CData.hh"

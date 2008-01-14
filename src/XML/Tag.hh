@@ -7,8 +7,8 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 #include "Item.hh"
 #include "CData.hh"
-#include "../CastFunctor.hh"
-#include "../View.hh"
+#include "Util/CastFunctor.hh"
+#include "Util/View.hh"
 
 namespace XML {
 

@@ -3,10 +3,24 @@
 
 #include "CoreInterface.hh"
 #include "XMPP/RootNode.hh"
+#include "XMPP/Component.hh"
 #include "Threads/Dispatcher.hh"
-#include "ComponentWrapper.hh"
+#include "Threads/Task.hh"
+#include "Threads/Queue.hh"
 
 
+struct ComponentBaseParams {
+    std::string component_name;
+    std::string server_address;
+    int server_port;
+    std::string server_password;
+
+    ComponentBaseParams(
+        const std::string& component_name,
+        const std::string& server_address,
+        int server_port,
+        const std::string& server_password);
+};
 
 /*! \brief A base implementation for components */
 class ComponentBase {
@@ -16,8 +30,7 @@ class ComponentBase {
 		 * \param core_interface is the interface to the core.
 		 * \param config is the configuration for this component.
 		 */
-		ComponentBase(const XML::Tag& config,
-				const XMPP::ErrorHandler& handle_error,
+		ComponentBase(const ComponentBaseParams& params,
 				const std::string& component_name);
 
 		/*! \brief Destructor
@@ -33,13 +46,23 @@ class ComponentBase {
 		void connect();
 
 		/*! \brief Closes the conenction to the server */
-		virtual void close();
+		void close();
+
+        /*! \brief send s stanza to the server */
+        void sendStanza(XMPP::Stanza* stanza);
 
 
 	protected:
 
+		void _close();
+
+        virtual void onClose() = 0;
+
+        virtual void onError(const std::string& msg) = 0;
 
 		void handleError(const std::string& error);
+
+		void _handleError(const std::string& error);
 
 		void handleStanza(XMPP::Stanza* stanza);
 
@@ -53,22 +76,25 @@ class ComponentBase {
 		CoreInterface core_interface;
 
 		/*! \brief A component wrapper */
-		ComponentWrapper component;
+		XMPP::Component component;
 
 		/*! \brief A XMPP node*/
 		XMPP::RootNode root_node;
 
 	private:
-		/*! \brief The XMPP server address */
-		std::string server_address;
 
-		/*! \brief The server port */
-		int server_port;
+		void run_recv();
 
-		/*! \brief The server password */
-		std::string server_password;
+		void run_send();
 
-		XMPP::ErrorHandler handle_error;
+        ComponentBaseParams params;
+
+		Threads::Task task_recv;
+
+		Threads::Task task_send;
+
+		Threads::Queue<XMPP::Stanza*> stanza_queue;
+
 };
 
 #endif

@@ -7,8 +7,8 @@ using namespace std;
 
 GameManager::GameManager(const XML::Tag& config, const XMPP::ErrorHandler& handle_error) :
 	component(
-			ComponentWrapperHandlers(boost::bind(&GameManager::handleError, this, _1)),
 			config.getAttribute("node_name"),
+			boost::bind(&GameManager::handleError, this, _1),
 			boost::bind(&GameManager::handleStanza, this, _1)),
 	root_node(boost::bind(&ComponentWrapper::sendStanza, &this->component, _1),
 			XMPP::Jid(config.getAttribute("node_name")),

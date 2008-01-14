@@ -4,7 +4,7 @@
 #include <map>
 #include "handlers.hh"
 #include "Disco.hh"
-#include "../Util/IDSet.hh"
+#include "Util/IDSet.hh"
 
 
 namespace XMPP {
@@ -13,16 +13,18 @@ namespace XMPP {
 		public:
 			/*! \brief Constructor
 			 *
-			 * \param sender is a function to be used to send a stanza.
+			 * \param send_stanza is a function to be used to send a stanza.
+			 * \param jid is the node's jid.
+			 * \param name is the node name.
 			 * \param category is the node category according to disco spec.
 			 * \param type if the node type.
-			 * \param name is the node name.
 			 */
 			Node(const StanzaHandler& send_stanza,
 					const Jid& jid,
 					const std::string& name,
 					const std::string& category,
 					const std::string& type);
+
 			virtual ~Node();
 
 			/*! \brief Set a handler for message stanzas.

@@ -10,59 +10,40 @@
 namespace XMPP {
 
 
-	struct ComponentHandlers {
-		TagHandler sendTag;
-		StanzaHandler handleStanza;
-		ConnectionHandler connected;
-		ErrorHandler handleError;
-		ComponentHandlers(
-				const TagHandler& sendTag,
-				const StanzaHandler& handleStanza,
-				const ConnectionHandler& connected,
-				const ErrorHandler& handleError) :
-			sendTag(sendTag),
-			handleStanza(handleStanza),
-			connected(connected),
-			handleError(handleError) { }
-	};
-
 	/*! \brief An implementation of a XMPP Component */
 	class Component {
 		public:
-			/*! \brief Constructor */
-			Component(const std::string& component_name,
-					ComponentHandlers handlers);
+			/*! \brief Constructor 
+             *
+             * \param component_name is the jid of the component.
+             * */
+			Component(const std::string& component_name);
 
 			/*! \brief Destructor */
 			~Component();
 
+            /* \brief Send a stanza to the jabber server. */
 			void sendStanza(Stanza* stanza);
 
-			/*! \brief Handle an incoming XML Tag.
-			 */
-			void handleTag(XML::Tag* tag);
+            /* \brief Receive an incoming stanza.
+             *
+             * \param max_time is the maximum time to wait. -1 is infinite
+             * */
+			Stanza* recvStanza(int max_time);
 
-			void connect(const std::string& password);
+            /* \brief Connect to the server. */
+            void connect(const std::string& host, int port, const std::string& password);
+
+            /* \brief Close the connection to the server. */
+            void close();
 
 		private:
 
+            Stream stream;
+
 			std::string component_name;
 
-			ComponentHandlers handlers;
-
-			typedef std::map<std::string, StanzaHandler> HandlerMap;
-
-			HandlerMap node_handlers;
-
-			/*! \brief Authenticate stream
-			 *
-			 * */
-			void auth(XML::Tag* tag);
-
-			std::string password;
-
-			/* already athenticated? */
-			int not_authed;
+            StanzaHandler handleStanza;
 
 	};
 

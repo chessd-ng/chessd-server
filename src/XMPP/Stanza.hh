@@ -3,7 +3,7 @@
 
 #include <string>
 #include "Jid.hh"
-#include "../XML/Xml.hh"
+#include "XML/Xml.hh"
 #include "StanzaBase.hh"
 #include "ChildrenList.hh"
 
@@ -48,16 +48,18 @@ namespace XMPP {
 
 	class Stanza : public StanzaBase {
 		public:
-			Stanza(const std::string& type);
+			explicit Stanza(const std::string& type);
 
-			Stanza(Moved<Stanza> stanza);
-			Stanza(const Stanza& stanza);
+			explicit Stanza(XML::Tag* tag);
+
+			explicit Stanza(Moved<XML::Tag> tag);
 
 			explicit Stanza(Moved<StanzaBase> stanza_base);
 
-			/* WARNING this will destroy the original tag */
-			explicit Stanza(XML::Tag* tag);
-			explicit Stanza(Moved<XML::Tag> tag);
+			explicit Stanza(Moved<Stanza> stanza);
+
+			Stanza(const Stanza& stanza);
+
 			~Stanza();
 
 			ChildrenList& children() { return this->_children; }
@@ -69,8 +71,6 @@ namespace XMPP {
 			void clearChildren();
 
 			std::string xml() const;
-
-			Stanza* clone() const;
 
 			/* this functions are helpers to create stanzas */
 			static Stanza* createErrorStanza(Stanza* original,

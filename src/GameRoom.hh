@@ -63,6 +63,7 @@ class GameRoom {
 
 		void cancelGame();
 		void adjournGame();
+        void resignGame(const XMPP::Jid& player);
 
 		void check_end_game();
 

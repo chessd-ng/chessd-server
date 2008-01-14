@@ -3,7 +3,7 @@
 #include <boost/bind.hpp>
 
 #include "Muc.hh"
-#include "../Util/utils.hh"
+#include "Util/utils.hh"
 
 using namespace std;
 using namespace XML;
@@ -66,7 +66,7 @@ namespace XMPP {
 
 	void Muc::broadcast(Stanza* stanza) {
 		foreach(it, this->users()) {
-			Stanza* tmp = stanza->clone();
+			Stanza* tmp = new Stanza(*stanza);
 			tmp->to() = it->jid;
 			this->node.sendStanza(tmp);
 		}
@@ -76,7 +76,7 @@ namespace XMPP {
 	void Muc::broadcastIq(Stanza* stanza, const StanzaHandler& on_result,
 			const TimeoutHandler& on_timeout) {
 		foreach(it, this->users()) {
-			Stanza* tmp = stanza->clone();
+			Stanza* tmp = new Stanza(*stanza);
 			tmp->to() = it->jid;
 			this->node.sendIq(tmp, on_result, on_timeout);
 		}

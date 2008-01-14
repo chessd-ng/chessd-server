@@ -7,7 +7,9 @@
 
 #include "MatchManager.hh"
 #include "GameManager.hh"
-#include "RatingManager.hh"
+#include "RatingComponent.hh"
+
+#include "DatabaseManager.hh"
 
 #include <string>
 #include <set>
@@ -21,6 +23,7 @@
  *  the server. */
 
 typedef std::map<std::string, Rating> UserRatings;
+
 typedef boost::function<void (UserRatings*)> RatingCallback;
 
 
@@ -61,9 +64,13 @@ class Core {
 
 		void handleError(const std::string& error);
 
+        DatabaseManager database_manager;
+        RatingDatabase rating_database;
+
 		MatchManager match_manager;
 		GameManager game_manager;
-		RatingManager rating_manager;
+		RatingComponent rating_component;
+
 
 		static Core* _singleton;
 

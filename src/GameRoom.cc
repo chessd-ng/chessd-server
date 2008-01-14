@@ -64,7 +64,7 @@ void GameRoom::notifyPlayers() {
 	stanza.children().push_back(query);
     foreach(player, this->all_players) {
         stanza.to() = *player;
-        this->node.sendStanza(stanza.clone());
+        this->node.sendStanza(new XMPP::Stanza(stanza));
     }
 }
 
@@ -106,15 +106,18 @@ void GameRoom::handleGame(XMPP::Stanza* stanza) {
 		this->node.sendStanza(stanza);
 		return;
 	}
+    check_end_game();
 }
 
 void GameRoom::check_end_game() {
-	GameResult* result = this->game->done();
-	if(result) {
-		this->game_active = false;
-		this->notifyResult(*result);
-		this->core.endGame(this->game_id, result);
-	}
+    if(this->game_active) {
+        GameResult* result = this->game->done();
+        if(result) {
+            this->game_active = false;
+            this->notifyResult(*result);
+            this->core.endGame(this->game_id, result);
+        }
+    }
 }
 
 void GameRoom::handleGameMove(XMPP::Stanza* stanza) {
@@ -146,8 +149,8 @@ void GameRoom::notifyGameState(XMPP::Stanza* stanza) {
 }
 
 void GameRoom::handleGameResign(XMPP::Stanza* stanza) {
-	this->game->resign(stanza->from());
-	this->node.sendStanza(XMPP::Stanza::createIQResult(stanza));
+    this->game->resign(stanza->from());
+    this->node.sendStanza(XMPP::Stanza::createIQResult(stanza));
 }
 
 void GameRoom::handleGameDrawAccept(XMPP::Stanza* stanza) {
@@ -155,7 +158,7 @@ void GameRoom::handleGameDrawAccept(XMPP::Stanza* stanza) {
 	this->draw_agreement.agreed(requester);
 	this->node.sendStanza(XMPP::Stanza::createIQResult(stanza));
 	if(this->draw_agreement.left_count()==0) {
-		this->game->draw();
+        this->game->draw();
 	}
 	if(this->draw_agreement.agreed_count() == 1) {
 		this->notifyRequest(REQUEST_DRAW, requester);
@@ -212,7 +215,7 @@ void GameRoom::notifyRequest(GameRequest request, const XMPP::Jid& requester) {
 	foreach(player, this->all_players) {
 		if(*player != requester) {
 			stanza.to() = *player;
-			this->node.sendIq(stanza.clone());
+			this->node.sendIq(new XMPP::Stanza(stanza));
 		}
 	}
 }

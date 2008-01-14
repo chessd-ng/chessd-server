@@ -1,32 +1,47 @@
-#ifndef RATINGMANAGER_HH
-#define RATINGMANAGER_HH
+#ifndef RATINGCOMPONENT_HH
+#define RATINGCOMPONENT_HH
 
 #include <map>
 #include <set>
 #include <memory>
+
 #include "ComponentBase.hh"
 #include "Query.hh"
+#include "RatingDatabase.hh"
 
-class RatingManager : public ComponentBase {
+struct RatingComponentParams : public ComponentBaseParams {
+    public:
+        // XXX remove this constructor
+        explicit RatingComponentParams(const XML::Tag& config_xml);
+};
+
+class RatingComponent : public ComponentBase {
 	public:
 		/*! \brief Constructor
 		 *
 		 * \param core_interface is the interface to the core.
 		 * \param config is the configuration for this component.
 		 */
-		RatingManager(const XML::Tag& config, const XMPP::ErrorHandler& handleError);
+		RatingComponent(
+            const RatingComponentParams& config,
+            const XMPP::ErrorHandler& handleError,
+            RatingDatabase& rating_database);
 
 		/*! \brief Destructor
 		 *
 		 * Closes server connection if available
 		 */
-		virtual ~RatingManager();
+		virtual ~RatingComponent();
 
 		/*! \brief Closes the conenction to the server */
 		//void close();
 
 
 	private:
+
+        void onClose();
+
+        void onError(const std::string& error);
 
 		/* several handlers for the incoming events */
 
@@ -39,7 +54,11 @@ class RatingManager : public ComponentBase {
 		/*! \brief handle an incoming match iq */
 		void handleRating(XMPP::Stanza* stanza);
 
-		void notifyRating(Query* query, const XMPP::Jid& user, UserRatings* ratings);
+		void fetchRating(const Query& query, const RatingDBInterface& rating_interface);
+
+        XMPP::ErrorHandler error_handler;
+
+        RatingDatabase& rating_database;
 };
 
 #endif

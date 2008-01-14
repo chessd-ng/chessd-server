@@ -1,5 +1,5 @@
 
-#include "../XML/iksutil.hh"
+#include "XML/iksutil.hh"
 
 #include "Stream.hh"
 
@@ -75,7 +75,7 @@ namespace XMPP {
 		if(ret != IKS_OK) {
 			this->active = false;
 			iks_disconnect(this->hinfo->parser);
-			return 0;
+            throw "Connection lost";
 		} else if(this->hinfo->incoming.empty()) {
 			return 0;
 		} else {

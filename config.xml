@@ -17,4 +17,11 @@
 		server_password="secret"
 		node_name="match.shiva"
 	/>
+    <database
+        db_name="chessd-dev"
+        host="localhost"
+        port="5432"
+        user="raphael"
+        password="raphael"
+    />
 </server>

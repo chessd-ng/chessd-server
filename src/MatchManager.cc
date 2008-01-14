@@ -23,8 +23,8 @@ void match_log_traffic(const std::string& data, bool incoming) {
 MatchManager::MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& handleError) :
 	running(false),
 	component(
-			ComponentWrapperHandlers(boost::bind(&MatchManager::_handleError, this, _1)),
 			config.getAttribute("node_name"), 
+			boost::bind(&MatchManager::_handleError, this, _1),
 			boost::bind(&MatchManager::handleStanza, this, _1)),
 	root_node(boost::bind(&ComponentWrapper::sendStanza, &this->component, _1),
 			XMPP::Jid(config.getAttribute("node_name")),
@@ -108,7 +108,6 @@ void MatchManager::handleMatch(Stanza* _stanza) {
 }
 
 void MatchManager::handleMatchOffer(Query* _query) {
-	//auto_ptr<MatchOffer> offer;
 	auto_ptr<Match> match;
 	auto_ptr<Query> query(_query);
 	Jid requester = query->from();
@@ -122,6 +121,10 @@ void MatchManager::handleMatchOffer(Query* _query) {
 			throw "Invalid category";
 		match = auto_ptr<Match>((*this->rules.find(category)).second->checkOffer(offer,
 				this->teams));
+        foreach(player, match->players()) {
+            if(not this->roster.isUserAvailable(*player))
+                throw "User is not available";
+        }
 	} catch (const char* msg) {
 		this->component.sendStanza(
                 Stanza::createErrorStanza(
@@ -147,7 +150,7 @@ void MatchManager::notifyMatchOffer(int id, const Jid& requester) {
 	foreach(player, match.players()) {
         if(*player != requester) {
             stanza.to() = *player;
-            this->root_node.sendIq(stanza.clone());
+            this->root_node.sendIq(new XMPP::Stanza(stanza));
         }
 	}
 }
@@ -215,7 +218,7 @@ void MatchManager::notifyMatchResult(Match* match, int id, bool accepted) {
 	stanza.children().push_back(MatchProtocol::notifyMatchResult(*match, id, accepted));
 	foreach(player, match->players()) {
 		stanza.to() = *player;
-		this->root_node.sendIq(stanza.clone());
+		this->root_node.sendIq(new XMPP::Stanza(stanza));
 	}
 	delete match;
 }
