@@ -97,5 +97,5 @@ XML::Tag* MatchProtocol::notifyMatchResult(const Match& match, int id, bool acce
 	generator.openTag("match");
 	generator.addAttribute("id", Util::to_string<int>(id));
 	generator.closeTag();
-	return generator.closeTag();
+	return generator.getTag();
 }

@@ -14,7 +14,8 @@ namespace XML {
 			~TagGenerator();
 
 			void openTag(const std::string& name);
-			Tag* closeTag();
+
+			void closeTag();
 
 			void addAttribute(const std::string& name, const std::string& value);
 

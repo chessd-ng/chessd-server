@@ -81,22 +81,21 @@ namespace XML {
 			delete this->tag_stack.top();
 			this->tag_stack.pop();
 		}
+        if(this->tag != 0)
+            delete this->tag;
 	}
 
 	void TagGenerator::openTag(const string& name) {
 		this->tag_stack.push(new Tag(name));
 	}
 
-	Tag* TagGenerator::closeTag() {
+	void TagGenerator::closeTag() {
 		Tag *tag = this->tag_stack.top();
 		this->tag_stack.pop();
 		if(not this->tag_stack.empty())
 			this->tag_stack.top()->children().push_back(tag);
         else
             this->tag = tag;
-
-        // TODO this function will return void
-		return tag;
 	}
 
 	void TagGenerator::addAttribute(const string& name, const string& value) {
