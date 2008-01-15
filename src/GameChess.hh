@@ -12,7 +12,6 @@
 //TODO ver negocios do tempo!
 class GameChess : public Game {
 	public:
-		//FIXME ver se a passagem pode ser feita por referencia
 		GameChess(const StandardPlayerList& _players);
 
 		virtual ~GameChess() {};
@@ -20,7 +19,9 @@ class GameChess : public Game {
 		virtual XML::Tag* state() const;
 
 		virtual const std::string& category() const = 0;
-
+		
+		/*! \brief function to return the title of the game
+		 * \return returns the full jids of the player separated by an "x" */
 		virtual const std::string& title() const;
 
 		/*! \brief The player has resigned */
@@ -35,7 +36,6 @@ class GameChess : public Game {
 		virtual void adjourn();
 
 		/*! \brief Has the game ended?
-		 *
 		 * \return Returns the game result if the game is over, NULL otherwise.
 		 */
 		virtual GameResult* done() const;
@@ -43,12 +43,16 @@ class GameChess : public Game {
 		virtual void move(const Player& player, const std::string& movement);
 
 		virtual const TeamList& teams() const;
+
+		static XML::Tag* generateStateTag(const State &est) ;
+		
+		virtual GameResult* newGameResult(const std::string& endreason, const TeamResultList &l, const std::vector<State> &s) const = 0;
 	private:
 		Chess chess;
 		TeamList _teams;
 		std::string _title;
 
-		//cuidado com a cor
+		//unify the color name
 		color _resign;
 		bool _draw;
 
@@ -60,20 +64,26 @@ class GameChess : public Game {
 
 class ChessGameResult : public GameResult {
 	public:
-		ChessGameResult(const std::string & endreason,const TeamResultList &l,const std::string& _category);
+		ChessGameResult(const std::string& endreason,const TeamResultList &l,const std::string& _category,const std::vector<State> &s);
 		virtual ~ChessGameResult(){};
 		virtual const std::string& category() const;
 		virtual const std::string& end_reason() const;
 		virtual const PlayerList& players() const;
 		virtual const TeamResultList& results() const;
+		/*! \brief generates a History tag*/
 		virtual XML::Tag* history() const;
-		virtual void updateRating(std::map<Player, Rating>& ratings)const;
+
+		/*! \brief Updates the Players ratings
+		 * it uses the glicko rating system
+		*/
+		virtual void updateRating(std::map<Player, Rating>& ratings) const = 0;
+	protected:
+		TeamResultList teamresultlist;
 	private:
 		std::string _end_reason;
-		TeamResultList teamresultlist;
 		PlayerList playerlist;
 		std::string _category;
-
+		std::vector<State> states;
 };
 
 #endif

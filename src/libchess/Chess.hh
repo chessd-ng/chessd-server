@@ -104,6 +104,8 @@ class Chess : public BoardGame {
 		//TODO fazer uma virtual dessa funcao
 		/*! \return return the current state*/
 		const State& getState() const;
+		/*! \return return a vector of States*/
+		const std::vector<State> &getHistory() const;
 		/*! \brief A high-level function that make a move if the given move is correct
 		 * \return true if the move is valid
 		 * \return false if the move isn't valid

@@ -11,6 +11,7 @@ namespace Util {
 	const _Microseconds& Microseconds;
 	const _Miliseconds& Miliseconds;
 	const _Seconds& Seconds;
+	const _Minutes& Minutes;
 
 	static const int one_second = 1000000000;
 
@@ -20,8 +21,7 @@ namespace Util {
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		return Time(ts.tv_sec, ts.tv_nsec);
 	}
-
-
+	
 	const Time& Time::operator += (Time time) {
 		this->_seconds += time._seconds;
 		this->_nanoseconds += time._nanoseconds;
@@ -113,6 +113,12 @@ namespace Util {
 		return (this->_seconds + this->_nanoseconds / double(one_second)) * factor;
 	}
 
+	Time operator* (unsigned int constant, const _Minutes&) {
+		Time tmp;
+		tmp._seconds = constant*60u;
+		tmp._nanoseconds = 0;
+		return tmp;
+	}
 
 	Time operator* (unsigned int constant, const _Seconds&) {
 		Time tmp;

@@ -16,6 +16,11 @@ class MatchRuleChess : public MatchRule {
 				const TeamDatabase& teams) const =0;
 	protected:
 		StandardPlayerList getPlayersfromXML(const XML::Tag& _match_offer) const;
+
+	private:
+		virtual bool validateXML(const XML::Tag& _match_offer) const;
+
+		virtual bool isTimeValid(const XML::Tag& _player) const =0;
 };
 
 struct MatchChess : public Match {

@@ -31,16 +31,15 @@ struct State {
 
 class History {
 	private:
-		std::vector <State> allgame;
+		std::vector<State> allgame;
 	public:
 		History();
 		History(const State& est);
 		~History();
 		void putinHistory(const State& est);
+		const std::vector<State> &getHistory() const ;
 #ifdef TESTE
 		void Desenha() const;
 #endif
-
-//		getHistory();
 };
 #endif

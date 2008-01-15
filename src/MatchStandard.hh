@@ -13,6 +13,8 @@ class MatchRuleStandard : public MatchRuleChess {
 
 		virtual Match* checkOffer(const XML::Tag& match_offer,
 				const TeamDatabase& teams) const ;
+	private:
+		virtual bool isTimeValid(const XML::Tag& _player) const ;
 };
 
 struct MatchStandard : public MatchChess {

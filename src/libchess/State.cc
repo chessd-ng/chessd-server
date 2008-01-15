@@ -68,6 +68,11 @@ History::~History() {
 void History::putinHistory(const State& est) {
 	allgame.push_back(est);
 }
+
+const std::vector<State>& History::getHistory() const {
+	return this->allgame;
+}
+
 #ifdef TESTE
 void History::Desenha() const {
 	for(int i=0;i<(int)allgame.size();i++) {

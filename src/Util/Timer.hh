@@ -1,6 +1,8 @@
 #ifndef UTILTIMER_HH
 #define UTILTIMER_HH
 
+#include <string>
+
 namespace Util {
 
 	class Time;
@@ -19,11 +21,13 @@ namespace Util {
 	struct _Microseconds { };
 	struct _Miliseconds { };
 	struct _Seconds { };
+	struct _Minutes { };
 
 	/* time facilities */
 	extern const _Microseconds& Microseconds;
 	extern const _Miliseconds& Miliseconds;
 	extern const _Seconds& Seconds;
+	extern const _Minutes& Minutes;
 
 	class Time {
 		private:
@@ -36,14 +40,19 @@ namespace Util {
 				_nanoseconds(_nanoseconds) { }
 
 		public:
-
 			Time() : _seconds(0), _nanoseconds(0) { }
 			Time(const Time& time) :
 				_seconds(time._seconds),
 				_nanoseconds(time._nanoseconds) { }
 
+			template <class T> 
+			Time(const std::string &_time, T m) {
+				*this=(((unsigned int)(atoi(_time.c_str()))) * m);
+			}
+
 			friend class Timer;
 
+			friend Time operator* (unsigned int constant, const _Minutes&);
 			friend Time operator* (unsigned int constant, const _Seconds&);
 			friend Time operator* (long long unsigned constant, const _Miliseconds&);
 			friend Time operator* (long long unsigned constant, const _Microseconds&);
@@ -73,6 +82,7 @@ namespace Util {
 			double getMicroseconds() const;
 	};
 
+	Time operator* (unsigned int constant, const _Minutes&);
 	Time operator* (unsigned int constant, const _Seconds&);
 	Time operator* (long long unsigned int constant, const _Miliseconds&);
 	Time operator* (long long unsigned int constant, const _Microseconds&);

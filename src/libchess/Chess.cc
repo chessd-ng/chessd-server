@@ -23,6 +23,9 @@ void Chess::updateTurn() {
 const State& Chess::getState() const {
 	return this->atual;
 }
+const std::vector<State> &Chess::getHistory() const {
+	return this->historico.getHistory();
+}
 
 bool Chess::verifyCheckMate() const {
 	if( verifyCheckMate(0) )
