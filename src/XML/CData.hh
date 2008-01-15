@@ -2,7 +2,7 @@
 #define XMLCDATA_HH
 
 #include <string>
-#include "../Move.hh"
+#include "Move.hh"
 
 namespace XML {
 

@@ -2,7 +2,7 @@
 #define XMPPSTREAM_HH
 
 
-#include "../XML/Xml.hh"
+#include "XML/Xml.hh"
 
 #include "handlers.hh"
 

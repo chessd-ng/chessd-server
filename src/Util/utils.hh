@@ -4,6 +4,8 @@
 #include <iterator>
 #include <functional>
 #include <cctype>
+#include <string>
+#include <sstream>
 
 namespace Util {
 
@@ -65,24 +67,21 @@ namespace Util {
 	  f1, f2);
 	  }*/
 
-	/* Convert a string to a int */
-	inline unsigned int str2int(const std::string& number) {
-		int ret = 0;
-		for(int i = 0; i < int(number.size()); ++i)
-			ret = ret * 10 + (number [i] - '0');
-		return ret;
-	}
+    /* Parse a string */
+    template <class T> T parse_string(const std::string& str) {
+        T tmp;
+        std::stringstream stream(str);
+        stream >> tmp;
+        return tmp;
+    }
 
-	/* Convert a int to a string */
-	inline std::string int2str(int number) {
-		std::string ret;
-		for(; number; number/=10)
-			ret += '0' + (number%10);
-		std::reverse(ret.begin(), ret.end());
-		if(ret.empty()) ret+='0';
-		return ret;
-	}
-
+    /* Convert to string */
+    template <class T> std::string to_string(const T& t) {
+        std::stringstream stream;
+        stream << t;
+        return stream.str();
+    }
+    
 	/* Check if a given string is a number */
 	inline bool isNumber(const std::string& number) {
 		for(int i = 0; i < int(number.size()); ++i)

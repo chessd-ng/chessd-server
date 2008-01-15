@@ -26,6 +26,7 @@ XMPP::Stanza* Query::createStanza(Moved<Query> query) {
 	XML::Tag* tag = new XML::Tag("query");
 	swap(tag->attributes()["xmlns"], query->ns());
 	swap(tag->attributes()["action"], query->action());
+    swap(tag->children(), query->children());
 	stanza->children().push_back(tag);
 	return stanza;
 }

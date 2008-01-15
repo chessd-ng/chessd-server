@@ -1,12 +1,12 @@
 #ifndef CHILDRENLIST_HH
 #define CHILDRENLIST_HH
 
-#include "../XML/Xml.hh"
+#include "XML/Xml.hh"
 
-#include "../CastFunctor.hh"
-#include "../View.hh"
+#include "Util/CastFunctor.hh"
+#include "Util/View.hh"
 
-#include "../Util/utils.hh"
+#include "Util/utils.hh"
 
 #include <boost/ptr_container/ptr_vector.hpp>
 

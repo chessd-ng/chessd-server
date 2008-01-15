@@ -1,7 +1,7 @@
 #ifndef XMPPHANDLERS_HH
 #define XMPPHANDLERS_HH
 
-#include "../XML/Xml.hh"
+#include "XML/Xml.hh"
 
 #include "Stanza.hh"
 

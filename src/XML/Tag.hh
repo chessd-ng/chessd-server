@@ -7,13 +7,25 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 #include "Item.hh"
 #include "CData.hh"
-#include "../CastFunctor.hh"
-#include "../View.hh"
+
+#include "Util/CastFunctor.hh"
+#include "Util/View.hh"
+#include "Util/utils.hh"
 
 namespace XML {
 
 	typedef std::map<std::string, std::string> AttributeMap;
 	typedef boost::ptr_vector<Item> ItemList;
+
+    class child_not_found : public std::runtime_error {
+        public:
+            explicit child_not_found(const std::string& msg) : runtime_error(msg) { }
+    };
+
+    class attribute_not_found : public std::runtime_error {
+        public:
+            explicit attribute_not_found(const std::string& msg) : runtime_error(msg) { }
+    };
 
 	class Tag : public Item {
 		public:
@@ -58,11 +70,28 @@ namespace XML {
 			}
 
 			const std::string& getAttribute(const std::string& name) const {
-				return this->attributes().find(name)->second;
-			}
+                AttributeMap::const_iterator iterator = this->attributes().find(name);
+                if(iterator == this->attributes().end())
+                    throw(attribute_not_found("Attribute not found"));
+                else
+                    return this->attributes().find(name)->second;
+            }
 
-			Tag& getChild(const std::string& name) ;
-			const Tag& getChild(const std::string& name) const;
+			Tag& getChild(const std::string& name) {
+                foreach(tag, this->tags()) {
+                    if(tag->name() == name)
+                        return *tag;
+                }
+                throw (child_not_found("Child not found"));
+            }
+
+			const Tag& getChild(const std::string& name) const {
+                foreach(tag, this->tags()) {
+                    if(tag->name() == name)
+                        return *tag;
+                }
+                throw (child_not_found("Child not found"));
+            }
 
 			std::string& getAttribute(const std::string& name) {
 				return this->attributes().find(name)->second;

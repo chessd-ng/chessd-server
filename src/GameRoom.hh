@@ -43,6 +43,7 @@ class GameRoom {
 		void handleGame(XMPP::Stanza* stanza);
 
 		void handleGameMove(XMPP::Stanza* stanza);
+		void handleGameState(XMPP::Stanza* stanza);
 		void handleGameResign(XMPP::Stanza* stanza);
 		void handleGameDrawAccept(XMPP::Stanza* stanza);
 		void handleGameDrawDecline(XMPP::Stanza* stanza);
@@ -51,15 +52,18 @@ class GameRoom {
 		void handleGameAdjournAccept(XMPP::Stanza* stanza);
 		void handleGameAdjournDecline(XMPP::Stanza* stanza);
 
+        void notifyPlayers();
+
 		void notifyRequest(GameRequest request, const XMPP::Jid& requester);
 
 		void notifyResult(const GameResult& result);
 
-		void notifyGameState();
+		void notifyGameState(XMPP::Stanza* player);
 		void notifyMove(const std::string& long_move);
 
 		void cancelGame();
 		void adjournGame();
+        void resignGame(const XMPP::Jid& player);
 
 		void check_end_game();
 

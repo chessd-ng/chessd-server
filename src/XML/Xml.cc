@@ -1,7 +1,7 @@
 #include "Xml.hh"
 #include "iksutil.hh"
 
-#include "../Util/utils.hh"
+#include "Util/utils.hh"
 
 
 using namespace std;
@@ -74,7 +74,7 @@ namespace XML {
 		return tmp;
 	}
 
-	TagGenerator::TagGenerator() : last(0) { }
+	TagGenerator::TagGenerator() : tag(0) { }
 
 	TagGenerator::~TagGenerator() {
 		while(not this->tag_stack.empty()) {
@@ -92,7 +92,11 @@ namespace XML {
 		this->tag_stack.pop();
 		if(not this->tag_stack.empty())
 			this->tag_stack.top()->children().push_back(tag);
-		return this->last = tag;
+        else
+            this->tag = tag;
+
+        // TODO this function will return void
+		return tag;
 	}
 
 	void TagGenerator::addAttribute(const string& name, const string& value) {
@@ -107,30 +111,18 @@ namespace XML {
 		this->tag_stack.top()->children().push_back(tag);
 	}
 
-	Tag* TagGenerator::getLastTag() {
-		return this->last;
+	Tag* TagGenerator::getTag() {
+        Tag* tag = 0;
+        while(not this->tag_stack.empty()) {
+            this->closeTag();
+        }
+        tag = this->tag;
+        this->tag = 0;
+		return tag;
 	}
 
 	bool TagGenerator::empty() const {
 		return this->tag_stack.empty();
-	}
-
-	const Tag& Tag::getChild(const std::string& name) const {
-		foreach(tag, this->tags()) {
-			if(tag->name() == name)
-				return *tag;
-		}
-		assert(false);
-		//throw "Tag not found";
-	}
-
-	Tag& Tag::getChild(const std::string& name) {
-		foreach(tag, this->tags()) {
-			if(tag->name() == name)
-				return *tag;
-		}
-		assert(false);
-		//throw "Unrecoverable error";
 	}
 
 	Description::Description() : type_count(0) { }
@@ -249,7 +241,7 @@ namespace XML {
 						if(not isNumber(tag.getAttribute("min"))) {
 							error=true; break;
 						}
-						minOccur=str2int(tag.getAttribute("min"));
+						minOccur=parse_string<int>(tag.getAttribute("min"));
 					} else {
 						minOccur=1;
 					}
@@ -261,7 +253,7 @@ namespace XML {
 							if(not isNumber(tag.getAttribute("max"))) {
 								error = true; break;
 							}
-							maxOccur=str2int(tag.getAttribute("max"));
+							maxOccur=parse_string<int>(tag.getAttribute("max"));
 						}
 					} else {
 						maxOccur=1;
@@ -270,7 +262,7 @@ namespace XML {
 					if(tag.hasAttribute("type")) {
 						ch_type = tag.getAttribute("type");
 					} else {
-						ch_type = int2str(this->type_count++);
+						ch_type = to_string(this->type_count++);
 						if(not this->parseType(tag, ch_type)) {
 							error = true; break;
 						}
@@ -347,11 +339,11 @@ namespace XML {
 							return false;
 						++child;
 					} else if(child != xml.children().end() and typeid(*child)==typeid(Tag) and dynamic_cast<const Tag&>(*child).name()==child_desc->name) {
-						++last_count;
-						++child;
 						if(not this->_validate(dynamic_cast<Tag&>(*child),
 									this->types.find(child_desc->type)->second))
 							return false;
+						++last_count;
+						++child;
 					} else  {
 						if(last_count < child_desc->minOccur or last_count > child_desc->maxOccur)
 							return false;

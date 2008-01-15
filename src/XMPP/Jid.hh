@@ -7,12 +7,15 @@ namespace XMPP {
 
 	class Jid {
 		public:
-			Jid(const std::string& jid);
 			Jid(const Jid& jid);
-			Jid(const std::string& node,
+
+			explicit Jid(const std::string& jid);
+
+			explicit Jid(const std::string& node,
 					const std::string& domain,
-					const std::string& resource);
+					const std::string& resource="");
 			Jid();
+
 			~Jid();
 
 			const std::string& node() const { return this->_node; }
@@ -24,6 +27,7 @@ namespace XMPP {
 			const std::string& resource() const { return this->_resource; }
 			std::string& resource() { return this->_resource; }
 
+            /* \brief Returns the jid representation */
 			std::string full() const;
 
 			bool empty() const {

@@ -3,8 +3,8 @@
 
 #include <string>
 #include "Jid.hh"
-#include "../XML/Xml.hh"
-#include "../Move.hh"
+#include "XML/Xml.hh"
+#include "Move.hh"
 
 namespace XMPP {
 

@@ -31,7 +31,7 @@
 //static char RCSid[] = "$Id: Tourney.cc,v 1.3 2003/11/20 23:26:14 pedrorib Exp $";
 
 #include "Tourney.hh"
-#include "../Util/utils.hh"
+#include "Util/utils.hh"
 
 #ifndef log2
 #define log2(x) (log(double(x))/log(2.0))

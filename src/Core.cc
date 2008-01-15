@@ -1,25 +1,41 @@
+#include <iostream>
+
 #include "Core.hh"
 #include "CoreInterface.hh"
 #include "MatchManager.hh"
 
-#include <iostream>
+#include "Util/utils.hh"
+
 
 Core* Core::_singleton = 0;
 
 Core::Core(const XML::Tag& config_xml) :
-	match_manager(config_xml.getChild("match-manager"), boost::bind(&Core::handleError, this, _1)),
-	game_manager(config_xml.getChild("game-manager"), boost::bind(&Core::handleError, this, _1)),
-	rating_manager(config_xml.getChild("rating-manager"), boost::bind(&Core::handleError, this, _1)) { }
+    database_manager(DatabaseManagerParams(
+        config_xml.getChild("database").getAttribute("db_name"),
+        config_xml.getChild("database").getAttribute("host"),
+        Util::parse_string<int>(config_xml.getChild("database").getAttribute("port")),
+        config_xml.getChild("database").getAttribute("user"),
+        config_xml.getChild("database").getAttribute("password"))),
+	rating_database(this->database_manager),
+	match_manager(config_xml.getChild("match-manager"),
+        boost::bind(&Core::handleError, this, _1)),
+	game_manager(config_xml.getChild("game-manager"),
+        boost::bind(&Core::handleError, this, _1)),
+	rating_component(RatingComponentParams(config_xml.getChild("rating-manager")),
+        boost::bind(&Core::handleError, this, _1),
+        this->rating_database)
+{
+}
 
 void Core::connect() {
 	this->dispatcher.start();
 	this->match_manager.connect();
 	this->game_manager.connect();
-	this->rating_manager.connect();
+	this->rating_component.connect();
 }
 
 Core::~Core() {
-	this->rating_manager.close();
+	this->rating_component.close();
 	this->game_manager.close();
 	this->match_manager.close();
 	this->dispatcher.stop();

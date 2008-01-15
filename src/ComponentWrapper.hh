@@ -1,26 +1,17 @@
 #ifndef COMPONENTWRAPPER_HH
 #define COMPONENTWRAPPER_HH
 
-#include "XMPP/Stream.hh"
 #include "XMPP/Component.hh"
 #include "XMPP/handlers.hh"
 #include "StreamListener.hh"
 #include "Threads/Dispatcher.hh"
 #include "Threads/Semaphore.hh"
 
-struct ComponentWrapperHandlers {
-	XMPP::ErrorHandler handleError;
-
-	ComponentWrapperHandlers(
-			const XMPP::ErrorHandler& handleError) :
-		handleError(handleError) { }
-};
-
 class ComponentWrapper {
 	public:
 		ComponentWrapper(
-				ComponentWrapperHandlers handlers,
 				const std::string& component_name,
+				const XMPP::ErrorHandler& error_handler,
 				const XMPP::StanzaHandler& root_handler);
 		
 		~ComponentWrapper();
@@ -44,11 +35,11 @@ class ComponentWrapper {
 
 		void _connect(const std::string& host_name, int host_port, const std::string& password);
 
-		XMPP::Stream stream;
-
 		XMPP::Component component;
 
-		ComponentWrapperHandlers handlers;
+        XMPP::StanzaHandler root_handler;
+
+		XMPP::ErrorHandler error_handler;
 
 		std::string connection_error;
 

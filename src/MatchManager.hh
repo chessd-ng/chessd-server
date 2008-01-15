@@ -19,6 +19,7 @@
 #include "MatchProtocol.hh"
 #include "MatchDatabase.hh"
 
+#include "Query.hh"
 
 class MatchManager {
 	public:
@@ -58,17 +59,19 @@ class MatchManager {
 		/* several handlers for the incoming events */
 
 		/*! \brief handle an incoming match offer */
-		void handleMatchOffer(XMPP::Stanza* stanza);
+		void handleMatchOffer(Query* query);
 		/*! \brief handle an incoming match acceptance */
-		void handleMatchAccept(XMPP::Stanza* stanza);
+		void handleMatchAccept(Query* query);
 		/*! \brief handle an incoming match declinance */
-		void handleMatchDecline(XMPP::Stanza* stanza);
+		void handleMatchDecline(Query* query);
 		/*! \brief handle an incoming match iq */
 		void handleMatch(XMPP::Stanza* stanza);
 
-		void notifyMatchOffer(int id);
+		void notifyMatchOffer(int id, const XMPP::Jid& requester);
 
-		void notifyMatchResult(int id, bool accepted);
+		void notifyMatchResult(Match* match, int id, bool accepted);
+
+        void closeMatch(int id, bool accepted);
 
 		void notifyUserStatus(const XMPP::Jid jid, bool available);
 

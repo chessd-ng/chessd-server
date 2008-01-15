@@ -2,7 +2,7 @@
 
 #include "Stanza.hh"
 
-#include "../Util/utils.hh"
+#include "Util/utils.hh"
 
 using namespace std;
 using namespace XML;
@@ -107,18 +107,6 @@ namespace XMPP {
 		}
 		stanza->children().push_back(errort);
 		return stanza;
-	}
-
-	Stanza* Stanza::clone() const {
-		Stanza* ret = new Stanza(this->type());
-		ret->subtype() = this->subtype();
-		ret->id() = this->id();
-		ret->from() = this->from();
-		ret->to() = this->to();
-		ret->lang() = this->lang();
-        foreach(it, this->children())
-			ret->children().push_back((Tag*)it->clone());
-		return ret;
 	}
 
 	void Stanza::clearChildren() {

@@ -1,5 +1,5 @@
 
-#include "../XML/iksutil.hh"
+#include "XML/iksutil.hh"
 
 #include "Stream.hh"
 
@@ -75,18 +75,20 @@ namespace XMPP {
 		if(ret != IKS_OK) {
 			this->active = false;
 			iks_disconnect(this->hinfo->parser);
-			return 0;
+            throw "Connection lost";
 		} else if(this->hinfo->incoming.empty()) {
 			return 0;
 		} else {
 			Tag* tag = this->hinfo->incoming.front();
 			this->hinfo->incoming.pop();
+            cout << " <<<<<<<<<<<< Chegando <<<<<<<<<<<<<" << endl;
 			cout << tag->xml() << endl;
 			return tag;
 		}
 	}
 
 	void Stream::sendTag(Tag* tag) {
+        cout << " >>>>>>>>>>>> Mandando >>>>>>>>>>>>>> " << endl;
 		cout << tag->xml() << endl;
 		iks* tree = tag2iks(*tag);
 		delete tag;
