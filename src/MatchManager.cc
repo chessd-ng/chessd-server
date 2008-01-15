@@ -148,10 +148,8 @@ void MatchManager::notifyMatchOffer(int id, const Jid& requester) {
     tag->setAttribute("id", Util::to_string(id));
     stanza.children().push_back(tag);
 	foreach(player, match.players()) {
-        if(*player != requester) {
-            stanza.to() = *player;
-            this->root_node.sendIq(new XMPP::Stanza(stanza));
-        }
+        stanza.to() = *player;
+        this->root_node.sendIq(new XMPP::Stanza(stanza));
 	}
 }
 
