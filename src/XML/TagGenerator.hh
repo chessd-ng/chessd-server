@@ -22,13 +22,13 @@ namespace XML {
 
 			void addChild(Tag* tag);
 
-			Tag* getLastTag();
+			Tag* getTag();
 
 			bool empty() const;
 
 		private:
 			std::stack<Tag*> tag_stack;
-			Tag* last;
+			Tag* tag;
 	};
 }
 

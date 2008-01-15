@@ -81,12 +81,14 @@ namespace XMPP {
 		} else {
 			Tag* tag = this->hinfo->incoming.front();
 			this->hinfo->incoming.pop();
+            cout << " <<<<<<<<<<<< Chegando <<<<<<<<<<<<<" << endl;
 			cout << tag->xml() << endl;
 			return tag;
 		}
 	}
 
 	void Stream::sendTag(Tag* tag) {
+        cout << " >>>>>>>>>>>> Mandando >>>>>>>>>>>>>> " << endl;
 		cout << tag->xml() << endl;
 		iks* tree = tag2iks(*tag);
 		delete tag;

@@ -1,9 +1,9 @@
 <server>
 	<rating-manager
 		server_address="localhost"
-		server_port="5560"
+		server_port="5513"
 		server_password="secret"
-		node_name="ratings.shiva"
+		node_name="rating.shiva"
 	/>
 	<game-manager
 		server_address="localhost"

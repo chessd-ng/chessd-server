@@ -8,6 +8,7 @@
 #include "ChildrenList.hh"
 
 #include <boost/ptr_container/ptr_vector.hpp>
+#include <stdexcept>
 
 namespace XMPP {
 
@@ -65,8 +66,21 @@ namespace XMPP {
 			ChildrenList& children() { return this->_children; }
 			const ChildrenList& children() const { return this->_children; }
 
-			XML::Tag& findChild(const std::string& name);
-			const XML::Tag& findChild(const std::string& name) const;
+			XML::Tag& findChild(const std::string& name) {
+                foreach(tag, this->children().tags()) {
+                    if(tag->name() == name)
+                        return *tag;
+                }
+                throw XML::child_not_found("Child not found");
+            }
+
+			const XML::Tag& findChild(const std::string& name) const {
+                foreach(tag, this->children().tags()) {
+                    if(tag->name() == name)
+                        return *tag;
+                }
+                throw XML::child_not_found("Child not found");
+            }
 
 			void clearChildren();
 

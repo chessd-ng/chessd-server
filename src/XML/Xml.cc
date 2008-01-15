@@ -74,7 +74,7 @@ namespace XML {
 		return tmp;
 	}
 
-	TagGenerator::TagGenerator() : last(0) { }
+	TagGenerator::TagGenerator() : tag(0) { }
 
 	TagGenerator::~TagGenerator() {
 		while(not this->tag_stack.empty()) {
@@ -92,7 +92,11 @@ namespace XML {
 		this->tag_stack.pop();
 		if(not this->tag_stack.empty())
 			this->tag_stack.top()->children().push_back(tag);
-		return this->last = tag;
+        else
+            this->tag = tag;
+
+        // TODO this function will return void
+		return tag;
 	}
 
 	void TagGenerator::addAttribute(const string& name, const string& value) {
@@ -107,30 +111,18 @@ namespace XML {
 		this->tag_stack.top()->children().push_back(tag);
 	}
 
-	Tag* TagGenerator::getLastTag() {
-		return this->last;
+	Tag* TagGenerator::getTag() {
+        Tag* tag = 0;
+        while(not this->tag_stack.empty()) {
+            this->closeTag();
+        }
+        tag = this->tag;
+        this->tag = 0;
+		return tag;
 	}
 
 	bool TagGenerator::empty() const {
 		return this->tag_stack.empty();
-	}
-
-	const Tag& Tag::getChild(const std::string& name) const {
-		foreach(tag, this->tags()) {
-			if(tag->name() == name)
-				return *tag;
-		}
-		assert(false);
-		//throw "Tag not found";
-	}
-
-	Tag& Tag::getChild(const std::string& name) {
-		foreach(tag, this->tags()) {
-			if(tag->name() == name)
-				return *tag;
-		}
-		assert(false);
-		//throw "Unrecoverable error";
 	}
 
 	Description::Description() : type_count(0) { }

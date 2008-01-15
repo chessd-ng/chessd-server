@@ -88,7 +88,7 @@ namespace XML {
 		iks_parser_delete(parser);
 		delete[] buffer;
 		fclose(file);
-		return generator.getLastTag();
+		return generator.getTag();
 	}
 
 	Tag* iksReadXMLString(const std::string& xml) {
@@ -99,7 +99,7 @@ namespace XML {
 			return 0;
 		}
 		iks_parser_delete(parser);
-		return generator.getLastTag();
+		return generator.getTag();
 	}
 
 }

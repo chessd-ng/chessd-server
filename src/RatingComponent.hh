@@ -46,15 +46,12 @@ class RatingComponent : public ComponentBase {
 		/* several handlers for the incoming events */
 
 		/*! \brief handle an incoming match offer */
-		void handleFetchRating(Query query);
-
-        /*! \brief handle an incomint query  */
-        void handleRatingQuery(Query Query);
+		void handleFetchRating(const XMPP::Stanza& query);
 
 		/*! \brief handle an incoming match iq */
 		void handleRating(XMPP::Stanza* stanza);
 
-		void fetchRating(const Query& query, const RatingDBInterface& rating_interface);
+		void fetchRating(const XMPP::Stanza& stanza, const RatingDBInterface& rating_interface);
 
         XMPP::ErrorHandler error_handler;
 
