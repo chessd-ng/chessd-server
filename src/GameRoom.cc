@@ -238,7 +238,7 @@ XMPP::Stanza* createResultStanza(const GameResult& result) {
 			tag_generator.closeTag();
 		}
 	}
-	stanza->children().push_back(tag_generator.closeTag());
+	stanza->children().push_back(tag_generator.getTag());
 	return stanza;
 }
 
@@ -258,7 +258,7 @@ XMPP::Stanza* createMoveStanza(XML::Tag* state, const std::string& long_move) {
 	tag_generator.addAttribute("long", long_move);
 	tag_generator.closeTag();
 	tag_generator.addChild(state);
-	stanza->children().push_back(tag_generator.closeTag());
+	stanza->children().push_back(tag_generator.getTag());
 	return stanza;
 }
 

@@ -102,7 +102,7 @@ namespace XMPP {
 		generator.addAttribute("affiliation", user.affiliation);
 		generator.addAttribute("role", user.role);
 		generator.closeTag();
-		stanza->children().push_back(generator.closeTag());
+		stanza->children().push_back(generator.getTag());
 		return stanza;
 	}
 
