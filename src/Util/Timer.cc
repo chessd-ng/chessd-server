@@ -1,7 +1,5 @@
 #include "Timer.hh"
 
-#define _POSIX_C_SOURCE 199309
-
 #include <ctime>
 #include <cmath>
 

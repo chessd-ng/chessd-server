@@ -58,7 +58,7 @@ void RatingComponent::handleRating(Stanza* _stanza) {
         }
 
     } catch (const user_error& error) {
-        this->component.sendStanza(
+        this->sendStanza(
             Stanza::createErrorStanza(
                 stanza.release(),
                 "cancel",
@@ -69,16 +69,15 @@ void RatingComponent::handleRating(Stanza* _stanza) {
 
 void RatingComponent::handleFetchRating(const Stanza& stanza) {
     const Tag& query = stanza.findChild("query");
+
+    /* check if the format is correct */
     foreach(tag, query.tags()) {
         if(tag->name() != "rating" or not tag->hasAttribute("category") or not tag->hasAttribute("jid"))
             throw user_error("Invalid message format - tag rating is wrong");
     }
-    this->rating_database.perform_const(
-            boost::bind(
-                &RatingComponent::fetchRating,
-                this,
-                stanza,
-                _1));
+
+    /* execute the transaction */
+    this->rating_database.perform_const(boost::bind(&RatingComponent::fetchRating, this, stanza, _1));
 }
 
 void RatingComponent::fetchRating(const Stanza& stanza, const RatingDBInterface& interface) {
@@ -104,7 +103,7 @@ void RatingComponent::fetchRating(const Stanza& stanza, const RatingDBInterface&
     }
     generator.closeTag();
     generator.closeTag();
-    this->component.sendStanza(new XMPP::Stanza(generator.getTag()));
+    this->sendStanza(new XMPP::Stanza(generator.getTag()));
 }
 
 void RatingComponent::onError(const std::string& error) {

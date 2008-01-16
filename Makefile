@@ -49,7 +49,8 @@ SOURCES = \
 		  src/XMPP/Roster.cc \
 		  src/XMPP/StanzaBase.cc \
 		  src/XMPP/Stanza.cc \
-		  src/XMPP/Stream.cc
+		  src/XMPP/Stream.cc \
+		  src/GlickoSystem.cc 
 
 
 SRCDIR = src

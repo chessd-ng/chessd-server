@@ -18,8 +18,8 @@ ComponentBaseParams::ComponentBaseParams(
 
 ComponentBase::ComponentBase(const ComponentBaseParams& params,
 		const std::string& component_name) :
-	running(false),
 	component(params.component_name),
+	running(false),
 	root_node(
             boost::bind(&ComponentBase::sendStanza, this, _1),
 			XMPP::Jid(params.component_name),

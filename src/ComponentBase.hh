@@ -51,6 +51,9 @@ class ComponentBase {
         /*! \brief send s stanza to the server */
         void sendStanza(XMPP::Stanza* stanza);
 
+    private:
+
+		XMPP::Component component;
 
 	protected:
 
@@ -75,9 +78,6 @@ class ComponentBase {
 		/*! \brief Interface to the core */
 		CoreInterface core_interface;
 
-		/*! \brief A component wrapper */
-		XMPP::Component component;
-
 		/*! \brief A XMPP node*/
 		XMPP::RootNode root_node;
 
@@ -94,6 +94,7 @@ class ComponentBase {
 		Threads::Task task_send;
 
 		Threads::Queue<XMPP::Stanza*> stanza_queue;
+
 
 };
 
