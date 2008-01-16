@@ -11,18 +11,9 @@ using namespace std;
 using namespace XML;
 using namespace XMPP;
 
-void match_log_traffic(const std::string& data, bool incoming) {
-    cout << "-----------------------------" << endl;
-    cout << "MatchManager: " <<
-        (incoming ? "Incoming!" : "Outcoming!") << endl;
-    cout << "-----------" << endl;
-    cout << data << endl;
-    cout << "-----------------------------" << endl;
-}
-
 MatchManager::MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& handleError) :
     ComponentBase(config, "Match Manager"),
-    roster(boost::bind(&RootNode::sendStanza, &this->root_node, _1),
+    roster(boost::bind(&ComponentBase::sendStanza, this, _1),
             boost::bind(&MatchManager::notifyUserStatus, this, _1, _2)),
     handleError(handleError)
 {
@@ -39,6 +30,7 @@ MatchManager::MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& han
             "http://c3sl.ufpr.br/chessd#match");
 
     /* FIXME */
+    /* this should not be here */
     this->insertMatchRule(new MatchRuleStandard);
 
     MatchProtocol::init("protocol");
@@ -144,7 +136,8 @@ void MatchManager::handleMatchAccept(Query* _query) {
         if(match.name() != "match" or not match.hasAttribute("id"))
             throw "Invalid message";
         int id = Util::parse_string<int>(match.getAttribute("id"));
-        if(this->match_db.acceptMatch(id, query->from())) {
+        this->match_db.acceptMatch(id, query->from());
+        if(this->match_db.isDone(id)) {
             this->closeMatch(id, true);
         }
         this->sendStanza(
@@ -211,17 +204,12 @@ void MatchManager::notifyUserStatus(XMPP::Jid jid, bool available) {
     }
 }
 
-void MatchManager::_handleError(const std::string& error) {
-    this->close();
+void MatchManager::onError(const std::string& error) {
     this->handleError(error);
 }
 
-void MatchManager::handleStanza(XMPP::Stanza* stanza) {
-    this->dispatcher.queue(boost::bind(&XMPP::RootNode::handleStanza, &this->root_node, stanza));
-}
-
-void MatchManager::onError(const std::string& error) {
-}
-
 void MatchManager::onClose() {
+    foreach(match_id, this->match_db.getActiveMatchs()) {
+        this->closeMatch(*match_id, false);
+    }
 }

@@ -4,8 +4,11 @@
 #include "Match.hh"
 #include "Util/IDSet.hh"
 #include "XMPP/Jid.hh"
+
 #include <map>
 #include <set>
+
+#include <boost/ptr_container/ptr_map.hpp>
 
 class MatchDatabase {
 	public:
@@ -18,19 +21,11 @@ class MatchDatabase {
 		 */
 		int insertMatch(Match* match);
 
-		/*! \brief Inform that a player accepted a match
-		 *
-		 * It throws an exception if id is not found or
-		 * if player is not in the match
-		 */
-		bool acceptMatch(int match, const XMPP::Jid& player);
+		/*! \brief Inform that a player accepted a match */
+		void acceptMatch(int match_id, const XMPP::Jid& player);
 
-		/*! \brief Inform that a player declined a match.
-		 *
-		 * It throws an exception if id is not found or
-		 * if player is not in the match
-		 */
-		bool hasPlayer(int match, const XMPP::Jid& player);
+		/*! \brief Ask whether this player blongs to the match.  */
+		bool hasPlayer(int match_id, const XMPP::Jid& player) const;
 
 		/*! \brief Get all the matchs which the player is in.
 		 */
@@ -38,11 +33,20 @@ class MatchDatabase {
 
 		/*! \brief Removes the match and return the Match instance
 		 */
-		Match* closeMatch(int id);
+		Match* closeMatch(int match_id);
 
-		const Match& getMatch(int id) const;
+        /*! \brief Get a match by its id. */
+		const Match& getMatch(int match_id) const;
+
+        /*! \brief Get the ids of all active mathcs */
+        const std::set<int>& getActiveMatchs() const;
+
+        /*! \brief Ask whether everyone in the has accepted */
+        bool isDone(int match_id) const;
 		
 	private:
+
+    void finishMatch(int match_id);
 
 		Util::IDSet match_ids;
 		struct MatchInfo {
@@ -51,8 +55,9 @@ class MatchDatabase {
 			int pending_count;
 			MatchInfo(Match* match);
 		};
-		std::map<int, MatchInfo*> matchs;
+		boost::ptr_map<int, MatchInfo> matchs;
 		std::map<XMPP::Jid, std::set<int> > player_matchs;
+        std::set<int> active_matchs;
 };
 
 #endif
