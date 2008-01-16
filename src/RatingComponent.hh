@@ -9,12 +9,6 @@
 #include "Query.hh"
 #include "RatingDatabase.hh"
 
-struct RatingComponentParams : public ComponentBaseParams {
-    public:
-        // XXX remove this constructor
-        explicit RatingComponentParams(const XML::Tag& config_xml);
-};
-
 class RatingComponent : public ComponentBase {
 	public:
 		/*! \brief Constructor
@@ -23,7 +17,7 @@ class RatingComponent : public ComponentBase {
 		 * \param config is the configuration for this component.
 		 */
 		RatingComponent(
-            const RatingComponentParams& config,
+            const XML::Tag& config,
             const XMPP::ErrorHandler& handleError,
             RatingDatabase& rating_database);
 

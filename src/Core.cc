@@ -21,7 +21,7 @@ Core::Core(const XML::Tag& config_xml) :
         boost::bind(&Core::handleError, this, _1)),
 	game_manager(config_xml.getChild("game-manager"),
         boost::bind(&Core::handleError, this, _1)),
-	rating_component(RatingComponentParams(config_xml.getChild("rating-manager")),
+	rating_component(config_xml.getChild("rating-manager"),
         boost::bind(&Core::handleError, this, _1),
         this->rating_database)
 {

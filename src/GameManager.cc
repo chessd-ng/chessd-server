@@ -6,22 +6,10 @@ using namespace XMPP;
 using namespace std;
 
 GameManager::GameManager(const XML::Tag& config, const XMPP::ErrorHandler& handle_error) :
-	component(
-			config.getAttribute("node_name"),
-			boost::bind(&GameManager::handleError, this, _1),
-			boost::bind(&GameManager::handleStanza, this, _1)),
-	root_node(boost::bind(&ComponentWrapper::sendStanza, &this->component, _1),
-			XMPP::Jid(config.getAttribute("node_name")),
-			"Game Manager", "service", "game"),
+	ComponentBase(config, "Game Manager"),
 	node_name(config.getAttribute("node_name")),
-	server_address(config.getAttribute("server_address")),
-	server_port(Util::parse_string<int>(config.getAttribute("server_port"))),
-	server_password(config.getAttribute("server_password")),
-	handle_error(handle_error),
-	running(false)
+	handle_error(handle_error)
 {
-	this->dispatcher.start();
-
 	//FIXME
 	GameProtocol::init("protocol");
 
@@ -35,24 +23,14 @@ GameManager::GameManager(const XML::Tag& config, const XMPP::ErrorHandler& handl
 }
 
 GameManager::~GameManager() {
-	this->close();
-	this->dispatcher.stop();
 }
 
-void GameManager::connect() {
-	this->running = true;
-	this->component.connect(this->server_address, this->server_port, this->server_password);
+void GameManager::onClose() {
+
 }
 
-void GameManager::close() {
-	this->dispatcher.queue(boost::bind(&GameManager::_close, this));
-}
-
-void GameManager::_close() {
-	if(this->running) {
-		this->running = false;
-		this->component.close();
-	}
+void GameManager::onError(const string& msg) {
+    this->handle_error(msg);
 }
 
 void GameManager::handleGame(Stanza* stanza) {
@@ -60,7 +38,7 @@ void GameManager::handleGame(Stanza* stanza) {
 	try {
 		string query_name = GameProtocol::parseQuery(query);
 	} catch (const char* msg) {
-		this->root_node.sendStanza(Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg));
+		this->sendStanza(Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg));
 	}
 	// nothing to do here yet
 	delete stanza;
@@ -75,7 +53,7 @@ void GameManager::_insertGame(int game_id, Game* game) {
 	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
 	/* Create the game room */
 	GameRoom* game_room = new GameRoom(game_id, game, room_jid,
-			GameRoomHandlers(boost::bind(&ComponentWrapper::sendStanza, &this->component, _1),
+			GameRoomHandlers(boost::bind(&ComponentBase::sendStanza, this, _1),
 				boost::bind(&GameManager::closeGameRoom, this, room_id)));
 	/* Register the new jabber node */
 	this->root_node.setNodeHandler(room_jid.node(),
@@ -97,10 +75,6 @@ void GameManager::_closeGameRoom(int room_id) {
 	this->root_node.disco().items().erase(room_jid);
 	this->game_rooms.erase(room_id);
 }
-
-void GameManager::handleStanza(XMPP::Stanza* stanza) {
-	this->dispatcher.queue(boost::bind(&XMPP::RootNode::handleStanza, &this->root_node, stanza));
-}	
 
 void GameManager::handleError(const std::string& error) {
 	this->close();

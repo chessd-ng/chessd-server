@@ -14,18 +14,11 @@ class user_error : public std::runtime_error
         user_error(const string& msg) : std::runtime_error(msg) { }
 };
 
-RatingComponentParams::RatingComponentParams(const XML::Tag& config_xml) :
-    ComponentBaseParams(
-        config_xml.getAttribute("node_name"),
-        config_xml.getAttribute("server_address"),
-        Util::parse_string<int>(config_xml.getAttribute("server_port")),
-        config_xml.getAttribute("server_password")) { }
-
 RatingComponent::RatingComponent(
-        const RatingComponentParams& params,
+        const XML::Tag& config,
         const XMPP::ErrorHandler& error_handler,
         RatingDatabase& rating_database) :
-    ComponentBase(params, "Rating Component"),
+    ComponentBase(config, "Rating Component"),
     error_handler(error_handler),
     rating_database(rating_database)
 {
