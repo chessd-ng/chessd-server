@@ -2,17 +2,11 @@
 #include "RatingComponent.hh"
 #include "Util/utils.hh"
 
-#include <stdexcept>
+#include "Exception.hh"
 
 using namespace std;
 using namespace XML;
 using namespace XMPP;
-
-class user_error : public std::runtime_error
-{
-    public:
-        user_error(const string& msg) : std::runtime_error(msg) { }
-};
 
 RatingComponent::RatingComponent(
         const XML::Tag& config,
