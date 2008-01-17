@@ -2,18 +2,35 @@
 #include <cmath>
 #include <algorithm>
 
-double GlickoSystem::InitRD(const Rating &r) {
-	return std::min(sqrt(r.volatility()*r.volatility()),350.0);
+double GlickoSystem::c() {
+	return 1.483; //got from previous chessd server
+}
+double GlickoSystem::InitRD(const Rating &r, long long int t) {
+	return std::min(sqrt(r.volatility()*r.volatility()+c()*c()*log(1.0+double(t)/60.0)),350.0);
 }
 double GlickoSystem::gRD(const Rating &r) {
-	return 1.0/(sqrt(1.0 + 3*q()*q()*r.volatility()*r.volatility()/M_PI/M_PI));
+	return 1.0/(sqrt(1.0 + 3.0*q()*q()*square(r.volatility())/square(M_PI)));
 }
-double GlickoSystem::E(const Rating &r1, const Rating &r2) {
-	return 1.0/(1.0+pow(10.0,gRD(r2)*double(r2.rating()-r1.rating())/400.0 ));
+double GlickoSystem::gBRD(const Rating &r1, const Rating &r2, const Rating &r3) {
+	return 1.0/sqrt(1.0 + 9.0*square(Bq())/square(M_PI) * (square(r1.volatility()) + square(r2.volatility()) + square(r3.volatility()) ) ) ;
+}
+double GlickoSystem::E(const Rating &r, const Rating &r2) {
+	return 1.0/(1.0+pow(10.0,gRD(r2)*double(r2.rating()-r.rating())/400.0 ));
+}
+double GlickoSystem::BE(const Rating &r, const Rating &r1, const Rating &r2, const Rating &r3) {
+	return 1.0/(1.0+pow(10.0,double(r2.rating()+r3.rating()-r.rating()-r1.rating())*(gBRD(r1,r2,r3))/800.0 ));
 }
 double GlickoSystem::q() {
-	return 0.00575646273248511;
+	return 0.00575646273248511421;
 }
-double GlickoSystem::dsquare(const Rating &r1, const Rating &r2) {
-	return 0.0;
+double GlickoSystem::Bq() {
+	return 0.00287823136624255710;
+}
+double GlickoSystem::dsquare(const Rating &r, const Rating &r2) {
+	return 1.0/(square(q()) *square(gRD(r2)) * E(r,r2) * (1.0 - E(r,r2)));
+}
+int GlickoSystem::round(double n) {
+	if(n>0)
+		return (int)(n+0.5);
+	return (int)(n-0.5);
 }

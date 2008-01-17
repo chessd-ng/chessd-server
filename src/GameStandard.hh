@@ -10,12 +10,9 @@ class GameStandard : public GameChess {
 
 		virtual ~GameStandard() {};
 
-		virtual const std::string& category() const;
-
 		virtual GameResult* newGameResult(const std::string& endreason, const TeamResultList &l, const std::vector<State> &s) const;
 
 	private:
-		std::string _category;
 };
 
 class ChessStandardGameResult : public ChessGameResult {

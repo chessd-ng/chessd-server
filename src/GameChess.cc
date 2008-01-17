@@ -1,11 +1,13 @@
 #include "GameChess.hh"
 #include <iostream>
 #include "Util/utils.hh"
+#include <string>
 //TODO
 //tempo
 //testar XML
 
-GameChess::GameChess(const StandardPlayerList& _players) {
+GameChess::GameChess(const StandardPlayerList& _players, const std::string &_category) {
+	this->_category=_category;
 	foreach(it,_players) {
 		Team a;
 		a.push_back(it->jid);
@@ -49,8 +51,13 @@ XML::Tag* GameChess::state() const {
 	t.closeTag();
 	return t.getTag();
 }
+
+const std::string& GameChess::category() const {
+	return this->_category;
+}
+
 const std::string& GameChess::title() const {
-	return _title;
+	return this->_title;
 }
 void GameChess::resign(const Player& player) {
 	this->_resign=colormap[player];

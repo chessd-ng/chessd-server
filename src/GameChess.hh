@@ -12,13 +12,13 @@
 //TODO ver negocios do tempo!
 class GameChess : public Game {
 	public:
-		GameChess(const StandardPlayerList& _players);
+		GameChess(const StandardPlayerList& _players, const std::string &category);
 
 		virtual ~GameChess() {};
 
 		virtual XML::Tag* state() const;
 
-		virtual const std::string& category() const = 0;
+		virtual const std::string& category() const;
 		
 		/*! \brief function to return the title of the game
 		 * \return returns the full jids of the player separated by an "x" */
@@ -28,12 +28,12 @@ class GameChess : public Game {
 		virtual void resign(const Player& player);
 
 		/*! \brief The player has called a flag */
-		virtual void call_flag(const Player& player);
+		virtual void call_flag(const Player& player); //TODO
 
 		/*! \brief The players agreed on a draw */
 		virtual void draw();
 
-		virtual void adjourn();
+		virtual void adjourn(); //TODO
 
 		/*! \brief Has the game ended?
 		 * \return Returns the game result if the game is over, NULL otherwise.
@@ -51,6 +51,7 @@ class GameChess : public Game {
 		Chess chess;
 		TeamList _teams;
 		std::string _title;
+		std::string _category;
 
 		//unify the color name
 		color _resign;
@@ -65,17 +66,20 @@ class GameChess : public Game {
 class ChessGameResult : public GameResult {
 	public:
 		ChessGameResult(const std::string& endreason,const TeamResultList &l,const std::string& _category,const std::vector<State> &s);
+
 		virtual ~ChessGameResult(){};
+
 		virtual const std::string& category() const;
+
 		virtual const std::string& end_reason() const;
+
 		virtual const PlayerList& players() const;
+
 		virtual const TeamResultList& results() const;
+
 		/*! \brief generates a History tag*/
 		virtual XML::Tag* history() const;
 
-		/*! \brief Updates the Players ratings
-		 * it uses the glicko rating system
-		*/
 		virtual void updateRating(std::map<Player, Rating>& ratings) const = 0;
 	protected:
 		TeamResultList teamresultlist;

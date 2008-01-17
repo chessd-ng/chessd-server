@@ -8,13 +8,8 @@
 //testar XML
 
 GameStandard::GameStandard(const StandardPlayerList& _players) :
-	GameChess(_players),
-	_category("standard")
+	GameChess(_players,"standard")
 {
-}
-
-const std::string& GameStandard::category() const {
-	return _category;
 }
 
 GameResult* GameStandard::newGameResult(const std::string& endreason, const TeamResultList &l, const std::vector<State> &s) const {
@@ -28,35 +23,48 @@ ChessStandardGameResult::ChessStandardGameResult(const std::string &endreason,co
 
 void ChessStandardGameResult::updateRating(std::map<Player, Rating> &ratings) const {
 	std::vector<Player> playerlist;
-	foreach(it,teamresultlist)
+	std::vector<Rating> playerrating;
+	foreach(it,teamresultlist) {
 		playerlist.push_back(it->first[0]);
+		playerrating.push_back(ratings[it->first[0]]);
+	}
 
 	int i=0,j=1;
 	foreach(it,teamresultlist) {
 		//TODO
-		//Determine Step 1 of glicko System that it has to determine the 
-		//new RD(Rating deviation) that is based on time of the last competition
-		double w=0.0;
-		if(it->second == WINNER)
+		//Do Step 1 of glicko System that it determines the new RD(Rating deviation)
+		//that is based on the difference between now and the date since the last competition
+		//in seconds
+		//Just need to receive the last time the player has played
+		double w;
+		if(it->second == WINNER) {
+			playerrating[i].wins()++;
 			w=1.0;
-		else if(it->second == DRAWER)
+		}
+		else if(it->second == DRAWER) {
+			playerrating[i].draws()++;
 			w=0.5;
+		}
+		else { //it->second = LOSER
+			playerrating[i].losses()++;
+			w=0.0;
+		}
 		double E=GlickoSystem::E(ratings[playerlist[i]],ratings[playerlist[j]]);
 
-		double fs2=GlickoSystem::gRD(ratings[playerlist[i]]);
-
+		double fs2=GlickoSystem::gRD(ratings[playerlist[j]]);
+//		economical way
 		double denominator=1.0/(GlickoSystem::square(ratings[playerlist[i]].volatility())) + GlickoSystem::square(GlickoSystem::q()) * GlickoSystem::square(fs2) * E * (1.0 - E);
 
-		double GK = GlickoSystem::q()*fs2/denominator;
+//		Pratical way
+//		double denominator=1.0/(GlickoSystem::square(ratings[playerlist[i]].volatility())) + 1.0/GlickoSystem::dsquare(ratings[playerlist[i]],ratings[playerlist[j]]);
 
-		double deltarating=round(GK * (w-E));
+		playerrating[i].rating()+=GlickoSystem::round(GlickoSystem::q()*fs2*(w-E)/denominator);
 
-		double newvolatility=1.0/sqrt(denominator);
-
-		ratings[playerlist[i]].rating()+=deltarating;
-
-		ratings[playerlist[i]].volatility()=newvolatility;
+		playerrating[i].volatility()=1.0/sqrt(denominator);
 		i++;
 		j=(j+1)%2;
+	}
+	for(i=0;i<(int)playerrating.size();i++) {
+		ratings[playerlist[i]]=playerrating[i];
 	}
 }
