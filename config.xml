@@ -18,9 +18,9 @@
 		node_name="match.shiva"
 	/>
     <database
-        db_name="chessd-dev"
         host="localhost"
         port="5432"
+        db_name="chessd-dev"
         user="raphael"
         password="raphael"
     />
