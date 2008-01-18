@@ -11,33 +11,12 @@ using namespace std;
 using namespace XML;
 using namespace XMPP;
 
-void match_log_traffic(const std::string& data, bool incoming) {
-    cout << "-----------------------------" << endl;
-    cout << "MatchManager: " <<
-        (incoming ? "Incoming!" : "Outcoming!") << endl;
-    cout << "-----------" << endl;
-    cout << data << endl;
-    cout << "-----------------------------" << endl;
-}
-
 MatchManager::MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& handleError) :
-    running(false),
-    component(
-            config.getAttribute("node_name"), 
-            boost::bind(&MatchManager::_handleError, this, _1),
-            boost::bind(&MatchManager::handleStanza, this, _1)),
-    root_node(boost::bind(&ComponentWrapper::sendStanza, &this->component, _1),
-            XMPP::Jid(config.getAttribute("node_name")),
-            "Match Manager", "service", "game"),
-    roster(boost::bind(&RootNode::sendStanza, &this->root_node, _1),
+    ComponentBase(config, "Match Manager"),
+    roster(boost::bind(&ComponentBase::sendStanza, this, _1),
             boost::bind(&MatchManager::notifyUserStatus, this, _1, _2)),
-    server_address(config.getAttribute("server_address")),
-    server_port(Util::parse_string<int>(config.getAttribute("server_port"))),
-    server_password(config.getAttribute("server_password")),
     handleError(handleError)
 {
-
-    this->dispatcher.start();
 
     /* Set the root_node to route presence stanzas to the roster */
     this->root_node.setPresenceHandler(boost::bind(&Roster::handlePresence, &this->roster, _1));
@@ -51,6 +30,7 @@ MatchManager::MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& han
             "http://c3sl.ufpr.br/chessd#match");
 
     /* FIXME */
+    /* this should not be here */
     this->insertMatchRule(new MatchRuleStandard);
 
     MatchProtocol::init("protocol");
@@ -62,20 +42,6 @@ void MatchManager::insertMatchRule(MatchRule* rule) {
 }
 
 MatchManager::~MatchManager() {
-    this->close();
-    this->dispatcher.stop();
-}
-
-void MatchManager::connect() {
-    this->running = true;
-    this->component.connect(this->server_address, this->server_port, this->server_password);
-}
-
-void MatchManager::close() {
-    if(this->running) {
-        this->running = false;
-        this->component.close();
-    }
 }
 
 void MatchManager::handleMatch(Stanza* _stanza) {
@@ -84,7 +50,7 @@ void MatchManager::handleMatch(Stanza* _stanza) {
     try {
         query = std::auto_ptr<Query>(new Query(move(*stanza)));
     } catch (const char* msg) {
-        this->component.sendStanza(
+        this->sendStanza(
                 Stanza::createErrorStanza(
                     stanza.release(),
                     "cancel",
@@ -99,7 +65,7 @@ void MatchManager::handleMatch(Stanza* _stanza) {
     } else if(query->action() == "decline") {
         this->handleMatchDecline(query.release());
     } else {
-        this->component.sendStanza(
+        this->sendStanza(
                 Stanza::createErrorStanza(
                     Query::createStanza(move(*query)),
                     "cancel",
@@ -119,8 +85,7 @@ void MatchManager::handleMatchOffer(Query* _query) {
         const std::string& category = offer.getAttribute("category");
         if(not Util::has_key(this->rules, category))
             throw "Invalid category";
-        match = auto_ptr<Match>((*this->rules.find(category)).second->checkOffer(offer,
-                    this->teams));
+        match = auto_ptr<Match>(this->rules.find(category)->second->checkOffer(offer, this->teams));
         bool valid = false;
         foreach(player, match->players()) {
             if(not this->roster.isUserAvailable(*player))
@@ -131,7 +96,7 @@ void MatchManager::handleMatchOffer(Query* _query) {
         if(not valid)
             throw "Invalid request";
     } catch (const char* msg) {
-        this->component.sendStanza(
+        this->sendStanza(
                 Stanza::createErrorStanza(
                     Query::createStanza(move(*query)),
                     "cancel",
@@ -141,7 +106,7 @@ void MatchManager::handleMatchOffer(Query* _query) {
     }
     int id = this->match_db.insertMatch(match.release());
     this->match_db.acceptMatch(id, requester);
-    this->component.sendStanza(Stanza::createIQResult(Query::createStanza(move(*query))));
+    this->sendStanza(Stanza::createIQResult(Query::createStanza(move(*query))));
     this->notifyMatchOffer(id, requester);
 }
 
@@ -168,14 +133,15 @@ void MatchManager::handleMatchAccept(Query* _query) {
         if(match.name() != "match" or not match.hasAttribute("id"))
             throw "Invalid message";
         int id = Util::parse_string<int>(match.getAttribute("id"));
-        if(this->match_db.acceptMatch(id, query->from())) {
+        this->match_db.acceptMatch(id, query->from());
+        if(this->match_db.isDone(id)) {
             this->closeMatch(id, true);
         }
-        this->component.sendStanza(
+        this->sendStanza(
                 Stanza::createIQResult(
                     Query::createStanza(move(*query))));
     } catch (const char* msg) {
-        this->component.sendStanza(
+        this->sendStanza(
                 Stanza::createErrorStanza(
                     Query::createStanza(move(*query)),
                     "cancel",
@@ -193,12 +159,12 @@ void MatchManager::handleMatchDecline(Query* _query) {
         int id = Util::parse_string<int>(match.getAttribute("id"));
         if(not this->match_db.hasPlayer(id, query->from()))
             throw "Invalid id";
-        this->component.sendStanza(
+        this->sendStanza(
                 Stanza::createIQResult(
                     Query::createStanza(move(*query))));
         this->closeMatch(id, false);
     } catch (const char* msg) {
-        this->component.sendStanza(
+        this->sendStanza(
                 Stanza::createErrorStanza(
                     Query::createStanza(move(*query)),
                     "cancel",
@@ -235,11 +201,12 @@ void MatchManager::notifyUserStatus(XMPP::Jid jid, bool available) {
     }
 }
 
-void MatchManager::_handleError(const std::string& error) {
-    this->close();
+void MatchManager::onError(const std::string& error) {
     this->handleError(error);
 }
 
-void MatchManager::handleStanza(XMPP::Stanza* stanza) {
-    this->dispatcher.queue(boost::bind(&XMPP::RootNode::handleStanza, &this->root_node, stanza));
+void MatchManager::onClose() {
+    foreach(match_id, this->match_db.getActiveMatchs()) {
+        this->closeMatch(*match_id, false);
+    }
 }

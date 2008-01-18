@@ -50,22 +50,18 @@ class Core {
 		void adjournGame(int game_id, GameResult* result);
 		void cancelGame(int game_id);
 
-		void fetchUserRatings(const XMPP::Jid&, const RatingCallback& callback);
-
 	private:
 
 		void _startGame(Game* game);
 		void _endGame(int game_id, GameResult* result);
 		void _adjournGame(int game_id, GameResult* result);
 		void _cancelGame(int game_id);
-		void _fetchUserRatings(const XMPP::Jid&, const RatingCallback& callback);
 
 		Core(const XML::Tag& config);
 
 		void handleError(const std::string& error);
 
         DatabaseManager database_manager;
-        RatingDatabase rating_database;
 
 		MatchManager match_manager;
 		GameManager game_manager;

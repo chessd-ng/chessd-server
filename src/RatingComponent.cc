@@ -2,32 +2,19 @@
 #include "RatingComponent.hh"
 #include "Util/utils.hh"
 
-#include <stdexcept>
+#include "Exception.hh"
 
 using namespace std;
 using namespace XML;
 using namespace XMPP;
 
-class user_error : public std::runtime_error
-{
-    public:
-        user_error(const string& msg) : std::runtime_error(msg) { }
-};
-
-RatingComponentParams::RatingComponentParams(const XML::Tag& config_xml) :
-    ComponentBaseParams(
-        config_xml.getAttribute("node_name"),
-        config_xml.getAttribute("server_address"),
-        Util::parse_string<int>(config_xml.getAttribute("server_port")),
-        config_xml.getAttribute("server_password")) { }
-
 RatingComponent::RatingComponent(
-        const RatingComponentParams& params,
+        const XML::Tag& config,
         const XMPP::ErrorHandler& error_handler,
-        RatingDatabase& rating_database) :
-    ComponentBase(params, "Rating Component"),
+        DatabaseManager& database) :
+    ComponentBase(config, "Rating Component"),
     error_handler(error_handler),
-    rating_database(rating_database)
+    database(database)
 {
 
     /* Set features */
@@ -58,7 +45,7 @@ void RatingComponent::handleRating(Stanza* _stanza) {
         }
 
     } catch (const user_error& error) {
-        this->component.sendStanza(
+        this->sendStanza(
             Stanza::createErrorStanza(
                 stanza.release(),
                 "cancel",
@@ -69,19 +56,19 @@ void RatingComponent::handleRating(Stanza* _stanza) {
 
 void RatingComponent::handleFetchRating(const Stanza& stanza) {
     const Tag& query = stanza.findChild("query");
+
+    /* check if the format is correct */
     foreach(tag, query.tags()) {
         if(tag->name() != "rating" or not tag->hasAttribute("category") or not tag->hasAttribute("jid"))
             throw user_error("Invalid message format - tag rating is wrong");
     }
-    this->rating_database.perform_const(
-            boost::bind(
-                &RatingComponent::fetchRating,
-                this,
-                stanza,
-                _1));
+
+    /* execute the transaction */
+    this->database.queueTransaction(boost::bind(&RatingComponent::fetchRating, this, stanza, _1));
 }
 
-void RatingComponent::fetchRating(const Stanza& stanza, const RatingDBInterface& interface) {
+void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& database) {
+    RatingDatabase& rating_database = database.rating_database;
     XML::TagGenerator generator;
     const Tag& query = stanza.findChild("query");
     generator.openTag("iq");
@@ -92,7 +79,8 @@ void RatingComponent::fetchRating(const Stanza& stanza, const RatingDBInterface&
     generator.openTag("query");
     generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#rating");
     foreach(tag, query.tags()) {
-        Rating rating = interface.getRating(tag->getAttribute("jid"), tag->getAttribute("category"));
+        Rating rating = rating_database.getRating
+                (tag->getAttribute("jid"), tag->getAttribute("category"));
         generator.openTag("rating");
         generator.addAttribute("jid", tag->getAttribute("jid"));
         generator.addAttribute("category", tag->getAttribute("category"));
@@ -104,7 +92,7 @@ void RatingComponent::fetchRating(const Stanza& stanza, const RatingDBInterface&
     }
     generator.closeTag();
     generator.closeTag();
-    this->component.sendStanza(new XMPP::Stanza(generator.getTag()));
+    this->sendStanza(new XMPP::Stanza(generator.getTag()));
 }
 
 void RatingComponent::onError(const std::string& error) {

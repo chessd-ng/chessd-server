@@ -4,27 +4,19 @@
 using namespace std;
 using namespace XML;
 using namespace XMPP;
+using namespace Util;
 
-ComponentBaseParams::ComponentBaseParams(
-    const std::string& component_name,
-    const std::string& server_address,
-    int server_port,
-    const std::string& server_password) : 
-        component_name(component_name),
-        server_address(server_address),
-        server_port(server_port),
-        server_password(server_password) { }
-
-
-ComponentBase::ComponentBase(const ComponentBaseParams& params,
+ComponentBase::ComponentBase(const XML::Tag& config,
 		const std::string& component_name) :
+	component(config.getAttribute("node_name")),
 	running(false),
-	component(params.component_name),
 	root_node(
             boost::bind(&ComponentBase::sendStanza, this, _1),
-			XMPP::Jid(params.component_name),
+			XMPP::Jid(config.getAttribute("node_name")),
 			component_name, "service", "game"),
-    params(params),
+    server_address(config.getAttribute("server_address")),
+    server_port(parse_string<int>(config.getAttribute("server_port"))),
+    server_password(config.getAttribute("server_password")),
 	task_recv(boost::bind(&ComponentBase::run_recv, this)),
 	task_send(boost::bind(&ComponentBase::run_send, this))
 {
@@ -38,9 +30,9 @@ ComponentBase::~ComponentBase() {
 
 void ComponentBase::connect() {
     this->component.connect(
-            this->params.server_address,
-            this->params.server_port,
-            this->params.server_password);
+            this->server_address,
+            this->server_port,
+            this->server_password);
     this->running = true;
     this->task_recv.start();
     this->task_send.start();

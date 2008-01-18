@@ -32,9 +32,6 @@ class CoreInterface {
 		void adjournGame(int game_id, GameResult* result);
 		void cancelGame(int game_id);
 
-		void fetchUserRatings(const XMPP::Jid& user, const RatingCallback& callback);
-
-
 	private:
 
 		void shutdown();

@@ -11,7 +11,6 @@
 #include "XMPP/Disco.hh"
 #include "XMPP/Roster.hh"
 #include "Threads/Dispatcher.hh"
-#include "ComponentWrapper.hh"
 #include "Util/Timer.hh"
 
 #include "Match.hh"
@@ -21,7 +20,9 @@
 
 #include "Query.hh"
 
-class MatchManager {
+#include "ComponentBase.hh"
+
+class MatchManager : public ComponentBase {
 	public:
 		/*! \brief Constructor
 		 *
@@ -36,12 +37,6 @@ class MatchManager {
 		 */
 		~MatchManager();
 
-		/*! \brief Connect to the server.
-		 *
-		 * \throw Throws an exception on error.
-		 */
-		void connect();
-
 		/*! \brief Insert a match rule
 		 *
 		 * The rule's ownership is passed to this class.
@@ -49,10 +44,6 @@ class MatchManager {
 		 * \param rule is the MatchRule to be inserted.
 		 */
 		void insertMatchRule(MatchRule* rule);
-
-		/*! \brief Closes the conenction to the server */
-		void close();
-
 
 	private:
 
@@ -79,20 +70,9 @@ class MatchManager {
 
 		void handleStanza(XMPP::Stanza* stanza);
 
-		/*! \brief We run in a separated thread as a dispatcher */
-		Threads::Dispatcher dispatcher;
+        void onClose();
 
-		/*! \brief Is it running? */
-		bool running;
-
-		/*! \brief Interface to the core */
-		CoreInterface core_interface;
-
-		/*! \brief A component wrapper */
-		ComponentWrapper component;
-
-		/*! \brief A XMPP node*/
-		XMPP::RootNode root_node;
+        void onError(const std::string& error);
 
 		/*! \brief A XMPP roster */
 		XMPP::Roster roster;
@@ -108,15 +88,6 @@ class MatchManager {
 		MatchDatabase match_db;
 
 		Util::IDSet match_ids;
-
-		/*! \brief The XMPP server address */
-		std::string server_address;
-
-		/*! \brief The server port */
-		int server_port;
-
-		/*! \brief The server password */
-		std::string server_password;
 
 		XMPP::ErrorHandler handleError;
 };

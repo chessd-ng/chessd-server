@@ -30,6 +30,9 @@ namespace XMPP {
             /* \brief Returns the jid representation */
 			std::string full() const;
 
+            /* \brief Returns the jid representation without the resource */
+            std::string parcial() const;
+
 			bool empty() const {
 				return this->node().empty() and this->domain().empty() and this->resource().empty();
 			}

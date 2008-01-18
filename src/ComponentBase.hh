@@ -1,6 +1,8 @@
 #ifndef COMPONENTBASE_HH
 #define COMPONENTBASE_HH
 
+#include "XML/Xml.hh"
+
 #include "CoreInterface.hh"
 #include "XMPP/RootNode.hh"
 #include "XMPP/Component.hh"
@@ -8,19 +10,6 @@
 #include "Threads/Task.hh"
 #include "Threads/Queue.hh"
 
-
-struct ComponentBaseParams {
-    std::string component_name;
-    std::string server_address;
-    int server_port;
-    std::string server_password;
-
-    ComponentBaseParams(
-        const std::string& component_name,
-        const std::string& server_address,
-        int server_port,
-        const std::string& server_password);
-};
 
 /*! \brief A base implementation for components */
 class ComponentBase {
@@ -30,7 +19,7 @@ class ComponentBase {
 		 * \param core_interface is the interface to the core.
 		 * \param config is the configuration for this component.
 		 */
-		ComponentBase(const ComponentBaseParams& params,
+		ComponentBase(const XML::Tag& config,
 				const std::string& component_name);
 
 		/*! \brief Destructor
@@ -51,6 +40,9 @@ class ComponentBase {
         /*! \brief send s stanza to the server */
         void sendStanza(XMPP::Stanza* stanza);
 
+    private:
+
+		XMPP::Component component;
 
 	protected:
 
@@ -75,9 +67,6 @@ class ComponentBase {
 		/*! \brief Interface to the core */
 		CoreInterface core_interface;
 
-		/*! \brief A component wrapper */
-		XMPP::Component component;
-
 		/*! \brief A XMPP node*/
 		XMPP::RootNode root_node;
 
@@ -87,13 +76,16 @@ class ComponentBase {
 
 		void run_send();
 
-        ComponentBaseParams params;
+        std::string server_address;
+        int server_port;
+        std::string server_password;
 
 		Threads::Task task_recv;
 
 		Threads::Task task_send;
 
 		Threads::Queue<XMPP::Stanza*> stanza_queue;
+
 
 };
 

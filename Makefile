@@ -1,7 +1,6 @@
 SOURCES = \
 		  src/Agreement.cc \
 		  src/ComponentBase.cc \
-		  src/ComponentWrapper.cc \
 		  src/Core.cc \
 		  src/CoreInterface.cc \
 		  src/DatabaseManager.cc \
@@ -31,7 +30,6 @@ SOURCES = \
 		  src/Query.cc \
 		  src/RatingComponent.cc \
 		  src/RatingDatabase.cc \
-		  src/StreamListener.cc \
 		  src/Threads/Dispatcher.cc \
 		  src/Threads/Pool.cc \
 		  src/Threads/Task.cc \
@@ -49,7 +47,10 @@ SOURCES = \
 		  src/XMPP/Roster.cc \
 		  src/XMPP/StanzaBase.cc \
 		  src/XMPP/Stanza.cc \
-		  src/XMPP/Stream.cc
+		  src/XMPP/Stream.cc \
+		  src/GlickoSystem.cc \
+		  src/DatabaseInterface.cc \
+		  src/GameDatabase.cc
 
 
 SRCDIR = src
