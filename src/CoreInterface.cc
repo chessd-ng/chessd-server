@@ -20,8 +20,3 @@ void CoreInterface::adjournGame(int game_id, GameResult* result) {
 void CoreInterface::cancelGame(int game_id) {
     Core::singleton().cancelGame(game_id);
 }
-
-void CoreInterface::fetchUserRatings(const XMPP::Jid& user, const RatingCallback& callback) {
-    Core::singleton().fetchUserRatings(user, callback);
-}
-

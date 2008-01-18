@@ -19,5 +19,5 @@ std::string GameProtocol::parseQuery(XML::Tag& query) {
 std::string GameProtocol::parseMove(XML::Tag& query) {
 	if(not GameProtocol::move_desc.validateXML(query))
 		throw "Invalid syntax";
-	return query.getChild("move").getAttribute("long");
+	return query.findChild("move").getAttribute("long");
 }

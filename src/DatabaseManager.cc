@@ -2,31 +2,39 @@
 
 #include "Util/utils.hh"
 
+#include <boost/bind.hpp>
 
-DatabaseManagerParams::DatabaseManagerParams(
-        std::string db_name,
-        std::string host,
-        int port,
-        std::string user,
-        std::string password) :
-    db_name(db_name),
-    host(host),
-    port(port),
-    user(user),
-    password(password)
+struct pqxx_transaction : public pqxx::transactor<>
 {
-}
+    public:
 
-DatabaseManager::DatabaseManager(const DatabaseManagerParams& params) :
-    params(params),
+        pqxx_transaction(const Transactor& transactor) : transactor(transactor) { }
+
+        void operator()(pqxx::work& work)
+        {
+            DatabaseInterface interface(work);
+            this->transactor(interface);
+        }
+
+        void on_abort(const char* msg) throw()
+        {
+            std::cout << "Transaction aborted: " << msg << std::endl;
+        }
+
+    private:
+
+        Transactor transactor;
+};
+
+DatabaseManager::DatabaseManager(const XML::Tag& config) :
     colector_task(boost::bind(&DatabaseManager::colector, this))
 {
     this->connection_string =
-        " host=" + params.host +
-        " port=" + Util::to_string(params.port) +
-        " dbname=" + params.db_name +
-        " user=" + params.user +
-        " password=" + params.password +
+        " host=" + config.getAttribute("host") +
+        " port=" + config.getAttribute("port") +
+        " dbname=" + config.getAttribute("db_name") +
+        " user=" + config.getAttribute("user") +
+        " password=" + config.getAttribute("password") +
         " sslmode=disable";
 
     // Check if we can connect to the database
@@ -37,7 +45,8 @@ DatabaseManager::DatabaseManager(const DatabaseManagerParams& params) :
     this->colector_task.start();
 }
 
-DatabaseManager::~DatabaseManager() {
+DatabaseManager::~DatabaseManager()
+{
     this->running_tasks.push(0);
     this->colector_task.join();
 
@@ -48,7 +57,33 @@ DatabaseManager::~DatabaseManager() {
     }
 }
 
-void DatabaseManager::colector() {
+void execTransaction(pqxx::connection* connection, const Transactor& transactor)
+{
+    pqxx_transaction t(transactor);
+    connection->perform(t);
+}
+
+void DatabaseManager::queueTransaction(const Transactor& transaction)
+{
+    pqxx::connection* conn = 0;
+
+    if(not this->free_connections.try_pop(conn)) {
+        conn = new pqxx::connection(this->connection_string);
+    }
+
+    Threads::Task* task =
+        new Threads::Task(boost::bind(
+                    execTransaction,
+                    conn,
+                    transaction));
+
+    task->start();
+
+    this->running_tasks.push(task);
+}
+
+void DatabaseManager::colector()
+{
     Threads::Task* task = 0;
     while((task = this->running_tasks.pop()) != 0) {
         task->join();

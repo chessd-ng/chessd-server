@@ -11,10 +11,10 @@ using namespace XMPP;
 RatingComponent::RatingComponent(
         const XML::Tag& config,
         const XMPP::ErrorHandler& error_handler,
-        RatingDatabase& rating_database) :
+        DatabaseManager& database) :
     ComponentBase(config, "Rating Component"),
     error_handler(error_handler),
-    rating_database(rating_database)
+    database(database)
 {
 
     /* Set features */
@@ -64,10 +64,11 @@ void RatingComponent::handleFetchRating(const Stanza& stanza) {
     }
 
     /* execute the transaction */
-    this->rating_database.perform_const(boost::bind(&RatingComponent::fetchRating, this, stanza, _1));
+    this->database.queueTransaction(boost::bind(&RatingComponent::fetchRating, this, stanza, _1));
 }
 
-void RatingComponent::fetchRating(const Stanza& stanza, const RatingDBInterface& interface) {
+void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& database) {
+    RatingDatabase& rating_database = database.rating_database;
     XML::TagGenerator generator;
     const Tag& query = stanza.findChild("query");
     generator.openTag("iq");
@@ -78,7 +79,8 @@ void RatingComponent::fetchRating(const Stanza& stanza, const RatingDBInterface&
     generator.openTag("query");
     generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#rating");
     foreach(tag, query.tags()) {
-        Rating rating = interface.getRating(tag->getAttribute("jid"), tag->getAttribute("category"));
+        Rating rating = rating_database.getRating
+                (tag->getAttribute("jid"), tag->getAttribute("category"));
         generator.openTag("rating");
         generator.addAttribute("jid", tag->getAttribute("jid"));
         generator.addAttribute("category", tag->getAttribute("category"));

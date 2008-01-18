@@ -34,7 +34,7 @@ void GameManager::onError(const string& msg) {
 }
 
 void GameManager::handleGame(Stanza* stanza) {
-	XML::Tag& query = *stanza->children().tags().begin();
+	XML::Tag& query = stanza->findChild("query");
 	try {
 		string query_name = GameProtocol::parseQuery(query);
 	} catch (const char* msg) {
@@ -74,9 +74,4 @@ void GameManager::_closeGameRoom(int room_id) {
 	this->root_node.removeNodeHandler(room_jid.node());
 	this->root_node.disco().items().erase(room_jid);
 	this->game_rooms.erase(room_id);
-}
-
-void GameManager::handleError(const std::string& error) {
-	this->close();
-	this->handle_error(error);
 }

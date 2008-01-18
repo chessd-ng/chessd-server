@@ -7,7 +7,7 @@
 
 #include "ComponentBase.hh"
 #include "Query.hh"
-#include "RatingDatabase.hh"
+#include "DatabaseManager.hh"
 
 class RatingComponent : public ComponentBase {
 	public:
@@ -19,7 +19,7 @@ class RatingComponent : public ComponentBase {
 		RatingComponent(
             const XML::Tag& config,
             const XMPP::ErrorHandler& handleError,
-            RatingDatabase& rating_database);
+            DatabaseManager& database);
 
 		/*! \brief Destructor
 		 *
@@ -45,11 +45,11 @@ class RatingComponent : public ComponentBase {
 		/*! \brief handle an incoming match iq */
 		void handleRating(XMPP::Stanza* stanza);
 
-		void fetchRating(const XMPP::Stanza& stanza, const RatingDBInterface& rating_interface);
+		void fetchRating(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
         XMPP::ErrorHandler error_handler;
 
-        RatingDatabase& rating_database;
+        DatabaseManager& database;
 };
 
 #endif

@@ -2,56 +2,9 @@
 
 #include "RatingDatabase.hh"
 
-class _RatingTransactor : public pqxx::transactor<> {
-    public:
+RatingDatabase::RatingDatabase(pqxx::work& work) : work(work) { }
 
-        explicit _RatingTransactor(const RatingTransactor& transactor) :
-            transactor(transactor)
-            {
-            }
-
-        void operator()(argument_type& w) {
-            RatingDBInterface interface(w);
-            this->transactor(interface);
-        }
-
-        void on_abort(const char* msg) throw() {
-            std::cout << msg << std::endl;
-        }
-
-    private:
-
-        RatingTransactor transactor;
-};
-
-class _ConstRatingTransactor : public pqxx::transactor<> {
-    public:
-
-        explicit _ConstRatingTransactor(const ConstRatingTransactor& transactor) :
-            transactor(transactor)
-            {
-            }
-
-        void operator()(argument_type& w)
-        {
-            RatingDBInterface interface(w);
-            this->transactor(interface);
-        }
-
-        void on_abort(const char* msg) throw() {
-            std::cout << msg << std::endl;
-        }
-
-    private:
-
-        ConstRatingTransactor transactor;
-};
-
-RatingDBInterface::RatingDBInterface(pqxx::work& work) : work(work) 
-{
-}
-
-Rating RatingDBInterface::getRating(const std::string& user, const std::string& category)
+Rating RatingDatabase::getRating(const std::string& user, const std::string& category)
 {
     std::string query =
         "SELECT *"
@@ -75,7 +28,7 @@ Rating RatingDBInterface::getRating(const std::string& user, const std::string& 
     }
 }
 
-Rating RatingDBInterface::getRating(const std::string& user, const std::string& category) const
+Rating RatingDatabase::getRatingForUpdate(const std::string& user, const std::string& category)
 {
     std::string query =
         "SELECT *"
@@ -99,7 +52,7 @@ Rating RatingDBInterface::getRating(const std::string& user, const std::string& 
     }
 }
 
-void RatingDBInterface::setRating(const std::string& user, const std::string& category, const Rating& rating)
+void RatingDatabase::setRating(const std::string& user, const std::string& category, const Rating& rating)
 {
     std::string query =
         " UPDATE player_rating"
@@ -129,25 +82,4 @@ void RatingDBInterface::setRating(const std::string& user, const std::string& ca
         
         work.exec(query);
     }
-}
-
-RatingDatabase::RatingDatabase(DatabaseManager& database_manager) : database_manager(database_manager)
-{
-}
-
-RatingDatabase::~RatingDatabase()
-{
-}
-
-
-void RatingDatabase::perform(const RatingTransactor& transactor)
-{
-    _RatingTransactor _transactor(transactor);
-    this->database_manager.queueTransaction(_transactor);
-}
-
-void RatingDatabase::perform_const(const ConstRatingTransactor& transactor)
-{
-    _ConstRatingTransactor _transactor(transactor);
-    this->database_manager.queueTransaction(_transactor);
 }
