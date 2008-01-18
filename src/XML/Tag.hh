@@ -77,25 +77,25 @@ namespace XML {
                     return this->attributes().find(name)->second;
             }
 
-			Tag& getChild(const std::string& name) {
-                foreach(tag, this->tags()) {
-                    if(tag->name() == name)
-                        return *tag;
-                }
-                throw (child_not_found("Child not found"));
-            }
-
-			const Tag& getChild(const std::string& name) const {
-                foreach(tag, this->tags()) {
-                    if(tag->name() == name)
-                        return *tag;
-                }
-                throw (child_not_found("Child not found"));
-            }
-
 			std::string& getAttribute(const std::string& name) {
 				return this->attributes().find(name)->second;
 			}
+
+			Tag& findChild(const std::string& name) {
+                foreach(tag, this->tags()) {
+                    if(tag->name() == name)
+                        return *tag;
+                }
+                throw (child_not_found("Child not found"));
+            }
+
+			const Tag& findChild(const std::string& name) const {
+                foreach(tag, this->tags()) {
+                    if(tag->name() == name)
+                        return *tag;
+                }
+                throw (child_not_found("Child not found"));
+            }
 
 			/* generate xml string */
 			virtual void xml(std::string&) const;
