@@ -75,7 +75,7 @@ XML::Tag* MatchChess::notification() const {
 	foreach(it,_match_players) {
 		t.openTag("player");
 		{
-			t.addAttribute("jid",it->jid.node());
+			t.addAttribute("jid",it->jid.full());
 
 			char tmp[8];
 			int tempo=(int)(it->time.getSeconds()+0.5);
