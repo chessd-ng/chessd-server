@@ -22,6 +22,12 @@ ChessStandardGameResult::ChessStandardGameResult(const std::string &endreason,co
 }
 
 void ChessStandardGameResult::updateRating(std::map<Player, Rating> &ratings) const {
+	foreach(it,ratings) {
+		if(it->second.countGames() == 0) {
+			it->second.rating()=1500;
+			it->second.volatility()=350.0;
+		}
+	}
 	std::vector<Player> playerlist;
 	std::vector<Rating> playerrating;
 	foreach(it,teamresultlist) {

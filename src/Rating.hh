@@ -22,6 +22,8 @@ class Rating {
 		int draws() const { return this->_draws; }
 		int& draws() { return this->_draws; }
 
+		int countGames() const { return this->_wins + this->_losses + this->_draws; }
+
 	private:
 		int _rating;
 		double _volatility;
