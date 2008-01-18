@@ -1,14 +1,12 @@
 #include "Chess.hh"
 #include "Piece.hh"
 #include "ChessMove.hh"
+#include <vector>
+#include <stdlib.h>
 
-#include <iostream>
 
 bool Chess::verifyandmakeMove(const std::string& move) {
-#ifdef TESTE
-	this->Desenha();
-#endif
-	ChessMove cm((int)vez,move);
+	ChessMove cm(_turn,move);
 	if(verifyMove(cm) == true) {
 		updateMove(cm);
 		return true;
@@ -17,7 +15,7 @@ bool Chess::verifyandmakeMove(const std::string& move) {
 }
 
 void Chess::updateTurn() {
-	this->vez=(vez==BRANCAS?PRETAS:BRANCAS);
+	this->_turn=(this->_turn==WHITE?BLACK:WHITE);
 }
 
 const State& Chess::getState() const {
@@ -27,12 +25,15 @@ const std::vector<State> &Chess::getHistory() const {
 	return this->historico.getHistory();
 }
 
+bool Chess::verifyDraw() const {
+	return verifyDraw(0)==true?true:verifyDraw(1);
+}
+int Chess::Turn() const {
+	return _turn;
+}
+
 bool Chess::verifyCheckMate() const {
-	if( verifyCheckMate(0) )
-		return true;
-	else if( verifyCheckMate(1) )
-		return true;
-	return false;
+	return verifyCheckMate(0)?true:verifyCheckMate(1);
 }
 
 int Chess::Winner() const {
@@ -45,50 +46,50 @@ int Chess::Winner() const {
 
 void Chess::putPieces() {
 	Position p(0,0);
-	Piece::Piece_color j=Piece::BRANCAS;
+	ChessPiece::PieceColor j=ChessPiece::WHITE;
 	//arranjar outro jeito
-	gameboard->createPiece(Position(1,0),Piece(Piece::CAVALO,j));
-	gameboard->createPiece(Position(6,0),Piece(Piece::CAVALO,j));
-	gameboard->createPiece(Position(0,1),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(1,1),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(2,1),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(3,1),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(4,1),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(5,1),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(6,1),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(7,1),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(0,0),Piece(Piece::TORRE,j));
-	gameboard->createPiece(Position(7,0),Piece(Piece::TORRE,j));
-	gameboard->createPiece(Position(2,0),Piece(Piece::BISPO,j));
-	gameboard->createPiece(Position(5,0),Piece(Piece::BISPO,j));
-	gameboard->createPiece(Position(3,0),Piece(Piece::RAINHA,j));
-	gameboard->createPiece(Position(4,0),Piece(Piece::REI,j));
-	j=Piece::PRETAS;
-	gameboard->createPiece(Position(1,7),Piece(Piece::CAVALO,j));
-	gameboard->createPiece(Position(6,7),Piece(Piece::CAVALO,j));
-	gameboard->createPiece(Position(0,6),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(1,6),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(2,6),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(3,6),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(4,6),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(5,6),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(6,6),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(7,6),Piece(Piece::PEAO,j));
-	gameboard->createPiece(Position(0,7),Piece(Piece::TORRE,j));
-	gameboard->createPiece(Position(7,7),Piece(Piece::TORRE,j));
-	gameboard->createPiece(Position(2,7),Piece(Piece::BISPO,j));
-	gameboard->createPiece(Position(5,7),Piece(Piece::BISPO,j));
-	gameboard->createPiece(Position(3,7),Piece(Piece::RAINHA,j));
-	gameboard->createPiece(Position(4,7),Piece(Piece::REI,j));
+	gameboard->createPiece(Position(1,0),new ChessPiece(ChessPiece::KNIGHT,j));
+	gameboard->createPiece(Position(6,0),new ChessPiece(ChessPiece::KNIGHT,j));
+	gameboard->createPiece(Position(0,1),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(1,1),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(2,1),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(3,1),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(4,1),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(5,1),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(6,1),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(7,1),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(0,0),new ChessPiece(ChessPiece::ROOK,j));
+	gameboard->createPiece(Position(7,0),new ChessPiece(ChessPiece::ROOK,j));
+	gameboard->createPiece(Position(2,0),new ChessPiece(ChessPiece::BISHOP,j));
+	gameboard->createPiece(Position(5,0),new ChessPiece(ChessPiece::BISHOP,j));
+	gameboard->createPiece(Position(3,0),new ChessPiece(ChessPiece::QUEEN,j));
+	gameboard->createPiece(Position(4,0),new ChessPiece(ChessPiece::KING,j));
+	j=ChessPiece::BLACK;
+	gameboard->createPiece(Position(1,7),new ChessPiece(ChessPiece::KNIGHT,j));
+	gameboard->createPiece(Position(6,7),new ChessPiece(ChessPiece::KNIGHT,j));
+	gameboard->createPiece(Position(0,6),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(1,6),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(2,6),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(3,6),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(4,6),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(5,6),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(6,6),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(7,6),new ChessPiece(ChessPiece::PAWN,j));
+	gameboard->createPiece(Position(0,7),new ChessPiece(ChessPiece::ROOK,j));
+	gameboard->createPiece(Position(7,7),new ChessPiece(ChessPiece::ROOK,j));
+	gameboard->createPiece(Position(2,7),new ChessPiece(ChessPiece::BISHOP,j));
+	gameboard->createPiece(Position(5,7),new ChessPiece(ChessPiece::BISHOP,j));
+	gameboard->createPiece(Position(3,7),new ChessPiece(ChessPiece::QUEEN,j));
+	gameboard->createPiece(Position(4,7),new ChessPiece(ChessPiece::KING,j));
 }
 //se veio ate aqui, entao a jogada eh valida
 void Chess::updateState(const ChessMove& j,bool comeu) {
 	this->atual.lastenpassant = this->atual.enpassant;
 	this->atual.enpassant=Position(-1,-1);
-	if(j.getPlayer() == Piece::PRETAS)
+	if(j.getPlayer() == BLACK)
 		this->atual.fullmoves++;
-	this->atual.tabfen = this->gameboard->getPosforFEN();
-	this->atual.vez = (this->atual.vez == BRANCAS ? PRETAS : BRANCAS );
+	this->atual.tabfen = this->getPosForFEN();
+	this->atual.vez = (this->atual.vez == WHITE ? BLACK : WHITE );
 	this->atual.halfmoves++;
 	//FIXME sera que tah bom?
 	if((this->gameboard->getType(j.getto()) == 'P') or comeu)
@@ -157,7 +158,7 @@ void Chess::makeMove(const ChessMove &j) const {
 	}
 	//foi passant?
 	if(this->verifyEnPassant(j))
-		this->gameboard->createPiece(Position(j.getto().posx(),j.getfrom().posy()),Piece(Piece::NADA,Piece::NENHUM));
+		this->gameboard->createPiece(Position(j.getto().posx(),j.getfrom().posy()), new ChessPiece());
 
 	this->gameboard->makeChessMove(j);
 }
@@ -171,10 +172,80 @@ void Chess::updateMove(const ChessMove &j) {
 	if(this->gameboard->getType(j.getto()) == 'P') {
 		int final = ( (j.getPlayer() == 0) ? 7 : 0);
 		if(j.getto().posy() == final) {
-			this->gameboard->createPiece(j.getto(),Piece(Piece::RAINHA,(Piece::Piece_color)(j.getPlayer())));
+			this->gameboard->createPiece(j.getto(),ChessPiece(ChessPiece::QUEEN,(ChessPiece::PieceColor)(j.getPlayer())));
 		}
 	}
 	this->updateState(j,comeu);
 	this->updateHistory();
 	this->updateTurn();
+}
+
+bool Chess::verifyMove(const ChessMove &j) const {
+	if(this->verifyPieceMove(j))
+	{
+		//TODO um jeito melhor
+		char a=this->gameboard->getPieceReal(j.getfrom());
+		char b=this->gameboard->getPieceReal(j.getto());
+		bool jogesp=this->verifyHook(j) or this->verifyEnPassant(j);
+
+		this->makeMove(j);
+		bool ans=true;
+		if(this->verifyCheck(j.getPlayer()) == true)
+			ans=false;
+		if(jogesp)
+			this->gameboard->setState(this->atual.getFEN());
+		else {
+			this->gameboard->createPiece(j.getfrom(),Piece(a));
+			this->gameboard->createPiece(j.getto(),Piece(b));
+		}
+		return ans;
+	}
+	return false;
+}
+
+bool Chess::verifyHook(const ChessMove& j) const {
+	if( (this->gameboard->getType(j.getfrom()) == 'K'))
+		if( abs(j.getto().posx() - j.getfrom().posx())==2 )
+			return true;
+	return false;
+}
+
+bool Chess::verifyCheckMate(int jogador) const {
+	if(verifyCheck(jogador) == false)
+		return false;
+
+	for(int i=0; i<this->nlines;i++) 
+		for(int j=0;j<this->ncolums;j++) 
+			if( this->gameboard->getPlayer(Position(j,i)) == jogador ) {
+				Position onde(j,i);
+				std::vector <Position> *p=getPositions(onde);
+				if(p->size() > 0) {
+					delete p;
+					return false;
+				}
+				delete p;
+			}
+	return true;
+}
+
+bool Chess::verifyDraw(int jogador) const { 
+	if(atual.halfmoves >= 50)
+		return true;
+	if(verifyCheck(jogador) == true)
+		return false;
+	for(int i=0; i<this->nlines;i++) 
+		for(int j=0;j<this->ncolums;j++) 
+			if( this->gameboard->getPlayer(Position(j,i)) == jogador ) {
+				Position onde(j,i);
+				std::vector <Position> *p=getPositions(onde);
+				if(p->size()>0) {
+					delete p;
+					return false;
+				}
+				delete p;
+			}
+	return true;
+}
+bool Chess::verifyCheck(int jogador) const {
+	return beingAttacked(findKing(jogador),jogador^1);
 }

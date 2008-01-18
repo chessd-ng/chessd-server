@@ -8,39 +8,36 @@
 class Piece
 {
 	public:
-		//Fazer Assim, dá mais flexibilidade
-		enum Piece_type {
-			NADA=0,REI=1,RAINHA=2,TORRE=3,BISPO=4,CAVALO=5,PEAO=6
-		};
-		enum Piece_color {
-			BRANCAS=0,PRETAS=1,NENHUM=-1
-		};
+		Piece(int type,int color);
+		Piece();
+		virtual ~Piece() { }
+
+		int type() const;
+		int color() const;
+		virtual int pieceReal() const = 0;
 	private:
-		Piece_type tipo;
-		Piece_color cor;
+		int _type;
+		int _color;
+};
+
+class ChessPiece : public Piece {
 	public:
-		//funcao por motivos de testes
-		void desenha() const;
-
-		char getType() const;
-		char getPieceReal() const;
-		int getPlayer() const;
-		Position getPos() const;
-		Piece_type chartotype(char a) const;
-		
-		//Contrutoras
-		Piece(Piece_type t,Piece_color c) {
-			this->tipo=t;
-			this->cor=c;
+		enum PieceType {
+			NOTYPE=0,KING=1,QUEEN=2,ROOK=3,BISHOP=4,KNIGHT=5,PAWN=6
 		};
-		Piece() {
-			this->tipo=NADA;
-			this->cor=NENHUM;
-		}
-		Piece(char a);
+		enum PieceColor {
+			NOCOLOR=-1,WHITE=0,BLACK=1
+		};
 
-		~Piece() {
-		}
+		ChessPiece(int __type, int __color);		
+		ChessPiece(char name);
+		ChessPiece();
+
+		static PieceType ChessPiece::chartotype(char a);
+		static PieceColor ChessPiece::chartocolor(char a);
+		virtual int pieceReal() const;
+
+	private:
 };
 
 #endif

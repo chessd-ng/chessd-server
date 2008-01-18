@@ -4,7 +4,8 @@
 #include "Piece.hh"
 
 char TabelaChar[]=".KQRBNP";
-char TabelaNome[][7]={
+/*
+char TabelaName[][7]={
 	"",
 	"Rei",
 	"Rainha",
@@ -13,51 +14,52 @@ char TabelaNome[][7]={
 	"Cavalo",
 	"Peao"
 };
+*/
 
-//
-
-Piece::Piece(char nome) {
-	if(nome == '.') 
-		this->cor = Piece::NENHUM;
-	else if( (nome >= 'a') and (nome <= 'z') )
-		this->cor=Piece::PRETAS;
-	else 
-		this->cor=Piece::BRANCAS;
-
-	this->tipo = chartotype(nome);
+Piece::Piece(int __type,int __color) : _type(__type), _color(__color) {
 }
 
-Piece::Piece_type Piece::chartotype(char a) const {
+ChessPiece::ChessPiece(int __type, int __color) : Piece(__type,__color) {
+}
+ChessPiece::ChessPiece(char name) : Piece(chartotype(name),chartocolor(name)) {
+}
+
+ChessPiece::ChessPiece() : Piece(NOTYPE,NOCOLOR) {
+}
+
+char Piece::type() const {
+	return this->_type;
+}
+
+int Piece::color() const {
+	return this->_color;
+}
+
+Piece_Type ChessPiece::chartotype(char a) {
 	a=toupper(a);
 	switch(a) {
 		case '.':
-			return NADA;
+			return NOTYPE;
 		case 'K':
-			return REI;
+			return KING;
 		case 'Q':
-			return RAINHA;
+			return QUEEN;
 		case 'R':
-			return TORRE;
+			return ROOK;
 		case 'B':
-			return BISPO;
+			return BISHOP;
 		case 'N':
-			return CAVALO;
+			return KNIGHT;
 		case 'P':
-			return PEAO;
+			return PAWN;
 	}
-	return NADA;
-}
-void Piece::desenha() const {
-	std::cout << (char)(this->cor == BRANCAS ? TabelaChar[this->tipo] : tolower(TabelaChar[this->tipo]) ) << " ";
+	return NOTYPE;
 }
 
-char Piece::getPieceReal() const {
-	return (char)(this->cor == BRANCAS ? (TabelaChar[this->tipo]) : ((char)tolower(TabelaChar[this->tipo])) );
-}
-char Piece::getType() const {
-	return TabelaChar[this->tipo];
+Piece_Color ChessPiece::chartocolor(char name) {
+	return (name=='.')?NOCOLOR:((name>='a') and (name<='z'))?BLACK:WHITE;
 }
 
-int Piece::getPlayer() const {
-	return this->cor;
+int ChessPiece::pieceReal() const {
+	return (int)(this->color() == WHITE ? (TabelaChar[this->tipo]) : (tolower(TabelaChar[this->tipo])));
 }
