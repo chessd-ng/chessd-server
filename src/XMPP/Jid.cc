@@ -44,4 +44,12 @@ namespace XMPP {
 		return resp;
 	}
 
+	string Jid::parcial() const {
+		string resp;
+		if(not this->node().empty())
+			resp = this->node() + "@";
+		resp += this->domain();
+		return resp;
+	}
+
 }
