@@ -56,13 +56,13 @@ std::string MatchProtocol::parseMatch(XML::Tag& query) {
 int MatchProtocol::parseMatchAccept(XML::Tag& query) {
 	if(not MatchProtocol::match_accept_desc.validateXML(query))
 		throw "Invalid syntax";
-	return Util::parse_string<int>(query.getChild("match").getAttribute("id"));
+	return Util::parse_string<int>(query.findChild("match").getAttribute("id"));
 }
 
 int MatchProtocol::parseMatchDecline(XML::Tag& query) {
 	if(not MatchProtocol::match_decline_desc.validateXML(query))
 		throw "Invalid syntax";
-	return Util::parse_string<int>(query.getChild("match").getAttribute("id"));
+	return Util::parse_string<int>(query.findChild("match").getAttribute("id"));
 }
 
 /*XML::Tag* MatchProtocol::notifyMatchOffer(const Match& match, int id) {

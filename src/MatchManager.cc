@@ -42,8 +42,6 @@ void MatchManager::insertMatchRule(MatchRule* rule) {
 }
 
 MatchManager::~MatchManager() {
-    this->close();
-    this->dispatcher.stop();
 }
 
 void MatchManager::handleMatch(Stanza* _stanza) {
@@ -87,8 +85,7 @@ void MatchManager::handleMatchOffer(Query* _query) {
         const std::string& category = offer.getAttribute("category");
         if(not Util::has_key(this->rules, category))
             throw "Invalid category";
-        match = auto_ptr<Match>((*this->rules.find(category)).second->checkOffer(offer,
-                    this->teams));
+        match = auto_ptr<Match>(this->rules.find(category)->second->checkOffer(offer, this->teams));
         bool valid = false;
         foreach(player, match->players()) {
             if(not this->roster.isUserAvailable(*player))
