@@ -76,7 +76,7 @@ Position ChessMove::getto() const {
 Position ChessMove::getfrom() const {
 	return this->from;
 }
-int ChessMove::getPlayer() const {
+int ChessMove::getColor() const {
 	return this->jogador;
 }
 

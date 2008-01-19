@@ -4,8 +4,13 @@
 #include <vector>
 #include <stdlib.h>
 
-
-bool Chess::verifyandmakeMove(const std::string& move) {
+Chess::Chess : ChessBasedGame(8,8) {
+	putPieces();
+	atual=State();
+	historico=History(this->atual);
+	_turn=WHITE;
+}
+bool Chess::verifyAndMakeMove(const std::string& move) {
 	ChessMove cm(_turn,move);
 	if(verifyMove(cm) == true) {
 		updateMove(cm);
@@ -28,7 +33,7 @@ const std::vector<State> &Chess::getHistory() const {
 bool Chess::verifyDraw() const {
 	return verifyDraw(0)==true?true:verifyDraw(1);
 }
-int Chess::Turn() const {
+int Chess::turn() const {
 	return _turn;
 }
 
@@ -36,7 +41,7 @@ bool Chess::verifyCheckMate() const {
 	return verifyCheckMate(0)?true:verifyCheckMate(1);
 }
 
-int Chess::Winner() const {
+int Chess::winner() const {
 	if( verifyCheckMate(0) )
 		return 1;
 	else if( verifyCheckMate(1) )
@@ -86,7 +91,7 @@ void Chess::putPieces() {
 void Chess::updateState(const ChessMove& j,bool comeu) {
 	this->atual.lastenpassant = this->atual.enpassant;
 	this->atual.enpassant=Position(-1,-1);
-	if(j.getPlayer() == BLACK)
+	if(j.getColor() == BLACK)
 		this->atual.fullmoves++;
 	this->atual.tabfen = this->getPosForFEN();
 	this->atual.vez = (this->atual.vez == WHITE ? BLACK : WHITE );
@@ -97,7 +102,7 @@ void Chess::updateState(const ChessMove& j,bool comeu) {
 	//se o peao moveu 2 casas...
 	if(this->gameboard->getType(j.getto()) == 'P') {
 		if( abs(j.getto().posy() - j.getfrom().posy()) == 2) {
-			this->atual.enpassant = Position(j.getto().posx(), (int)((j.getPlayer() == 0 )? (j.getto().posy()-1) : (j.getto().posy()+1) ) );
+			this->atual.enpassant = Position(j.getto().posx(), (int)((j.getColor() == 0 )? (j.getto().posy()-1) : (j.getto().posy()+1) ) );
 		}
 	}
 
@@ -105,8 +110,8 @@ void Chess::updateState(const ChessMove& j,bool comeu) {
 	//Rei Mexeu?
 	if(this->gameboard->getType(j.getto()) == 'K') {
 		char rei, rainha;
-		rei = ((j.getPlayer() == 0)? 'K' : 'k');
-		rainha = ((j.getPlayer() == 0) ? 'Q' : 'q');
+		rei = ((j.getColor() == 0)? 'K' : 'k');
+		rainha = ((j.getColor() == 0) ? 'Q' : 'q');
 		if(this->atual.castle.find(rei) < this->atual.castle.size())
 			this->atual.castle.erase(this->atual.castle.find(rei),1);
 		if(this->atual.castle.find(rainha) < this->atual.castle.size())
@@ -117,10 +122,10 @@ void Chess::updateState(const ChessMove& j,bool comeu) {
 	//Are the Rooks at their initial places?
 	{
 		Position p[2];
-		char rei = ((j.getPlayer() == 0) ? 'K' : 'k');
-		char rainha = ((j.getPlayer() == 0) ? 'Q' : 'q');
-		char torre = ((j.getPlayer() == 0) ? 'R' : 'r');
-		if(j.getPlayer() == 0) {
+		char rei = ((j.getColor() == 0) ? 'K' : 'k');
+		char rainha = ((j.getColor() == 0) ? 'Q' : 'q');
+		char torre = ((j.getColor() == 0) ? 'R' : 'r');
+		if(j.getColor() == 0) {
 			p[0]=Position(0,0);p[1]=Position(7,0);
 		}
 		else {
@@ -145,8 +150,8 @@ void Chess::updateHistory() {
 
 void Chess::makeMove(const ChessMove &j) const {
 	//FIXME gambiarras
-	//Verifica se foi Hook
-	if(this->verifyHook(j) ) {
+	//Verifica se foi Castle
+	if(this->verifyCastle(j) ) {
 		int distx;
 		distx=j.getto().posx() - j.getfrom().posx() ;
 		Position aux;
@@ -154,25 +159,25 @@ void Chess::makeMove(const ChessMove &j) const {
 			aux = Position(0,j.getfrom().posy());
 		else
 			aux = Position(7,j.getfrom().posy());
-		this->gameboard->makeChessMove(ChessMove(aux,Position( (j.getfrom().posx() + j.getto().posx())/2,j.getfrom().posy()),j.getPlayer()));
+		this->gameboard->makeMove(ChessMove(aux,Position( (j.getfrom().posx() + j.getto().posx())/2,j.getfrom().posy()),j.getColor()));
 	}
 	//foi passant?
 	if(this->verifyEnPassant(j))
 		this->gameboard->createPiece(Position(j.getto().posx(),j.getfrom().posy()), new ChessPiece());
 
-	this->gameboard->makeChessMove(j);
+	this->gameboard->makeMove(j);
 }
 
 void Chess::updateMove(const ChessMove &j) {
-	bool comeu= verifyEnPassant(j) or (this->gameboard->getPlayer(j.getto())!=-1);
+	bool comeu = verifyEnPassant(j) or (this->gameboard->getColor(j.getto())!=-1);
 	this->makeMove(j);
 
 	//Is the Pawn at the end of the tab? 
 	//FIXME gambiarra de transformar peao em rainha
 	if(this->gameboard->getType(j.getto()) == 'P') {
-		int final = ( (j.getPlayer() == 0) ? 7 : 0);
+		int final = ( (j.getColor() == 0) ? 7 : 0);
 		if(j.getto().posy() == final) {
-			this->gameboard->createPiece(j.getto(),ChessPiece(ChessPiece::QUEEN,(ChessPiece::PieceColor)(j.getPlayer())));
+			this->gameboard->createPiece(j.getto(),new ChessPiece(ChessPiece::QUEEN,(ChessPiece::PieceColor)(j.getColor())));
 		}
 	}
 	this->updateState(j,comeu);
@@ -186,24 +191,24 @@ bool Chess::verifyMove(const ChessMove &j) const {
 		//TODO um jeito melhor
 		char a=this->gameboard->getPieceReal(j.getfrom());
 		char b=this->gameboard->getPieceReal(j.getto());
-		bool jogesp=this->verifyHook(j) or this->verifyEnPassant(j);
+		bool jogesp=this->verifyCastle(j) or this->verifyEnPassant(j);
 
 		this->makeMove(j);
 		bool ans=true;
-		if(this->verifyCheck(j.getPlayer()) == true)
+		if(this->verifyCheck(j.getColor()) == true)
 			ans=false;
 		if(jogesp)
-			this->gameboard->setState(this->atual.getFEN());
+			this->setState(this->atual.getFEN());
 		else {
-			this->gameboard->createPiece(j.getfrom(),Piece(a));
-			this->gameboard->createPiece(j.getto(),Piece(b));
+			this->gameboard->createPiece(j.getfrom(),new ChessPiece(a));
+			this->gameboard->createPiece(j.getto(),new ChessPiece(b));
 		}
 		return ans;
 	}
 	return false;
 }
 
-bool Chess::verifyHook(const ChessMove& j) const {
+bool Chess::verifyCastle(const ChessMove& j) const {
 	if( (this->gameboard->getType(j.getfrom()) == 'K'))
 		if( abs(j.getto().posx() - j.getfrom().posx())==2 )
 			return true;
@@ -216,7 +221,7 @@ bool Chess::verifyCheckMate(int jogador) const {
 
 	for(int i=0; i<this->nlines;i++) 
 		for(int j=0;j<this->ncolums;j++) 
-			if( this->gameboard->getPlayer(Position(j,i)) == jogador ) {
+			if( this->gameboard->getColor(Position(j,i)) == jogador ) {
 				Position onde(j,i);
 				std::vector <Position> *p=getPositions(onde);
 				if(p->size() > 0) {
@@ -235,7 +240,7 @@ bool Chess::verifyDraw(int jogador) const {
 		return false;
 	for(int i=0; i<this->nlines;i++) 
 		for(int j=0;j<this->ncolums;j++) 
-			if( this->gameboard->getPlayer(Position(j,i)) == jogador ) {
+			if( this->gameboard->getColor(Position(j,i)) == jogador ) {
 				Position onde(j,i);
 				std::vector <Position> *p=getPositions(onde);
 				if(p->size()>0) {
@@ -245,7 +250,4 @@ bool Chess::verifyDraw(int jogador) const {
 				delete p;
 			}
 	return true;
-}
-bool Chess::verifyCheck(int jogador) const {
-	return beingAttacked(findKing(jogador),jogador^1);
 }

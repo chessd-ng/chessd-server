@@ -54,12 +54,12 @@ class GameChess : public Game {
 		std::string _category;
 
 		//unify the color name
-		color _resign;
+		Chess::Color _resign;
 		bool _draw;
 
 		Util::Time whitetime;
 		//map de player -> cor
-		std::map<Player,color> colormap;
+		std::map<Player,Chess::Color> colormap;
 		StandardPlayerList _players;
 };
 

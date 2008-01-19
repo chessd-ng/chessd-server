@@ -27,7 +27,7 @@ ChessPiece::ChessPiece(char name) : Piece(chartotype(name),chartocolor(name)) {
 ChessPiece::ChessPiece() : Piece(NOTYPE,NOCOLOR) {
 }
 
-char Piece::type() const {
+int Piece::type() const {
 	return this->_type;
 }
 
@@ -35,7 +35,7 @@ int Piece::color() const {
 	return this->_color;
 }
 
-Piece_Type ChessPiece::chartotype(char a) {
+ChessPiece::PieceType ChessPiece::chartotype(char a) {
 	a=toupper(a);
 	switch(a) {
 		case '.':
@@ -56,10 +56,10 @@ Piece_Type ChessPiece::chartotype(char a) {
 	return NOTYPE;
 }
 
-Piece_Color ChessPiece::chartocolor(char name) {
+ChessPiece::PieceColor ChessPiece::chartocolor(char name) {
 	return (name=='.')?NOCOLOR:((name>='a') and (name<='z'))?BLACK:WHITE;
 }
 
 int ChessPiece::pieceReal() const {
-	return (int)(this->color() == WHITE ? (TabelaChar[this->tipo]) : (tolower(TabelaChar[this->tipo])));
+	return (int)(this->color() == WHITE ? (TabelaChar[this->type()]) : (tolower(TabelaChar[this->type()])));
 }

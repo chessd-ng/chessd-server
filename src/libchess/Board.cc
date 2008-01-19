@@ -11,8 +11,8 @@ Board::~Board() {
 	board.clear();
 }
 
-const std::vector<Piece*>& operator[](int value) {
-	return board[value];
+const std::vector<Piece*>& Board::operator[](int value) const {
+	return this->board[value];
 }
 
 void Board::createPiece(const Position& pos,Piece *pe) {
@@ -23,25 +23,25 @@ void Board::createPiece(const Position& pos,Piece *pe) {
 }
 
 int Board::getType(const Position& p) const {
-	return board[p.posy()][p.posx()].type();
+	return this->board[p.posy()][p.posx()]->type();
 }
 
 int Board::getPieceReal(const Position& p) const {
-	return board[p.posy()][p.posx()].pieceReal();
+	return this->board[p.posy()][p.posx()]->pieceReal();
 }
 
-int Board::getPlayer(const Position& p) const {
-	return board[p.posy()][p.posx()].color();
+int Board::getColor(const Position& p) const {
+	return this->board[p.posy()][p.posx()]->color();
 }
 
-ChessBoard::ChessBoard(int n, int m) Board(n,m) {
+ChessBoard::ChessBoard(int n, int m) : Board(n,m) {
 	for(int i=0;i<n;i++)
 		for(int j=0;j<m;j++) {
 			board[i][j]=new ChessPiece();
 		}
 }
 
-~ChessBoard::ChessBoard() {
+ChessBoard::~ChessBoard() {
 	for(int i=0;i<nlines;i++)
 		for(int j=0;j<ncolums;j++)
 			delete board[i][j];
@@ -54,6 +54,6 @@ void ChessBoard::makeMove(const ChessMove& j)
 	int fromx=j.getfrom().posx(),fromy=j.getfrom().posy();
 	delete this->board[toy][tox];
 	this->board[toy][tox] = board[fromy][fromx];
-	*this->board[fromy][fromx]=ChessPiece(NOTYPE,NOCOLOR);
+	this->board[fromy][fromx]=new ChessPiece();
 }
 

@@ -33,8 +33,8 @@ class ChessPiece : public Piece {
 		ChessPiece(char name);
 		ChessPiece();
 
-		static PieceType ChessPiece::chartotype(char a);
-		static PieceColor ChessPiece::chartocolor(char a);
+		static PieceType chartotype(char a);
+		static PieceColor chartocolor(char a);
 		virtual int pieceReal() const;
 
 	private:

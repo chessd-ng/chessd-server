@@ -3,7 +3,12 @@
 #include <string>
 struct Position
 {
-	int pos[2];
+	union {
+		int pos[2];
+		struct {
+			int x,y;
+		};
+	};
 
 	int posx() const ;
 	int posy() const ;
@@ -35,7 +40,7 @@ class ChessMove
 
 		Position getto() const ;
 		Position getfrom() const ;
-		int getPlayer() const ;
+		int getColor() const ;
 };
 
 #endif

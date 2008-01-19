@@ -17,7 +17,7 @@ class Board
 
 		virtual ~Board();
 
-		const std::vector<Piece*>& operator[](int value);
+		const std::vector<Piece*>& operator[](int value) const;
 
 		void createPiece(const Position& pos,Piece *pe);
 		
@@ -30,15 +30,17 @@ class Board
 		int getColor(const Position& p) const;
 
 		/*! \brief Mave a move, it just move pieces*/
-		void makeMove(const ChessMove& j)=0;
+		virtual void makeMove(const ChessMove& j)=0;
 };
 
 class ChessBoard : public Board {
 	public:
 		ChessBoard(int n, int m);
 
+		virtual ~ChessBoard();
+
 		//Make a ChessMove
-		void makeMove(const ChessMove &j);
+		virtual void makeMove(const ChessMove &j);
 	private:
 };
 

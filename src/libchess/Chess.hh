@@ -5,14 +5,10 @@
 
 class Chess : public ChessBasedGame {
 	private:
-		State atual;
-		History historico;
+		bool verifyCastle(const ChessMove& j) const;
 
 		/*! \brief Verify is a given move is valid. This is a high level function*/
-		bool verifyMove(const ChessMove& j) const=0;
-
-		/*! \brief Verify if the given player is in Check*/
-		bool verifyCheck(int player) const;
+		bool verifyMove(const ChessMove& j) const;
 
 		/*! \brief Verify if the Game is Draw*/
 		bool verifyDraw(int player) const;
@@ -52,18 +48,13 @@ class Chess : public ChessBasedGame {
 		virtual bool verifyDraw() const ;
 
 		/*! \return the winner player*/
-		virtual int Winner() const ;
+		virtual int winner() const ;
 
 		/*! \brief return whose turn it is*/
-		int Turn() const;
+		int turn() const;
 
 		/*! \brief Constructor function that iniciates a board given its dimensions and the rest...*/
-		Chess() : ChessBasedGame(8,8) {
-			putPieces();
-			atual=State();
-			historico=History(this->atual);
-			_turn=WHITE;
-		}
+		Chess();
 
 		//TODO fazer uma virtual dessa funcao
 		/*! \return return the current state*/
@@ -76,7 +67,7 @@ class Chess : public ChessBasedGame {
 		 * \return true if the move is valid
 		 * \return false if the move isn't valid
 		 * */
-		virtual bool verifyandmakeMove(const std::string &jogada);
+		virtual bool verifyAndMakeMove(const std::string &jogada);
 
 };
 
