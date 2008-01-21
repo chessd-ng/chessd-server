@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "RatingDatabase.hh"
 
 RatingDatabase::RatingDatabase(pqxx::work& work) : work(work) { }
