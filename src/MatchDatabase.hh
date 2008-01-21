@@ -38,26 +38,27 @@ class MatchDatabase {
         /*! \brief Get a match by its id. */
 		const Match& getMatch(int match_id) const;
 
-        /*! \brief Get the ids of all active mathcs */
-        const std::set<int>& getActiveMatchs() const;
+        /*! \brief Get the ids of all active matchs */
+        std::vector<int> getActiveMatchs() const;
 
         /*! \brief Ask whether everyone in the has accepted */
         bool isDone(int match_id) const;
 		
 	private:
 
-    void finishMatch(int match_id);
-
-		Util::IDSet match_ids;
 		struct MatchInfo {
 			std::auto_ptr<Match> match;
 			std::map<XMPP::Jid, bool> accepted_players;
 			int pending_count;
 			MatchInfo(Match* match);
 		};
+
+        MatchInfo& findMatchInfo(int match_id);
+        const MatchInfo& findMatchInfo(int match_id) const;
+
+		Util::IDSet match_ids;
 		boost::ptr_map<int, MatchInfo> matchs;
 		std::map<XMPP::Jid, std::set<int> > player_matchs;
-        std::set<int> active_matchs;
 };
 
 #endif

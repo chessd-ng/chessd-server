@@ -64,7 +64,7 @@ class MatchManager : public ComponentBase {
 
         void closeMatch(int id, bool accepted);
 
-		void notifyUserStatus(const XMPP::Jid jid, bool available);
+		void notifyUserStatus(const XMPP::Jid& jid, bool available);
 
 		void _handleError(const std::string& error);
 

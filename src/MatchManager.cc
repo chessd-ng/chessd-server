@@ -90,11 +90,20 @@ void MatchManager::handleMatchOffer(Query* _query) {
         foreach(player, match->players()) {
             if(not this->roster.isUserAvailable(*player))
                 throw "User is not available";
-            if(player->parcialCompare(query->from()))
+            if(*player == query->from())
                 valid = true;
         }
         if(not valid)
             throw "Invalid request";
+
+        /* check if there are no repeated users in the match */
+        foreach(it1, match->players()) {
+            foreach_it(it2, Util::next(it1), match->players().end()) {
+                if(it1->parcialCompare(*it2))
+                    throw "Repeated players on the match";
+            }
+        }
+
     } catch (const char* msg) {
         this->sendStanza(
                 Stanza::createErrorStanza(
@@ -192,7 +201,7 @@ void MatchManager::notifyMatchResult(Match* match, int id, bool accepted) {
     delete match;
 }
 
-void MatchManager::notifyUserStatus(XMPP::Jid jid, bool available) {
+void MatchManager::notifyUserStatus(const XMPP::Jid& jid, bool available) {
     if(not available) {
         set<int> matchs = this->match_db.getPlayerMatchs(jid);
         foreach(id, matchs) {
@@ -206,7 +215,8 @@ void MatchManager::onError(const std::string& error) {
 }
 
 void MatchManager::onClose() {
-    foreach(match_id, this->match_db.getActiveMatchs()) {
+    vector<int> matchs = this->match_db.getActiveMatchs();
+    foreach(match_id, matchs) {
         this->closeMatch(*match_id, false);
     }
 }
