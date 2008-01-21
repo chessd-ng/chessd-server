@@ -73,12 +73,12 @@ void finishGame(GameResult* result, DatabaseInterface& database) {
 
 	std::map<Player, Rating> tmp;
 	foreach(player, result->players()) {
-		tmp.insert(std::make_pair(*player, rating_database.getRatingForUpdate(player->full(), category)));
-        game.players.push_back(player->full());
+		tmp.insert(std::make_pair(*player, rating_database.getRatingForUpdate(player->parcial(), category)));
+        game.players.push_back(player->parcial());
 	}
 	result->updateRating(tmp);
 	foreach(it, tmp) {
-        rating_database.setRating(it->first.full(), category, it->second);
+        rating_database.setRating(it->first.parcial(), category, it->second);
 	}
 
     game.category = category;
