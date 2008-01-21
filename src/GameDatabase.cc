@@ -22,8 +22,8 @@ void GameDatabase::insertGame(const PersistentGame& game)
             " INSERT INTO games VALUES"
             "   ( " + pqxx::to_string(game_id) + "" +
             "   ,'" + this->work.esc(game.category) + "'" +
-            "   ,'" + this->work.esc(game.result) + "'" +
             "   , " + pqxx::to_string(game.time_stamp) + "" +
+            "   ,'" + this->work.esc(game.result) + "'" +
             "   ,'" + this->work.esc(game.history) + "')";
 
     this->work.exec(query);

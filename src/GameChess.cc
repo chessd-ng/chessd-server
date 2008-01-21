@@ -122,6 +122,11 @@ ChessGameResult::ChessGameResult(const std::string &endreason,const TeamResultLi
 	this->_end_reason=endreason;
 	this->teamresultlist=l;
 	this->_category=_category;
+
+    /* Raphael: playerslist was empty */
+    foreach(team, l)
+        foreach(player, team->first)
+            this->playerlist.push_back(*player);
 }
 const std::string& ChessGameResult::category() const {
 	return this->_category;

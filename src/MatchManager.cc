@@ -104,6 +104,10 @@ void MatchManager::handleMatchOffer(Query* _query) {
             }
         }
 
+        int id = this->match_db.insertMatch(match.release());
+        this->match_db.acceptMatch(id, requester);
+        this->sendStanza(Stanza::createIQResult(Query::createStanza(move(*query))));
+        this->notifyMatchOffer(id, requester);
     } catch (const char* msg) {
         this->sendStanza(
                 Stanza::createErrorStanza(
@@ -113,10 +117,6 @@ void MatchManager::handleMatchOffer(Query* _query) {
                     msg));
         return;
     }
-    int id = this->match_db.insertMatch(match.release());
-    this->match_db.acceptMatch(id, requester);
-    this->sendStanza(Stanza::createIQResult(Query::createStanza(move(*query))));
-    this->notifyMatchOffer(id, requester);
 }
 
 void MatchManager::notifyMatchOffer(int id, const Jid& requester) {
