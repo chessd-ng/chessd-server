@@ -55,6 +55,9 @@ namespace XMPP {
 			const_iterator end() const {
 				return const_iterator(this->users.end());
 			}
+            int size() const {
+                return this->users.size();
+            }
 			void insert(MucUser* user) {
 				Jid jid = user->jid;
 				this->users.insert(jid, user);
@@ -88,15 +91,17 @@ namespace XMPP {
 			user_map users;
 	};
 
+    typedef boost::function<void (const Jid&, const std::string&, bool)> OccupantMonitor;
+
 	class Muc {
 		public:
-			Muc(Node& node, const Jid& jid);
+			Muc(Node& node, const Jid& jid, const OccupantMonitor& monitor = OccupantMonitor());
 
 			~Muc();
 
 			void broadcast(Stanza* stanza);
 
-			const MucUserSet& users() const { return this->_users; }
+            const MucUserSet& occupants() const { return this->_users; }
 
             bool isOccupant(const XMPP::Jid& user_jid) {
                 return this->users().find_jid(user_jid) != this->users().end();
@@ -113,12 +118,6 @@ namespace XMPP {
 
 			void presentUsers(const Jid& jid);
 
-			Node& node;
-
-			Jid jid;
-
-			MucUserSet _users;
-
 			bool addUser(const std::string& nick, const Jid& user_jid);
 
 			bool removeUser(const Jid& user_jid, const std::string& status);
@@ -126,6 +125,15 @@ namespace XMPP {
 			Stanza* createPresenceStanza(const MucUser& user);
 
 			MucUserSet& users() { return this->_users; }
+
+			Node& node;
+
+			Jid jid;
+
+			MucUserSet _users;
+
+            OccupantMonitor monitor;
+
 	};
 
 }

@@ -26,13 +26,12 @@ GameRoom::GameRoom(int game_id,
 	room_jid(room_jid),
 	handlers(handlers),
 	node(handlers.send_stanza, room_jid, game->title(), "game", "game"),
-	muc(node, room_jid),
+	muc(node, room_jid, boost::bind(&GameRoom::reportUser, this, _1, _2, _3)),
 	game_active(true)
 {
 
 	/* Set features */
 	this->node.disco().features().insert("http://c3sl.ufpr.br/chessd#game");
-	this->node.disco().features().insert("http://jabber.org/protocol/muc");
 
 	/* Set game iqs */
 	this->node.setIqHandler(boost::bind(&GameRoom::handleGame, this, _1),
@@ -271,10 +270,14 @@ void GameRoom::adjournGame() {
 	this->game->adjourn();
 	GameResult* result = this->game->done();
 	this->core.adjournGame(this->game_id, result);
-	this->game_active = false;
 }
 
 void GameRoom::cancelGame() {
 	this->core.cancelGame(this->game_id);
-	this->game_active = false;
+}
+
+void GameRoom::reportUser(const XMPP::Jid& jid, const std::string& nick, bool available) {
+    if(not available and not this->game_active and this->muc.occupants().size() == 0) {
+        this->handlers.close_game();
+    }
 }

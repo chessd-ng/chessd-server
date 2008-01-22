@@ -14,7 +14,7 @@ namespace XMPP {
 			const std::string& role, const Jid& jid) :
 		nick(nick), affiliation(affiliation), role(role), jid(jid) { }
 
-	Muc::Muc(Node& node, const Jid& jid) : node(node), jid(jid) {
+	Muc::Muc(Node& node, const Jid& jid, const OccupantMonitor& monitor) : node(node), jid(jid), monitor(monitor) {
 		this->node.disco().features().insert("presence");
 		this->node.setPresenceHandler(boost::bind(&Muc::handlePresence, this, _1));
 
@@ -58,6 +58,9 @@ namespace XMPP {
 							new DiscoItem(nick, Jid(this->jid.node(), jid.domain(), nick)));
 					Stanza* stanza = this->createPresenceStanza(*this->users().find_jid(user_jid));
 					this->broadcast(stanza);
+                    if(not this->monitor.empty()) {
+                        this->monitor(user_jid, nick, true);
+                    }
 				}
 			}
 		}
@@ -109,12 +112,6 @@ namespace XMPP {
 	bool Muc::removeUser(const Jid& user_jid, const std::string& status) {
 		MucUserSet::iterator it = this->users().find_jid(user_jid);
 		if(it != this->users().end()) {
-			/*Tag* status = 0;
-			if(not stanza->children().empty() and
-					stanza->children().front()->name() == "status") {
-				status = stanza->children().front();
-				stanza->children().erase(stanza->children().begin());
-			}*/
 			Stanza* stanza = this->createPresenceStanza(*it);
 			stanza->subtype() = "unavailable";
 			this->broadcast(stanza);
@@ -122,6 +119,9 @@ namespace XMPP {
 			jid.resource() = it->nick;
 			this->node.disco().items().erase(jid);
 			this->users().erase(it);
+            if(not this->monitor.empty()) {
+                this->monitor(user_jid, jid.resource(), false);
+            }
 		} else {
 			return false;
 		}

@@ -59,8 +59,8 @@ DEPSDIR = .deps
 CXXFLAGS=-Wall -ggdb3 -D_GLIBCXX_DEBUG
 #CXXFLAGS=-Wall -O3 -fomit-frame-pointer -pg -march=native
 #CXXFLAGS=-Wall -O3 -fomit-frame-pointer -march=native
-CXXFLAGS+=-I${SRCDIR} `pkg-config --cflags libpqxx`
-LDLIBS=-I${HOME}/.usr/lib -lrt -lpthread -liksemel `pkg-config --libs libpqxx`
+CXXFLAGS+=-I${SRCDIR} `pkg-config --cflags iksemel` `pkg-config --cflags libpqxx`
+LDLIBS=-lrt -lpthread `pkg-config --libs iksemel` `pkg-config --libs libpqxx`
 TARGET=chessd
 CC=gcc
 CXX=g++

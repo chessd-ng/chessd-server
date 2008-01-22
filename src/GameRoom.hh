@@ -67,6 +67,8 @@ class GameRoom {
 
 		void check_end_game();
 
+        void reportUser(const XMPP::Jid& jid, const std::string& nick, bool available);
+
 		int game_id;
 
 		std::auto_ptr<Game> game;
