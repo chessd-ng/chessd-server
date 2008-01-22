@@ -39,7 +39,7 @@ namespace XMPP {
 
 		private:
 			typedef std::map<std::string, StanzaHandler> HandlerMap;
-			std::map<std::string, StanzaHandler> node_handlers;
+			HandlerMap node_handlers;
 
 			struct NodeStanzaHandler : std::unary_function<Stanza*, void> {
 				public:
