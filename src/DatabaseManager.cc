@@ -4,6 +4,8 @@
 
 #include <boost/bind.hpp>
 
+#include <iostream>
+
 struct pqxx_transaction : public pqxx::transactor<>
 {
     public:
@@ -57,24 +59,33 @@ DatabaseManager::~DatabaseManager()
     }
 }
 
-void execTransaction(pqxx::connection* connection, const Transactor& transactor)
+void DatabaseManager::execTransaction(const Transactor& transactor)
 {
     pqxx_transaction t(transactor);
-    connection->perform(t);
+
+    pqxx::connection* conn = 0;
+
+    try {
+        if(not this->free_connections.try_pop(conn)) {
+            std::cout << "new connection to the database" << std::endl;
+            conn = new pqxx::connection(this->connection_string);
+        }
+    } catch (pqxx::broken_connection) {
+        /* if we cant create another connect, we should just wait */
+        conn = this->free_connections.pop();
+    }
+
+    conn->perform(t);
+
+    this->free_connections.push(conn);
 }
 
 void DatabaseManager::queueTransaction(const Transactor& transaction)
 {
-    pqxx::connection* conn = 0;
-
-    if(not this->free_connections.try_pop(conn)) {
-        conn = new pqxx::connection(this->connection_string);
-    }
-
     Threads::Task* task =
         new Threads::Task(boost::bind(
-                    execTransaction,
-                    conn,
+                    &DatabaseManager::execTransaction,
+                    this,
                     transaction));
 
     task->start();

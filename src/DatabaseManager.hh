@@ -30,6 +30,8 @@ class DatabaseManager {
 
         void colector();
 
+        void execTransaction(const Transactor& transactor);
+
         std::string connection_string;
         
         Threads::Queue<pqxx::connection*> free_connections;
