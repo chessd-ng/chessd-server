@@ -61,7 +61,6 @@ class GameRoom {
 		void handleGame(XMPP::Stanza* stanza);
 
 		void handleGameMove(XMPP::Stanza* stanza);
-		void handleGameState(XMPP::Stanza* stanza);
 		void handleGameResign(XMPP::Stanza* stanza);
 		void handleGameDrawAccept(XMPP::Stanza* stanza);
 		void handleGameDrawDecline(XMPP::Stanza* stanza);
@@ -76,7 +75,7 @@ class GameRoom {
 
 		void notifyResult(const GameResult& result);
 
-		void notifyGameState(XMPP::Stanza* player);
+		void notifyGameState(const XMPP::Jid& jid);
 		void notifyMove(const std::string& long_move);
 
 		void cancelGame();
@@ -90,6 +89,7 @@ class GameRoom {
 		int game_id;
 
 		std::auto_ptr<Game> game;
+
 
 		//GameProtocol protocol;
 
@@ -107,10 +107,9 @@ class GameRoom {
 
 		std::set<XMPP::Jid> all_players;
 
-		// current game state
-		std::auto_ptr<XML::Tag> game_state;
-
 		bool game_active;
+
+        std::auto_ptr<XML::Tag> game_state;
 
 		CoreInterface core;
 };

@@ -63,6 +63,7 @@ namespace Util {
 				_seconds(time._seconds),
 				_nanoseconds(time._nanoseconds) { }
 
+            /* XXX This is evil!!! */
 			template <class T> 
 			Time(const std::string &_time, T m) {
 				*this=(((unsigned int)(atoi(_time.c_str()))) * m);

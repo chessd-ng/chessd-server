@@ -122,10 +122,28 @@ void MatchManager::handleMatchOffer(Query* _query) {
             }
         }
 
+        TagGenerator generator;
         int id = this->match_db.insertMatch(match.release());
+        Stanza* stanza = new Stanza("iq");
+        stanza->subtype() = "result";
+        stanza->id() = query->id();
+        stanza->to() = query->from();
+        stanza->from() = query->to();
+
+        generator.openTag("query");
+        generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#match");
+        generator.addAttribute("action", "offer");
+        generator.openTag("match");
+        generator.addAttribute("id", Util::to_string(id));
+
+        stanza->children().push_back(generator.getTag());
+
         this->match_db.acceptMatch(id, requester);
-        this->sendStanza(Stanza::createIQResult(Query::createStanza(move(*query))));
+
+        this->sendStanza(stanza);
+
         this->notifyMatchOffer(id, requester);
+
     } catch (const char* msg) {
         this->sendStanza(
                 Stanza::createErrorStanza(
@@ -133,7 +151,6 @@ void MatchManager::handleMatchOffer(Query* _query) {
                     "cancel",
                     "bad-request",
                     msg));
-        return;
     }
 }
 
@@ -145,8 +162,10 @@ void MatchManager::notifyMatchOffer(int id, const Jid& requester) {
     tag->setAttribute("id", Util::to_string(id));
     stanza.children().push_back(tag);
     foreach(player, match.players()) {
-        stanza.to() = *player;
-        this->root_node.sendIq(new XMPP::Stanza(stanza));
+        if(*player != requester) {
+            stanza.to() = *player;
+            this->root_node.sendIq(new XMPP::Stanza(stanza));
+        }
     }
 }
 
@@ -161,12 +180,12 @@ void MatchManager::handleMatchAccept(Query* _query) {
             throw "Invalid message";
         int id = Util::parse_string<int>(match.getAttribute("id"));
         this->match_db.acceptMatch(id, query->from());
-        if(this->match_db.isDone(id)) {
-            this->closeMatch(id, true);
-        }
         this->sendStanza(
                 Stanza::createIQResult(
                     Query::createStanza(move(*query))));
+        if(this->match_db.isDone(id)) {
+            this->closeMatch(id, true);
+        }
     } catch (const char* msg) {
         this->sendStanza(
                 Stanza::createErrorStanza(

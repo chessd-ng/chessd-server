@@ -1,24 +1,31 @@
 <!--
      Primeiro mande uma msg apara o component de desafio dizendo
-     que você está disponível para jogos                        
+     que você está disponível para jogos.
 -->
 <presence to='match.shiva'/>
 
-<!-- Agora você pode pedir um desafio no seguinte formato -->
+<!--
+     Agora você pode pedir um desafio no seguinte formato.
+     Nota, o tempo é em segundos.
+-->
 <iq type='set' to='match.shiva' id='match'>
 	<query xmlns='http://c3sl.ufpr.br/chessd#match' action='offer'>
 		<match category='standard'>
-            <player jid='raphaelhr@shiva/Psi' time='15' inc='1' color='w'/>
-            <player jid='eduari@shiva/Psi' time='15' inc='1' color='b'/>
+            <player jid='raphaelhr@shiva/Psi' time='900' inc='1' color='w'/>
+            <player jid='eduari@shiva/Psi' time='900' inc='1' color='b'/>
         </match>
 	</query>
 </iq>
 
 <!--
-     Se tudo der certo você receberá uma resposta em branco (?)
-     caso contrário, receberá uma respsta de erro
+     Se tudo der certo você receberá uma resposta com o id do desafio
+     caso contrário, receberá uma respsta de erro.
 -->
-<iq type='result' id='match'/>
+<iq type='result' id='match'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#match' action='offer'>
+        <match id='0'/>
+    </query>
+</iq>
 
 <!--
      O desafiado receberá um aviso do
@@ -67,7 +74,7 @@
 </iq>
 
 <!--
-     Uma vez que o sesafio foi aceito, o jogo
+     Uma vez que o desafio foi aceito, o jogo
      será iniciado, e todas as partes receberão
      um convite da sala do jogo para jogar
 -->
@@ -126,7 +133,7 @@
 </iq>
 
 <!--
-     Os jogadores serão avisados do pedido
+     Os jogadores serão avisados.
 -->
 <iq type='set' from='game_0@games.shiva' id='draw'>
 	<query xmlns='http://c3sl.ufpr.br/chessd#game' action='draw/cancel/adjourn'/>
@@ -135,15 +142,15 @@
 <!-- 
      Os jogadores poderão aceitar mandando a mesma msg de requisição
      ou recusar mandando a mesma mensagem só que com o sufixo "-decline"
-     no action
+     no action.
 -->
 
 <!--
      Ao final do jogo os jogadores serão notificados
-     do resultado
+     do resultado.
 -->
 <iq from="game_0@games.shiva" type="set" id="2" to="eduari@shiva/Psi" >
-    <query xmlns="http://c3sl.ufpr.br/chessd#game" action="end" >
+    <query xmlns="http://c3sl.ufpr.br/chessd#game" action="end">
         <reason>The other player resigned</reason>
         <player result="winner" jid="raphaelhr@shiva/Psi" />
         <player result="loser" jid="eduari@shiva/Psi" />
