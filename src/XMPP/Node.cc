@@ -19,6 +19,7 @@
 #include "Node.hh"
 #include "Util/utils.hh"
 #include "Exception.hh"
+#include "XMPP/Exception.hh"
 #include <boost/bind.hpp>
 
 using namespace std;
@@ -142,18 +143,8 @@ namespace XMPP {
             } else {
                 throw invalid_format("Invalid stanza type");
             }
-        } catch(const feature_not_implemented& error) {
-			Stanza* resp = Stanza::createErrorStanza
-				(stanza.release(), "cancel", "feature-not-implemented");
-			this->sendStanza(resp);
-        } catch(const invalid_format& error) {
-			Stanza* resp = Stanza::createErrorStanza
-				(stanza.release(), "modify", "bad-request", "Invalid format");
-			this->sendStanza(resp);
 		} catch(const xmpp_exception& error) {
-			Stanza* resp = Stanza::createErrorStanza
-				(stanza.release(), "cancel", "bad-request", error.what());
-			this->sendStanza(resp);
+			this->sendStanza(error.getErrorStanza(stanza.release()));
 		}
 	}
 

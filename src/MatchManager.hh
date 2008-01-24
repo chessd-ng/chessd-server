@@ -68,17 +68,15 @@ class MatchManager : public ComponentBase {
 		/* several handlers for the incoming events */
 
 		/*! \brief handle an incoming match offer */
-		void handleMatchOffer(Query* query);
+		void handleOffer(XMPP::Stanza* query);
 		/*! \brief handle an incoming match acceptance */
-		void handleMatchAccept(Query* query);
+		void handleAccept(XMPP::Stanza* query);
 		/*! \brief handle an incoming match declinance */
-		void handleMatchDecline(Query* query);
-		/*! \brief handle an incoming match iq */
-		void handleMatch(XMPP::Stanza* stanza);
+		void handleDecline(XMPP::Stanza* query);
 
-		void notifyMatchOffer(int id, const XMPP::Jid& requester);
+		void notifyOffer(int id, const XMPP::Jid& requester);
 
-		void notifyMatchResult(Match* match, int id, bool accepted);
+		void notifyResult(Match* match, int id, bool accepted);
 
         void closeMatch(int id, bool accepted);
 

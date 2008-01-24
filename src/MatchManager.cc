@@ -24,10 +24,26 @@
 
 #include "MatchStandard.hh"
 
+#include "XMPP/Exception.hh"
+#include "Exception.hh"
+
 
 using namespace std;
 using namespace XML;
 using namespace XMPP;
+
+class match_error : public XMPP::xmpp_exception {
+    public:
+        match_error(const std::string& what) :
+            xmpp_exception(what) { }
+
+        virtual Stanza* getErrorStanza(Stanza* stanza) const {
+            return Stanza::createErrorStanza
+                (stanza, "modify", "bad-request", this->what());
+        }
+};
+
+
 
 MatchManager::MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& handleError) :
     ComponentBase(config, "Match Manager"),
@@ -41,11 +57,15 @@ MatchManager::MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& han
 
     /* Set features */
     this->root_node.disco().features().insert("presence");
-    this->root_node.disco().features().insert("http://c3sl.ufpr.br/chessd#match");
+    this->root_node.disco().features().insert(XMLNS_MATCH);
 
     /* Set match iqs */
-    this->root_node.setIqHandler(boost::bind(&MatchManager::handleMatch, this, _1),
-            "http://c3sl.ufpr.br/chessd#match");
+    this->root_node.setIqHandler(boost::bind(&MatchManager::handleOffer, this, _1),
+            XMLNS_MATCH_OFFER);
+    this->root_node.setIqHandler(boost::bind(&MatchManager::handleAccept, this, _1),
+            XMLNS_MATCH_ACCEPT);
+    this->root_node.setIqHandler(boost::bind(&MatchManager::handleDecline, this, _1),
+            XMLNS_MATCH_DECLINE);
 
     /* FIXME */
     /* this should not be here */
@@ -62,105 +82,74 @@ void MatchManager::insertMatchRule(MatchRule* rule) {
 MatchManager::~MatchManager() {
 }
 
-void MatchManager::handleMatch(Stanza* _stanza) {
-    std::auto_ptr<Stanza> stanza(_stanza);
-    std::auto_ptr<Query> query;
-    try {
-        query = std::auto_ptr<Query>(new Query(move(*stanza)));
-    } catch (const char* msg) {
-        this->sendStanza(
-                Stanza::createErrorStanza(
-                    stanza.release(),
-                    "cancel",
-                    "bad-request",
-                    msg));
-        return;
-    }
-    if(query->action() == "offer") {
-        this->handleMatchOffer(query.release());
-    } else if(query->action() == "accept") {
-        this->handleMatchAccept(query.release());
-    } else if(query->action() == "decline") {
-        this->handleMatchDecline(query.release());
-    } else {
-        this->sendStanza(
-                Stanza::createErrorStanza(
-                    Query::createStanza(move(*query)),
-                    "cancel",
-                    "bad-request"));
-    }
-}
-
-void MatchManager::handleMatchOffer(Query* _query) {
+void MatchManager::handleOffer(Stanza* _stanza) {
     auto_ptr<Match> match;
-    auto_ptr<Query> query(_query);
-    Jid requester = query->from();
+    auto_ptr<Stanza> stanza(_stanza);
     try {
+        Jid requester = stanza->from();
         /* parse message */
-        XML::Tag& offer = query->children().tags().front();
-        if(not offer.hasAttribute("category"))
-            throw "Invalid message";
+        XML::Tag& query = stanza->findChild("query");
+        XML::Tag& offer = query.findChild("match");
         const std::string& category = offer.getAttribute("category");
         if(not Util::has_key(this->rules, category))
-            throw "Invalid category";
+            throw match_error("This category is not available");
         match = auto_ptr<Match>(this->rules.find(category)->second->checkOffer(offer, this->teams));
         bool valid = false;
         foreach(player, match->players()) {
             if(not this->roster.isUserAvailable(*player))
-                throw "User is not available";
-            if(*player == query->from())
+                throw match_error("User is not available");
+            if(*player == stanza->from())
                 valid = true;
         }
         if(not valid)
-            throw "Invalid request";
+            throw match_error("You must be among the players in the match");
 
         /* check if there are no repeated users in the match */
         foreach(it1, match->players()) {
             foreach_it(it2, Util::next(it1), match->players().end()) {
                 if(it1->parcialCompare(*it2))
-                    throw "Repeated players on the match";
+                    throw match_error("Users must not repeat in the match");
             }
         }
 
         TagGenerator generator;
         int id = this->match_db.insertMatch(match.release());
-        Stanza* stanza = new Stanza("iq");
-        stanza->subtype() = "result";
-        stanza->id() = query->id();
-        stanza->to() = query->from();
-        stanza->from() = query->to();
+        Stanza* resp = new Stanza("iq");
+        resp->subtype() = "result";
+        resp->id() = stanza->id();
+        resp->to() = stanza->from();
+        resp->from() = stanza->to();
 
         generator.openTag("query");
-        generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#match");
-        generator.addAttribute("action", "offer");
+        generator.addAttribute("xmlns", XMLNS_MATCH_OFFER);
         generator.openTag("match");
         generator.addAttribute("id", Util::to_string(id));
 
-        stanza->children().push_back(generator.getTag());
+        resp->children().push_back(generator.getTag());
 
         this->match_db.acceptMatch(id, requester);
 
-        this->sendStanza(stanza);
+        this->sendStanza(resp);
 
-        this->notifyMatchOffer(id, requester);
-
-    } catch (const char* msg) {
-        this->sendStanza(
-                Stanza::createErrorStanza(
-                    Query::createStanza(move(*query)),
-                    "cancel",
-                    "bad-request",
-                    msg));
+        this->notifyOffer(id, requester);
+    } catch (const XML::xml_error& error) {
+        throw XMPP::invalid_format(error.what());
     }
+
 }
 
-void MatchManager::notifyMatchOffer(int id, const Jid& requester) {
+void MatchManager::notifyOffer(int id, const Jid& requester) {
     const Match& match = this->match_db.getMatch(id);
+    TagGenerator generator;
+    XML::Tag* tag = 0;
     Stanza stanza("iq");
     stanza.subtype() = "set";
-    Tag* tag = match.notification();
+    generator.openTag("query");
+    generator.addAttribute("xmlns", XMLNS_MATCH_OFFER);
+    tag = match.notification();
     tag->setAttribute("id", Util::to_string(id));
-    stanza.children().push_back(tag);
+    generator.addChild(tag);
+    stanza.children().push_back(generator.getTag());
     foreach(player, match.players()) {
         if(*player != requester) {
             stanza.to() = *player;
@@ -169,53 +158,38 @@ void MatchManager::notifyMatchOffer(int id, const Jid& requester) {
     }
 }
 
-void MatchManager::handleMatchAccept(Query* _query) {
-    std::auto_ptr<Query> query(_query);
+void MatchManager::handleAccept(Stanza* _stanza) {
+    std::auto_ptr<Stanza> stanza(_stanza);
     try {
-        cout << "incoming accept" << endl;
-        if(query->children().tags().begin() ==  query->children().tags().end())
-            throw "Invalid message";
-        XML::Tag& match = query->children().tags().front();
-        if(match.name() != "match" or not match.hasAttribute("id"))
-            throw "Invalid message";
+        XML::Tag& query = stanza->findChild("query");
+        XML::Tag& match = query.findChild("match");
         int id = Util::parse_string<int>(match.getAttribute("id"));
-        this->match_db.acceptMatch(id, query->from());
-        this->sendStanza(
-                Stanza::createIQResult(
-                    Query::createStanza(move(*query))));
+        this->match_db.acceptMatch(id, stanza->from());
+        this->sendStanza(Stanza::createIQResult(stanza.release()));
         if(this->match_db.isDone(id)) {
             this->closeMatch(id, true);
         }
-    } catch (const char* msg) {
-        this->sendStanza(
-                Stanza::createErrorStanza(
-                    Query::createStanza(move(*query)),
-                    "cancel",
-                    "bad-request",
-                    msg));
+    } catch (const XML::xml_error& error) {
+        throw invalid_format("");
+    } catch (const user_error& error) {
+        throw match_error(error.what());
     }
 }
 
-void MatchManager::handleMatchDecline(Query* _query) {
-    std::auto_ptr<Query> query(_query);
+void MatchManager::handleDecline(Stanza* _stanza) {
+    std::auto_ptr<Stanza> stanza(_stanza);
     try {
-        XML::Tag& match = query->children().tags().front();
-        if(match.name() != "match" or not match.hasAttribute("id"))
-            throw "Invalid message";
+        XML::Tag& query = stanza->findChild("query");
+        XML::Tag& match = query.findChild("match");
         int id = Util::parse_string<int>(match.getAttribute("id"));
-        if(not this->match_db.hasPlayer(id, query->from()))
-            throw "Invalid id";
-        this->sendStanza(
-                Stanza::createIQResult(
-                    Query::createStanza(move(*query))));
+        if(not this->match_db.hasPlayer(id, stanza->from()))
+            throw match_error("Invalid match id");
+        this->sendStanza(Stanza::createIQResult(stanza.release()));
         this->closeMatch(id, false);
-    } catch (const char* msg) {
-        this->sendStanza(
-                Stanza::createErrorStanza(
-                    Query::createStanza(move(*query)),
-                    "cancel",
-                    "bad-request",
-                    msg));
+    } catch (const XML::xml_error& error) {
+        throw invalid_format("");
+    } catch (const user_error& error) {
+        throw match_error(error.what());
     }
 }
 
@@ -224,10 +198,10 @@ void MatchManager::closeMatch(int id, bool accepted) {
     if(accepted) {
         this->core_interface.startGame(match->createGame());
     }
-    this->notifyMatchResult(match, id, accepted);
+    this->notifyResult(match, id, accepted);
 }
 
-void MatchManager::notifyMatchResult(Match* match, int id, bool accepted) {
+void MatchManager::notifyResult(Match* match, int id, bool accepted) {
     Stanza stanza("iq");
     stanza.subtype() = "set";
     stanza.children().push_back(MatchProtocol::notifyMatchResult(*match, id, accepted));

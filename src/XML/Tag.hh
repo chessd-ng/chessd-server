@@ -88,7 +88,11 @@ namespace XML {
             }
 
 			std::string& getAttribute(const std::string& name) {
-				return this->attributes().find(name)->second;
+                AttributeMap::iterator iterator = this->attributes().find(name);
+                if(iterator == this->attributes().end())
+                    throw(attribute_not_found("Attribute not found"));
+                else
+                    return this->attributes().find(name)->second;
 			}
 
 			Tag& findChild(const std::string& name) {

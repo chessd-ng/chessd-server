@@ -19,6 +19,8 @@
 #include "MatchDatabase.hh"
 #include "Util/utils.hh"
 
+#include "Exception.hh"
+
 using namespace std;
 
 MatchDatabase::MatchDatabase() {
@@ -47,7 +49,7 @@ void MatchDatabase::acceptMatch(int match_id, const XMPP::Jid& player) {
     MatchInfo& mi = this->findMatchInfo(match_id);
 	map<XMPP::Jid, bool>::iterator it2 = mi.accepted_players.find(player);
 	if(it2 == mi.accepted_players.end())
-		throw "Invalid match id";
+		throw user_error("Invalid match id");
 	if(not it2->second) {
 		mi.pending_count--;
         it2->second = true;
@@ -98,7 +100,7 @@ vector<int> MatchDatabase::getActiveMatchs() const {
 MatchDatabase::MatchInfo& MatchDatabase::findMatchInfo(int match_id) {
 	boost::ptr_map<int, MatchInfo>::iterator it = this->matchs.find(match_id);
     if(it == this->matchs.end()) {
-		throw "Invalid match id";
+		throw user_error("Invalid match id");
     }
     return *it->second;
 }
@@ -106,7 +108,7 @@ MatchDatabase::MatchInfo& MatchDatabase::findMatchInfo(int match_id) {
 const MatchDatabase::MatchInfo& MatchDatabase::findMatchInfo(int match_id) const {
 	boost::ptr_map<int, MatchInfo>::const_iterator it = this->matchs.find(match_id);
     if(it == this->matchs.end()) {
-		throw "Invalid match id";
+		throw user_error("Invalid match id");
     }
     return *it->second;
 }

@@ -25,6 +25,11 @@
 
 #include <memory>
 
+#define XMLNS_MATCH         "http://c3sl.ufpr.br/chessd#match"
+#define XMLNS_MATCH_OFFER   "http://c3sl.ufpr.br/chessd#match#offer"
+#define XMLNS_MATCH_ACCEPT  "http://c3sl.ufpr.br/chessd#match#accept"
+#define XMLNS_MATCH_DECLINE "http://c3sl.ufpr.br/chessd#match#decline"
+
 /*! \brief The matchManagers's XMPP protocol. */
 class MatchProtocol {
 	public:
