@@ -24,8 +24,6 @@ SOURCES = \
 		  src/Pairing/Player.cc \
 		  src/Pairing/Tourney.cc \
 		  src/Pairing/TourneyPlayers.cc \
-		  src/QueryBase.cc \
-		  src/Query.cc \
 		  src/RatingComponent.cc \
 		  src/RatingDatabase.cc \
 		  src/Threads/Dispatcher.cc \

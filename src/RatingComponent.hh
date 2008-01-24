@@ -24,7 +24,6 @@
 #include <memory>
 
 #include "ComponentBase.hh"
-#include "Query.hh"
 #include "DatabaseManager.hh"
 
 class RatingComponent : public ComponentBase {

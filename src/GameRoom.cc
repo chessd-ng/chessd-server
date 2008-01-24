@@ -17,22 +17,21 @@
  */
 
 #include "GameRoom.hh"
-#include "GameProtocol.hh"
 #include "Util/utils.hh"
 #include <boost/bind.hpp>
 #include <boost/generator_iterator.hpp>
 
 #include "XMPP/Exception.hh"
 
-#define XMLNS_GAME "http://c3sl.ufpr.br/chessd#game"
-#define XMLNS_GAME_MOVE "http://c3sl.ufpr.br/chessd#game#move"
-#define XMLNS_GAME_RESIGN "http://c3sl.ufpr.br/chessd#game#resign"
-#define XMLNS_GAME_DRAW "http://c3sl.ufpr.br/chessd#game#draw"
-#define XMLNS_GAME_DRAW_DECLINE "http://c3sl.ufpr.br/chessd#game#draw-decline"
-#define XMLNS_GAME_CANCEL "http://c3sl.ufpr.br/chessd#game#cancel"
-#define XMLNS_GAME_CANCEL_DECLINE "http://c3sl.ufpr.br/chessd#game#cancel-decline"
-#define XMLNS_GAME_ADJOURN "http://c3sl.ufpr.br/chessd#game#adjourn"
-#define XMLNS_GAME_ADJOURN_DECLINE "http://c3sl.ufpr.br/chessd#game#adjourn-decline"
+#define XMLNS_GAME                  "http://c3sl.ufpr.br/chessd#game"
+#define XMLNS_GAME_MOVE             "http://c3sl.ufpr.br/chessd#game#move"
+#define XMLNS_GAME_RESIGN           "http://c3sl.ufpr.br/chessd#game#resign"
+#define XMLNS_GAME_DRAW             "http://c3sl.ufpr.br/chessd#game#draw"
+#define XMLNS_GAME_DRAW_DECLINE     "http://c3sl.ufpr.br/chessd#game#draw-decline"
+#define XMLNS_GAME_CANCEL           "http://c3sl.ufpr.br/chessd#game#cancel"
+#define XMLNS_GAME_CANCEL_DECLINE   "http://c3sl.ufpr.br/chessd#game#cancel-decline"
+#define XMLNS_GAME_ADJOURN          "http://c3sl.ufpr.br/chessd#game#adjourn"
+#define XMLNS_GAME_ADJOURN_DECLINE  "http://c3sl.ufpr.br/chessd#game#adjourn-decline"
 
 static const char action_table[][32] = {
 	"draw",

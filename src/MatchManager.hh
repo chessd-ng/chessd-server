@@ -35,8 +35,6 @@
 #include "MatchRule.hh"
 #include "MatchDatabase.hh"
 
-#include "Query.hh"
-
 #include "ComponentBase.hh"
 
 class MatchManager : public ComponentBase {
