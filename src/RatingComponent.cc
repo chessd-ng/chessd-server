@@ -56,13 +56,13 @@ void RatingComponent::handleRating(Stanza* _stanza) {
         /* check if the format is correct */
         foreach(tag, query.tags()) {
             if(tag->name() != "rating" or not tag->hasAttribute("category") or not tag->hasAttribute("jid"))
-                throw XMPP::invalid_format("Invalid format");
+                throw XMPP::bad_request("Invalid format");
         }
 
         /* execute the transaction */
         this->database.queueTransaction(boost::bind(&RatingComponent::fetchRating, this, *stanza, _1));
     } catch (const XML::xml_error& error) {
-        throw XMPP::invalid_format("Invalid format");
+        throw XMPP::bad_request("Invalid format");
     }
 }
 

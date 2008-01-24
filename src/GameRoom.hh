@@ -23,7 +23,6 @@
 #include "XMPP/Node.hh"
 #include "XMPP/handlers.hh"
 #include "CoreInterface.hh"
-#include "GameProtocol.hh"
 #include "Game.hh"
 #include "Agreement.hh"
 
@@ -60,14 +59,14 @@ class GameRoom {
 		/*! \brief handle an incoming game iq */
 		void handleGame(XMPP::Stanza* stanza);
 
-		void handleGameMove(XMPP::Stanza* stanza);
-		void handleGameResign(XMPP::Stanza* stanza);
-		void handleGameDrawAccept(XMPP::Stanza* stanza);
-		void handleGameDrawDecline(XMPP::Stanza* stanza);
-		void handleGameCancelAccept(XMPP::Stanza* stanza);
-		void handleGameCancelDecline(XMPP::Stanza* stanza);
-		void handleGameAdjournAccept(XMPP::Stanza* stanza);
-		void handleGameAdjournDecline(XMPP::Stanza* stanza);
+		void handleMove(XMPP::Stanza* stanza);
+		void handleResign(XMPP::Stanza* stanza);
+		void handleDrawAccept(XMPP::Stanza* stanza);
+		void handleDrawDecline(XMPP::Stanza* stanza);
+		void handleCancelAccept(XMPP::Stanza* stanza);
+		void handleCancelDecline(XMPP::Stanza* stanza);
+		void handleAdjournAccept(XMPP::Stanza* stanza);
+		void handleAdjournDecline(XMPP::Stanza* stanza);
 
         void notifyPlayers();
 
@@ -75,12 +74,11 @@ class GameRoom {
 
 		void notifyResult(const GameResult& result);
 
-		void notifyGameState(const XMPP::Jid& jid);
+		void notifyState(const XMPP::Jid& jid);
 		void notifyMove(const std::string& long_move);
 
 		void cancelGame();
 		void adjournGame();
-        void resignGame(const XMPP::Jid& player);
 
 		void check_end_game();
 

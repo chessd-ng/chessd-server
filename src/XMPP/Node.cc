@@ -101,13 +101,13 @@ namespace XMPP {
                     this->iq_ids.releaseID(id);
                     this->iq_tracks.erase(id);
                 } else {
-                    throw invalid_format("Invalid iq type");
+                    throw bad_request("Invalid iq type");
                 }
             } else {
-                throw invalid_format("No id");
+                throw bad_request("No id");
             }
         } catch(const XML::xml_error& error) {
-            throw invalid_format("XML child or attribute missing");
+            throw bad_request("XML child or attribute missing");
         }
     }
 
@@ -121,7 +121,7 @@ namespace XMPP {
 				it->second(new Stanza(stanza));
 			}
 		} else {
-            throw invalid_format("Missing message subtype");
+            throw bad_request("Missing message subtype");
 		}
 	}
 
@@ -141,7 +141,7 @@ namespace XMPP {
             } else if(stanza->type() == "message") {
                 this->handleMessage(*stanza);
             } else {
-                throw invalid_format("Invalid stanza type");
+                throw bad_request("Invalid stanza type");
             }
 		} catch(const xmpp_exception& error) {
 			this->sendStanza(error.getErrorStanza(stanza.release()));

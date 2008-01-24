@@ -33,7 +33,6 @@
 
 #include "Match.hh"
 #include "MatchRule.hh"
-#include "MatchProtocol.hh"
 #include "MatchDatabase.hh"
 
 #include "Query.hh"
@@ -76,7 +75,7 @@ class MatchManager : public ComponentBase {
 
 		void notifyOffer(int id, const XMPP::Jid& requester);
 
-		void notifyResult(Match* match, int id, bool accepted);
+		void notifyResult(const Match& match, int id, bool accepted);
 
         void closeMatch(int id, bool accepted);
 

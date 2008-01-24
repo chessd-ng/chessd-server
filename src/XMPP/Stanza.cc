@@ -105,21 +105,23 @@ namespace XMPP {
 		return tmp;
 	}
 
-	// TODO replace error and condition string for enums ?
 	Stanza* Stanza::createErrorStanza(Stanza* stanza,
 			const std::string& error,
 			const std::string& condition,
-			const std::string& text) {
+			const std::string& text,
+            const std::string& xmlns
+            ) {
+        // "urn:ietf:params:xml:ns:xmpp-stanzas"
 		stanza->to().swap(stanza->from());
 		stanza->subtype() = "error";
 		Tag* deferr = new Tag(condition);
-		deferr->attributes()["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas";
+		deferr->setAttribute("xmlns", xmlns);
 		Tag* errort = new Tag("error");
-		errort->attributes()["type"] = error;
+		errort->setAttribute("type", error);
 		errort->children().push_back(deferr);
 		if(not text.empty()) {
 			Tag* ttext = new Tag("text");
-			ttext->attributes()["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas";
+			ttext->setAttribute("xmlns", "xmlns");
 			errort->children().push_back(ttext);
 			errort->children().push_back(new CData(text));
 		}

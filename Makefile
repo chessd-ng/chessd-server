@@ -7,7 +7,6 @@ SOURCES = \
 		  src/Game.cc \
 		  src/GameChess.cc \
 		  src/GameManager.cc \
-		  src/GameProtocol.cc \
 		  src/GameRoom.cc \
 		  src/GameStandard.cc \
 		  src/libchess/Board.cc \
@@ -20,7 +19,6 @@ SOURCES = \
 		  src/MatchChess.cc \
 		  src/MatchDatabase.cc \
 		  src/MatchManager.cc \
-		  src/MatchProtocol.cc \
 		  src/MatchStandard.cc \
 		  src/Pairing/Game.cc \
 		  src/Pairing/Player.cc \

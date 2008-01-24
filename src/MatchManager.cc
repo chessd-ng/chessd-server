@@ -27,6 +27,10 @@
 #include "XMPP/Exception.hh"
 #include "Exception.hh"
 
+#define XMLNS_MATCH         "http://c3sl.ufpr.br/chessd#match"
+#define XMLNS_MATCH_OFFER   "http://c3sl.ufpr.br/chessd#match#offer"
+#define XMLNS_MATCH_ACCEPT  "http://c3sl.ufpr.br/chessd#match#accept"
+#define XMLNS_MATCH_DECLINE "http://c3sl.ufpr.br/chessd#match#decline"
 
 using namespace std;
 using namespace XML;
@@ -70,8 +74,6 @@ MatchManager::MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& han
     /* FIXME */
     /* this should not be here */
     this->insertMatchRule(new MatchRuleStandard);
-
-    MatchProtocol::init("protocol");
 }
 
 void MatchManager::insertMatchRule(MatchRule* rule) {
@@ -133,7 +135,7 @@ void MatchManager::handleOffer(Stanza* _stanza) {
 
         this->notifyOffer(id, requester);
     } catch (const XML::xml_error& error) {
-        throw XMPP::invalid_format(error.what());
+        throw XMPP::bad_request(error.what());
     }
 
 }
@@ -170,7 +172,7 @@ void MatchManager::handleAccept(Stanza* _stanza) {
             this->closeMatch(id, true);
         }
     } catch (const XML::xml_error& error) {
-        throw invalid_format("");
+        throw XMPP::bad_request("Invalid format");
     } catch (const user_error& error) {
         throw match_error(error.what());
     }
@@ -187,29 +189,36 @@ void MatchManager::handleDecline(Stanza* _stanza) {
         this->sendStanza(Stanza::createIQResult(stanza.release()));
         this->closeMatch(id, false);
     } catch (const XML::xml_error& error) {
-        throw invalid_format("");
+        throw bad_request("Invalid format");
     } catch (const user_error& error) {
         throw match_error(error.what());
     }
 }
 
 void MatchManager::closeMatch(int id, bool accepted) {
-    Match* match = this->match_db.closeMatch(id);
+    std::auto_ptr<Match> match(this->match_db.closeMatch(id));
     if(accepted) {
         this->core_interface.startGame(match->createGame());
     }
-    this->notifyResult(match, id, accepted);
+    this->notifyResult(*match, id, accepted);
 }
 
-void MatchManager::notifyResult(Match* match, int id, bool accepted) {
+void MatchManager::notifyResult(const Match& match, int id, bool accepted) {
+	XML::TagGenerator generator;
     Stanza stanza("iq");
+
     stanza.subtype() = "set";
-    stanza.children().push_back(MatchProtocol::notifyMatchResult(*match, id, accepted));
-    foreach(player, match->players()) {
+
+	generator.openTag("query");
+	generator.addAttribute("xmlns", accepted ? XMLNS_MATCH_ACCEPT : XMLNS_MATCH_DECLINE);
+	generator.openTag("match");
+	generator.addAttribute("id", Util::to_string<int>(id));
+
+    stanza.children().push_back(generator.getTag());
+    foreach(player, match.players()) {
         stanza.to() = *player;
         this->root_node.sendIq(new XMPP::Stanza(stanza));
     }
-    delete match;
 }
 
 void MatchManager::notifyUserStatus(const XMPP::Jid& jid, bool available) {

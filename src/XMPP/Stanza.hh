@@ -32,39 +32,6 @@ namespace XMPP {
 
 	typedef boost::ptr_vector<XML::Tag> TagList;
 
-	enum ErrorType {
-		ErrorCancel,
-		ErrorContinue,
-		ErrorModify,
-		ErrorAuth,
-		ErrorWait
-	};
-
-	enum DefinedCondition {
-		ConditionBadRequest,
-		ConditionConfilct,
-		ConditionNotImplemented,
-		ConditionForbidden,
-		ConditionGone,
-		ConditionInternal,
-		ConditionNotFound,
-		ConditionJid,
-		ConditionNotAcceptable,
-		ConditionNowAllowed,
-		ConditionNotAuthorized,
-		ConditionPayment,
-		ConditionRecipientUnavailable,
-		ConditionRedirect,
-		ConditionRegister,
-		ConditionServerNotFound,
-		ConditionServerTimeout,
-		ConditionResourceConstraint,
-		ConditionServiceUnavailable,
-		ConditionSubscribe,
-		ConditionUndefined,
-		ConditionUnexpected
-	};
-
 	class Stanza : public StanzaBase {
 		public:
 			explicit Stanza(const std::string& type);
@@ -108,7 +75,8 @@ namespace XMPP {
 			static Stanza* createErrorStanza(Stanza* original,
 					const std::string& error,
 					const std::string& condition,
-					const std::string& text = "");
+					const std::string& text = "",
+                    const std::string& xmlns = "urn:ietf:params:xml:ns:xmpp-stanzas");
 
 			static XML::Tag* createTag(Stanza* stanza);
 

@@ -17,7 +17,6 @@
  */
 
 #include "GameManager.hh"
-#include "GameProtocol.hh"
 #include "Util/utils.hh"
 
 using namespace XMPP;
@@ -28,15 +27,6 @@ GameManager::GameManager(const XML::Tag& config, const XMPP::ErrorHandler& handl
 	node_name(config.getAttribute("node_name")),
 	handle_error(handle_error)
 {
-	//FIXME
-	GameProtocol::init("protocol");
-
-	/* Set features */
-	this->root_node.disco().features().insert("http://c3sl.ufpr.br/chessd#game");
-
-	/* Set game iqs */
-	this->root_node.setIqHandler(boost::bind(&GameManager::handleGame, this, _1),
-			"http://c3sl.ufpr.br/chessd#game");
 
 }
 
@@ -49,17 +39,6 @@ void GameManager::onClose() {
 
 void GameManager::onError(const string& msg) {
     this->handle_error(msg);
-}
-
-void GameManager::handleGame(Stanza* stanza) {
-	XML::Tag& query = stanza->findChild("query");
-	try {
-		string query_name = GameProtocol::parseQuery(query);
-	} catch (const char* msg) {
-		this->sendStanza(Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg));
-	}
-	// nothing to do here yet
-	delete stanza;
 }
 
 void GameManager::insertGame(int game_id, Game* game) {
