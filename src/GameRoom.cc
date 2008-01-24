@@ -32,11 +32,15 @@
 #define XMLNS_GAME_CANCEL_DECLINE   "http://c3sl.ufpr.br/chessd#game#cancel-decline"
 #define XMLNS_GAME_ADJOURN          "http://c3sl.ufpr.br/chessd#game#adjourn"
 #define XMLNS_GAME_ADJOURN_DECLINE  "http://c3sl.ufpr.br/chessd#game#adjourn-decline"
+#define XMLNS_GAME_START            "http://c3sl.ufpr.br/chessd#game#start"
+#define XMLNS_GAME_STATE            "http://c3sl.ufpr.br/chessd#game#state"
+#define XMLNS_GAME_END              "http://c3sl.ufpr.br/chessd#game#end"
+#define XMLNS_GAME_MOVE             "http://c3sl.ufpr.br/chessd#game#move"
 
-static const char action_table[][32] = {
-	"draw",
-	"cancel",
-	"adjourn"
+static const char xmlns_table[][64] = {
+	XMLNS_GAME_DRAW,
+	XMLNS_GAME_CANCEL,
+	XMLNS_GAME_ADJOURN
 };
 
 static const char result_table[][32] = {
@@ -116,53 +120,13 @@ void GameRoom::notifyPlayers() {
     XMPP::Stanza stanza("iq");
 	XML::Tag* query = new XML::Tag("query");
 	stanza.subtype()="set";
-	query->setAttribute("xmlns", "http://c3sl.ufpr.br/chessd#game");
-	query->setAttribute("action", "start");
+	query->setAttribute("xmlns", XMLNS_GAME_START);
 	stanza.children().push_back(query);
     foreach(player, this->all_players) {
         stanza.to() = *player;
         this->node.sendStanza(new XMPP::Stanza(stanza));
     }
 }
-
-/*void GameRoom::handleGame(XMPP::Stanza* stanza) {
-	std::string action;
-	try {
-		if(not this->game_active)
-			throw "The game is not active";
-		if(not Util::has_key(this->all_players, stanza->from()))
-			throw "Only players can do that";
-        if(not this->muc.isOccupant(stanza->from()))
-			throw "Only occupants are allowed to send queries to the game";
-		action = GameProtocol::parseQuery(*stanza->children().tags().begin());
-	} catch (const char * msg) {
-		stanza = XMPP::Stanza::createErrorStanza(stanza, "cancel", "bad-request", msg);
-		this->node.sendStanza(stanza);
-		return;
-	}
-	if(action == "move") {
-		this->handleGameMove(stanza);
-	} else if(action == "resign") {
-		this->handleGameResign(stanza);
-	} else if(action == "draw") {
-		this->handleGameDrawAccept(stanza);
-	} else if(action == "draw-decline") {
-		this->handleGameDrawDecline(stanza);
-	} else if(action == "cancel") {
-		this->handleGameCancelAccept(stanza);
-	} else if(action == "cancel-decline") {
-		this->handleGameCancelDecline(stanza);
-	} else if(action == "adjourn") {
-		this->handleGameAdjournAccept(stanza);
-	} else if(action == "adjourn-decline") {
-		this->handleGameAdjournDecline(stanza);
-	} else {
-		stanza = XMPP::Stanza::createErrorStanza(stanza, "modify", "bad-request");
-		this->node.sendStanza(stanza);
-		return;
-	}
-    check_end_game();
-}*/
 
 void GameRoom::check_end_game() {
     if(this->game_active) {
@@ -199,8 +163,7 @@ void GameRoom::notifyState(const XMPP::Jid& user) {
     stanza->from() = this->room_jid;
     stanza->subtype() = "set";
     generator.openTag("query");
-	generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#game");
-	generator.addAttribute("action", "state");
+	generator.addAttribute("xmlns", XMLNS_GAME_STATE);
     generator.addChild(this->game_state->clone());
 	stanza->children().push_back(generator.getTag());
     this->node.sendIq(stanza);
@@ -281,12 +244,10 @@ void GameRoom::handleAdjournDecline(XMPP::Stanza* _stanza) {
 }
 
 void GameRoom::notifyRequest(GameRequest request, const XMPP::Jid& requester) {
-	std::string action = action_table[request];
 	XMPP::Stanza stanza("iq");
 	XML::Tag* query = new XML::Tag("query");
 	stanza.subtype()="set";
-	query->setAttribute("xmlns", "http://c3sl.ufpr.br/chessd#game");
-	query->setAttribute("action", action);
+	query->setAttribute("xmlns", xmlns_table[request]);
 	stanza.children().push_back(query);
 	foreach(player, this->all_players) {
 		if(*player != requester) {
@@ -301,8 +262,7 @@ XMPP::Stanza* createResultStanza(const GameResult& result) {
 	XMPP::Stanza* stanza = new XMPP::Stanza("iq");
 	stanza->subtype() = "set";
 	tag_generator.openTag("query");
-	tag_generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#game");
-	tag_generator.addAttribute("action", "end");
+	tag_generator.addAttribute("xmlns", XMLNS_GAME_END);
 	tag_generator.openTag("reason");
 	tag_generator.addCData(result.end_reason());
 	tag_generator.closeTag();
@@ -328,8 +288,7 @@ XMPP::Stanza* createMoveStanza(XML::Tag* state, const std::string& long_move) {
 	XMPP::Stanza* stanza = new XMPP::Stanza("iq");
 	stanza->subtype() = "set";
 	tag_generator.openTag("query");
-	tag_generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#game");
-	tag_generator.addAttribute("action", "move");
+	tag_generator.addAttribute("xmlns", XMLNS_GAME_MOVE);
 	tag_generator.openTag("move");
 	tag_generator.addAttribute("long", long_move);
 	tag_generator.closeTag();
