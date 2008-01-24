@@ -17,6 +17,7 @@
  */
 
 #include "RootNode.hh"
+#include "Exception.hh"
 #include <boost/bind.hpp>
 
 using namespace XML;
@@ -35,14 +36,19 @@ namespace XMPP {
 
 	RootNode::~RootNode() { }
 
-	void RootNode::handleStanza(Stanza* stanza) {
-		HandlerMap::const_iterator it;
-		it = this->node_handlers.find(stanza->to().node());
-		if(it != this->node_handlers.end())
-			it->second(stanza);
-		else {
-			this->sendStanza(Stanza::createErrorStanza(stanza, "cancel", "item-not-found"));
-		}
+	void RootNode::handleStanza(Stanza* _stanza) {
+        std::auto_ptr<Stanza> stanza(_stanza);
+        try {
+            HandlerMap::const_iterator it;
+            it = this->node_handlers.find(stanza->to().node());
+            if(it != this->node_handlers.end())
+                it->second(new Stanza(*stanza));
+            else {
+                throw item_not_found("Item not found");
+            }
+        } catch (const xmpp_exception& error) {
+            this->sendStanza(error.getErrorStanza(stanza.release()));
+        }
 	}
 
 	void RootNode::setNodeHandler(const string& node, const StanzaHandler& handler) {

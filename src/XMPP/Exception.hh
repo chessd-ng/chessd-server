@@ -47,6 +47,16 @@ namespace XMPP {
             }
     };
 
+    class item_not_found : public xmpp_exception {
+        public:
+            item_not_found(const std::string& msg) : xmpp_exception(msg) { }
+            
+            virtual Stanza* getErrorStanza(Stanza* stanza) const {
+                return Stanza::createErrorStanza
+                    (stanza, "modify", "item_not_found", this->what());
+            }
+    };
+
 }
 
 #endif
