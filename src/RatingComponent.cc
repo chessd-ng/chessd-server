@@ -21,6 +21,7 @@
 #include "Util/utils.hh"
 
 #include "Exception.hh"
+#include "XMPP/Exception.hh"
 
 using namespace std;
 using namespace XML;
@@ -48,41 +49,21 @@ RatingComponent::~RatingComponent() {
 }
 
 void RatingComponent::handleRating(Stanza* _stanza) {
-    auto_ptr<Stanza> stanza(_stanza);
+    std::auto_ptr<Stanza> stanza(_stanza);
     try {
-        try {
-            Tag& query = stanza->findChild("query");
-            const std::string& action = query.getAttribute("action");
-            if(action == "fetch") {
-                this->handleFetchRating(*stanza);
-            } else {
-                throw user_error("Invalid action - action is wrong");
-            }
-        } catch (const XML::child_not_found&) {
-            throw user_error("Invalid message format - child not found");
+        const Tag& query = stanza->findChild("query");
+
+        /* check if the format is correct */
+        foreach(tag, query.tags()) {
+            if(tag->name() != "rating" or not tag->hasAttribute("category") or not tag->hasAttribute("jid"))
+                throw XMPP::invalid_format("Invalid format");
         }
 
-    } catch (const user_error& error) {
-        this->sendStanza(
-            Stanza::createErrorStanza(
-                stanza.release(),
-                "cancel",
-                "bad-request",
-                error.what()));
+        /* execute the transaction */
+        this->database.queueTransaction(boost::bind(&RatingComponent::fetchRating, this, *stanza, _1));
+    } catch (const XML::xml_error& error) {
+        throw XMPP::invalid_format("Invalid format");
     }
-}
-
-void RatingComponent::handleFetchRating(const Stanza& stanza) {
-    const Tag& query = stanza.findChild("query");
-
-    /* check if the format is correct */
-    foreach(tag, query.tags()) {
-        if(tag->name() != "rating" or not tag->hasAttribute("category") or not tag->hasAttribute("jid"))
-            throw user_error("Invalid message format - tag rating is wrong");
-    }
-
-    /* execute the transaction */
-    this->database.queueTransaction(boost::bind(&RatingComponent::fetchRating, this, stanza, _1));
 }
 
 void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& database) {

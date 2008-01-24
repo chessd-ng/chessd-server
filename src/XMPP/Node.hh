@@ -112,9 +112,9 @@ namespace XMPP {
 
 		private:
 
-			void handleIq(Stanza* stanza);
-			void handleMessage(Stanza* stanza);
-			void handlePresence(Stanza* stanza);
+			void handleIq(const Stanza& stanza);
+			void handleMessage(const Stanza& stanza);
+			void handlePresence(const Stanza& stanza);
 
 			typedef std::map<std::string, StanzaHandler> HandlerMap;
 			HandlerMap message_handlers;

@@ -23,8 +23,10 @@
 #include <map>
 #include <string>
 #include <boost/ptr_container/ptr_vector.hpp>
+
 #include "Item.hh"
 #include "CData.hh"
+#include "Exception.hh"
 
 #include "Util/CastFunctor.hh"
 #include "Util/View.hh"
@@ -34,16 +36,6 @@ namespace XML {
 
 	typedef std::map<std::string, std::string> AttributeMap;
 	typedef boost::ptr_vector<Item> ItemList;
-
-    class child_not_found : public std::runtime_error {
-        public:
-            explicit child_not_found(const std::string& msg) : runtime_error(msg) { }
-    };
-
-    class attribute_not_found : public std::runtime_error {
-        public:
-            explicit attribute_not_found(const std::string& msg) : runtime_error(msg) { }
-    };
 
 	class Tag : public Item {
 		public:

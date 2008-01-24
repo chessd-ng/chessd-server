@@ -18,6 +18,7 @@
 
 #include "Node.hh"
 #include "Util/utils.hh"
+#include "Exception.hh"
 #include <boost/bind.hpp>
 
 using namespace std;
@@ -71,85 +72,88 @@ namespace XMPP {
 		this->send_stanza(stanza);
 	}
 
-	void Node::handleIq(Stanza* stanza) {
-		try {
-			if(not stanza->children().empty() and not stanza->id().empty()) {
-				if(stanza->subtype() == "set" or stanza->subtype() == "get") {
-					HandlerMap::const_iterator it;
-					const string& ns = stanza->children().tags().front().attributes()["xmlns"];
-					it = this->iq_handlers.find(ns);
-					if(it == this->iq_handlers.end()) {
-						Stanza* error = Stanza::createErrorStanza(stanza,
-								"cancel", "feature-not-implemented");
-						this->sendStanza(error);
-					} else {
-						it->second(stanza);
-					}
-				} else if((stanza->subtype() == "result" or stanza->subtype() == "error") and
-						Util::isNumber(stanza->id())) {
-					int id = Util::parse_string<int>(stanza->id());
-					if(not Util::has_key(this->iq_tracks, id))
-						throw "";
-					const IQTrack& iq_track = this->iq_tracks.find(id)->second;
-					if(iq_track.jid != stanza->from())
-						throw "";
-					if(iq_track.on_result) {
-						iq_track.on_result(stanza);
-					} else {
-						delete stanza;
-					}
-					this->iq_ids.releaseID(id);
-					this->iq_tracks.erase(id);
-				} else {
-					throw "";
-				}
-			} else {
-				throw "";
-			}
-		} catch(const char* msg) {
-			Stanza* error = Stanza::createErrorStanza
-				(stanza, "modify", "bad-request", msg);
-			this->sendStanza(error);
-		}
-	}
+    void Node::handleIq(const Stanza& stanza) {
+        try {
+            if(not stanza.children().empty() and not stanza.id().empty()) {
+                if(stanza.subtype() == "set" or stanza.subtype() == "get") {
+                    HandlerMap::const_iterator it;
+                    const string& ns = stanza.children().tags().front().getAttribute("xmlns");
+                    it = this->iq_handlers.find(ns);
+                    if(it == this->iq_handlers.end()) {
+                        throw feature_not_implemented("Unknown xmlns");
+                    } else {
+                        /* TODO pass a reference instead ? */
+                        it->second(new Stanza(stanza));
+                    }
+                } else if((stanza.subtype() == "result" or stanza.subtype() == "error") and
+                        Util::isNumber(stanza.id())) {
+                    int id = Util::parse_string<int>(stanza.id());
+                    if(not Util::has_key(this->iq_tracks, id))
+                        return;
+                    const IQTrack& iq_track = this->iq_tracks.find(id)->second;
+                    if(iq_track.jid != stanza.from())
+                        return;
+                    if(not iq_track.on_result.empty()) {
+                        /* TODO pass a reference instead ? */
+                        iq_track.on_result(new Stanza(stanza));
+                    }
+                    this->iq_ids.releaseID(id);
+                    this->iq_tracks.erase(id);
+                } else {
+                    throw invalid_format("Invalid iq type");
+                }
+            } else {
+                throw invalid_format("No id");
+            }
+        } catch(const XML::xml_error& error) {
+            throw invalid_format("XML child or attribute missing");
+        }
+    }
 
-	void Node::handleMessage(Stanza* stanza) {
-		if(not stanza->subtype().empty()) {
+	void Node::handleMessage(const Stanza& stanza) {
+		if(not stanza.subtype().empty()) {
 			HandlerMap::const_iterator it;
-			it = this->message_handlers.find(stanza->subtype());
+			it = this->message_handlers.find(stanza.subtype());
 			if(it == this->message_handlers.end()) {
-				Stanza* error = Stanza::createErrorStanza(stanza,
-						"cancel", "feature-not-implemented");
-				this->sendStanza(error);
+                throw feature_not_implemented("");
 			} else {
-				it->second(stanza);
+				it->second(new Stanza(stanza));
 			}
 		} else {
-			Stanza* error = Stanza::createErrorStanza(stanza,
-					"modify", "bad-request");
-			this->sendStanza(error);
+            throw invalid_format("Missing message subtype");
 		}
 	}
 
-	void Node::handlePresence(Stanza* stanza) {
+	void Node::handlePresence(const Stanza& stanza) {
 		if(not this->presence_handler.empty()) {
-			this->presence_handler(stanza);
-		} else {
-			delete stanza;
+			this->presence_handler(new Stanza(stanza));
 		}
 	}
 
-	void Node::handleStanza(Stanza* stanza) {
-		if(stanza->type() == "presence") {
-			this->handlePresence(stanza);
-		} else if(stanza->type() == "iq") {
-			this->handleIq(stanza);
-		} else if(stanza->type() == "message") {
-			this->handleMessage(stanza);
-		} else {
-			Stanza* error = Stanza::createErrorStanza(stanza,
-					"modify", "bad-request");
-			this->sendStanza(error);
+	void Node::handleStanza(Stanza* _stanza) {
+        std::auto_ptr<Stanza> stanza(_stanza);
+        try {
+            if(stanza->type() == "presence") {
+                this->handlePresence(*stanza);
+            } else if(stanza->type() == "iq") {
+                this->handleIq(*stanza);
+            } else if(stanza->type() == "message") {
+                this->handleMessage(*stanza);
+            } else {
+                throw invalid_format("Invalid stanza type");
+            }
+        } catch(const feature_not_implemented& error) {
+			Stanza* resp = Stanza::createErrorStanza
+				(stanza.release(), "cancel", "feature-not-implemented");
+			this->sendStanza(resp);
+        } catch(const invalid_format& error) {
+			Stanza* resp = Stanza::createErrorStanza
+				(stanza.release(), "modify", "bad-request", "Invalid format");
+			this->sendStanza(resp);
+		} catch(const xmpp_exception& error) {
+			Stanza* resp = Stanza::createErrorStanza
+				(stanza.release(), "cancel", "bad-request", error.what());
+			this->sendStanza(resp);
 		}
 	}
 

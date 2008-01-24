@@ -168,7 +168,7 @@
       a seguinte msg deverá ser enviada
 -->
 <iq type='set' to='rating.shiva' id='get_rating'>
-    <query xmlns='http://c3sl.ufpr.br/chessd#rating' action='fetch'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#rating'>
         <rating jid='raphaelhr@shiva' category='standard'/>
         <rating jid='eduari@shiva' category='standard'/>
     </query>
@@ -183,10 +183,3 @@
         <rating losses="11" category="standard" wins="0" draws="0" rating="1153" jid="eduari@shiva" />
     </query>
 </iq>
-
-
-<presence to='game_0@games.shiva/raphaelhr' type='unavailable'/>
-
-<presence to='game_0@games.shiva/raphael' type='unavailable'/>
-
-<presence to='match.shiva'/>

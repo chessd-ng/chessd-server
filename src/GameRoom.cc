@@ -138,7 +138,7 @@ void GameRoom::check_end_game() {
 
 void GameRoom::handleGameMove(XMPP::Stanza* stanza) {
 	try {
-		std::string move = GameProtocol::parseMove(*stanza->children().tags().begin());
+		std::string move = GameProtocol::parseMove(stanza->findChild("query"));
 		this->game->move(stanza->from(), move);
 		stanza = XMPP::Stanza::createIQResult(stanza);
 		this->node.sendStanza(stanza);
