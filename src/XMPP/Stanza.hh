@@ -83,6 +83,11 @@ namespace XMPP {
 
 			static Stanza* createIQResult(Stanza* stanza);
 
+			Stanza* createIQResult() const;
+
+            XML::Tag& query() { return this->findChild("query"); }
+            const XML::Tag& query() const { return this->findChild("query"); }
+
 		private:
 		    ChildrenList _children;
 

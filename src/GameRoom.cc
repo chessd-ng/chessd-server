@@ -139,16 +139,14 @@ void GameRoom::check_end_game() {
     }
 }
 
-void GameRoom::handleMove(XMPP::Stanza* _stanza) {
-    std::auto_ptr<XMPP::Stanza> stanza(_stanza);
-    if(not Util::has_key(this->all_players, stanza->from()))
+void GameRoom::handleMove(const XMPP::Stanza& stanza) {
+    if(not Util::has_key(this->all_players, stanza.from()))
         throw XMPP::not_acceptable("Only players can do that");
 	try {
-        XML::Tag& query = stanza->findChild("query");
-        XML::Tag& move = query.findChild("move");
+        const XML::Tag& move = stanza.query().findChild("move");
 		std::string move_string = move.getAttribute("long");
-		this->game->move(stanza->from(), move_string);
-		this->node.sendStanza(XMPP::Stanza::createIQResult(stanza.release()));
+		this->game->move(stanza.from(), move_string);
+		this->node.sendStanza(stanza.createIQResult());
         this->game_state = std::auto_ptr<XML::Tag>(this->game->state());
 		this->notifyMove(move_string);
 	} catch (const char* msg) {
@@ -169,21 +167,19 @@ void GameRoom::notifyState(const XMPP::Jid& user) {
     this->node.sendIq(stanza);
 }
 
-void GameRoom::handleResign(XMPP::Stanza* _stanza) {
-    std::auto_ptr<XMPP::Stanza> stanza(_stanza);
-    if(not Util::has_key(this->all_players, stanza->from()))
+void GameRoom::handleResign(const XMPP::Stanza& stanza) {
+    if(not Util::has_key(this->all_players, stanza.from()))
         throw XMPP::not_acceptable("Only players can do that");
-    this->game->resign(stanza->from());
-    this->node.sendStanza(XMPP::Stanza::createIQResult(stanza.release()));
+    this->game->resign(stanza.from());
+    this->node.sendStanza(stanza.createIQResult());
 }
 
-void GameRoom::handleDrawAccept(XMPP::Stanza* _stanza) {
-    std::auto_ptr<XMPP::Stanza> stanza(_stanza);
-    if(not Util::has_key(this->all_players, stanza->from()))
+void GameRoom::handleDrawAccept(const XMPP::Stanza& stanza) {
+    if(not Util::has_key(this->all_players, stanza.from()))
         throw XMPP::not_acceptable("Only players can do that");
-	XMPP::Jid requester = stanza->from();
+	XMPP::Jid requester = stanza.from();
 	this->draw_agreement.agreed(requester);
-	this->node.sendStanza(XMPP::Stanza::createIQResult(stanza.release()));
+	this->node.sendStanza(stanza.createIQResult());
 	if(this->draw_agreement.left_count() == 0) {
         this->game->draw();
 	}
@@ -192,18 +188,17 @@ void GameRoom::handleDrawAccept(XMPP::Stanza* _stanza) {
 	}
 }
 
-void GameRoom::handleDrawDecline(XMPP::Stanza* stanza) {
+void GameRoom::handleDrawDecline(const XMPP::Stanza& stanza) {
 	this->draw_agreement.clear();
-	this->node.sendStanza(XMPP::Stanza::createIQResult(stanza));
+	this->node.sendStanza(stanza.createIQResult());
 }
 
-void GameRoom::handleCancelAccept(XMPP::Stanza* _stanza) {
-    std::auto_ptr<XMPP::Stanza> stanza(_stanza);
-    if(not Util::has_key(this->all_players, stanza->from()))
+void GameRoom::handleCancelAccept(const XMPP::Stanza& stanza) {
+    if(not Util::has_key(this->all_players, stanza.from()))
         throw XMPP::not_acceptable("Only players can do that");
-	XMPP::Jid requester = stanza->from();
+	XMPP::Jid requester = stanza.from();
 	this->cancel_agreement.agreed(requester);
-	this->node.sendStanza(XMPP::Stanza::createIQResult(stanza.release()));
+	this->node.sendStanza(stanza.createIQResult());
 	if(this->cancel_agreement.left_count()==0) {
 		this->cancelGame();
 	}
@@ -212,21 +207,19 @@ void GameRoom::handleCancelAccept(XMPP::Stanza* _stanza) {
 	}
 }
 
-void GameRoom::handleCancelDecline(XMPP::Stanza* _stanza) {
-    std::auto_ptr<XMPP::Stanza> stanza(_stanza);
-    if(not Util::has_key(this->all_players, stanza->from()))
+void GameRoom::handleCancelDecline(const XMPP::Stanza& stanza) {
+    if(not Util::has_key(this->all_players, stanza.from()))
         throw XMPP::not_acceptable("Only players can do that");
 	this->cancel_agreement.clear();
-	this->node.sendStanza(XMPP::Stanza::createIQResult(stanza.release()));
+	this->node.sendStanza(stanza.createIQResult());
 }
 
-void GameRoom::handleAdjournAccept(XMPP::Stanza* _stanza) {
-    std::auto_ptr<XMPP::Stanza> stanza(_stanza);
-    if(not Util::has_key(this->all_players, stanza->from()))
+void GameRoom::handleAdjournAccept(const XMPP::Stanza& stanza) {
+    if(not Util::has_key(this->all_players, stanza.from()))
         throw XMPP::not_acceptable("Only players can do that");
-	XMPP::Jid requester = stanza->from();
+	XMPP::Jid requester = stanza.from();
 	this->adjourn_agreement.agreed(requester);
-	this->node.sendStanza(XMPP::Stanza::createIQResult(stanza.release()));
+	this->node.sendStanza(stanza.createIQResult());
 	if(this->adjourn_agreement.left_count()==0) {
 		this->adjournGame();
 	}
@@ -235,12 +228,11 @@ void GameRoom::handleAdjournAccept(XMPP::Stanza* _stanza) {
 	}
 }
 
-void GameRoom::handleAdjournDecline(XMPP::Stanza* _stanza) {
-    std::auto_ptr<XMPP::Stanza> stanza(_stanza);
-    if(not Util::has_key(this->all_players, stanza->from()))
+void GameRoom::handleAdjournDecline(const XMPP::Stanza& stanza) {
+    if(not Util::has_key(this->all_players, stanza.from()))
         throw XMPP::not_acceptable("Only players can do that");
 	this->adjourn_agreement.clear();
-	this->node.sendStanza(XMPP::Stanza::createIQResult(stanza.release()));
+	this->node.sendStanza(stanza.createIQResult());
 }
 
 void GameRoom::notifyRequest(GameRequest request, const XMPP::Jid& requester) {

@@ -50,7 +50,7 @@ namespace XMPP {
             ~Roster();
 
             /*! \brief Handle a presence stanza */
-            void handlePresence(Stanza* stanza);
+            void handlePresence(const Stanza& stanza);
 
             /*! \brief Insert a user status monitor
              *

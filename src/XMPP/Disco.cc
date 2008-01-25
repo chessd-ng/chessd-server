@@ -24,6 +24,10 @@
 using namespace std;
 using namespace XML;
 
+
+#define XMLNS_DISCO_INFO   "http://jabber.org/protocol/disco#info"
+#define XMLNS_DISCO_ITEMS  "http://jabber.org/protocol/disco#items"
+
 namespace XMPP {
 
 	DiscoItem::DiscoItem(const std::string& name,
@@ -43,34 +47,40 @@ namespace XMPP {
 	Disco::~Disco() {
 	}
 
-	void Disco::handleIqInfo(Stanza* stanza) {
-		Tag& query = stanza->children().tags().front();
-		swap(stanza->to(),stanza->from());
-		stanza->subtype() = "result";
-		Tag* identity = new Tag("identity");
-		identity->setAttribute("category", this->category());
-		identity->setAttribute("type", this->type());
-		identity->setAttribute("name", this->name());
-		query.children().push_back(identity);
-		StringSet::const_iterator fit = this->features().begin();
+	void Disco::handleIqInfo(const Stanza& stanza) {
+        Stanza* result = stanza.createIQResult();
+        TagGenerator generator;
+
+        generator.openTag("query");
+        generator.addAttribute("xmlns", XMLNS_DISCO_INFO);
+        generator.openTag("indentity");
+        generator.addAttribute("category", this->category());
+        generator.addAttribute("type", this->type());
+        generator.addAttribute("name", this->name());
+        generator.closeTag();
+
 		foreach(feature, this->features()) {
-			Tag* tag_feature = new Tag("feature");
-			tag_feature->setAttribute("var", *feature);
-			query.children().push_back(tag_feature);
+            generator.openTag("feature");
+            generator.addAttribute("var", *feature);
+            generator.closeTag();
 		}
-		this->stanza_sender(stanza);
+        result->children().push_back(generator.getTag());
+		this->stanza_sender(result);
 	}
 
-	void Disco::handleIqItems(Stanza* stanza) {
-		Tag& query = stanza->children().tags().front();
-		swap(stanza->to(),stanza->from());
-		stanza->subtype() = "result";
+	void Disco::handleIqItems(const Stanza& stanza) {
+        Stanza* result = stanza.createIQResult();
+        TagGenerator generator;
+
+        generator.openTag("query");
+        generator.addAttribute("xmlns", XMLNS_DISCO_ITEMS);
 		foreach(item, this->items()) {
-			Tag* tag_item = new Tag("item");
-			tag_item->setAttribute("name", item->name());
-			tag_item->setAttribute("jid", item->jid().full());
-			query.children().push_back(tag_item);
+            generator.openTag("item");
+            generator.addAttribute("name", item->name());
+            generator.addAttribute("jid", item->jid().full());
+            generator.closeTag();
 		}
-		this->stanza_sender(stanza);
+        result->children().push_back(generator.getTag());
+		this->stanza_sender(result);
 	}
 }

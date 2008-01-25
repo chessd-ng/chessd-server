@@ -30,9 +30,10 @@ namespace XMPP {
 			const std::string& name,
 			const std::string& category,
 			const std::string& type) :
-		Node(send_stanza, jid, name, category, type) {
-			this->node_handlers.insert(make_pair("",boost::bind(&Node::handleStanza, this, _1)));
-		}
+		Node(send_stanza, jid, name, category, type)
+    {
+        this->node_handlers.insert(make_pair("",boost::bind(&Node::handleStanza, this, _1)));
+    }
 
 	RootNode::~RootNode() { }
 

@@ -23,8 +23,13 @@
 #include "Muc.hh"
 #include "Util/utils.hh"
 
+#include "Exception.hh"
+
 using namespace std;
 using namespace XML;
+
+#define XMLNS_MUC       "http://jabber.org/protocol/muc"
+#define XMLNS_MUC_USER  "http://jabber.org/protocol/muc#user"
 
 namespace XMPP {
 
@@ -32,42 +37,39 @@ namespace XMPP {
 			const std::string& role, const Jid& jid) :
 		nick(nick), affiliation(affiliation), role(role), jid(jid) { }
 
-	Muc::Muc(Node& node, const Jid& jid, const OccupantMonitor& monitor) : node(node), jid(jid), monitor(monitor) {
-		this->node.disco().features().insert("presence");
-		this->node.setPresenceHandler(boost::bind(&Muc::handlePresence, this, _1));
+    Muc::Muc(Node& node, const Jid& jid, const OccupantMonitor& monitor) :
+        node(node),
+        jid(jid),
+        monitor(monitor)
+    {
+        this->node.disco().features().insert("presence");
+        this->node.setPresenceHandler(boost::bind(&Muc::handlePresence, this, _1));
 
-		this->node.disco().features().insert("http://jabber.org/protocol/muc");
-		this->node.setMessageHandler(boost::bind(&Muc::handleGroupChat, this, _1), "groupchat");
-	}
+        this->node.disco().features().insert(XMLNS_MUC);
+        this->node.setMessageHandler(boost::bind(&Muc::handleGroupChat, this, _1), "groupchat");
+    }
 
-	Muc::~Muc() { }
+    Muc::~Muc() { }
 
-	void Muc::handlePresence(Stanza* stanza) {
-		if(stanza->subtype().empty()) {
-			if(not this->addUser(stanza->to().resource(), stanza->from()))
-				this->node.sendStanza(Stanza::createErrorStanza(stanza, "modify", "bad-request"));
-			else
-				delete stanza;
-		} else if(stanza->subtype() == "unavailable") {
-			if(not this->removeUser(stanza->from(), ""))
-				this->node.sendStanza(Stanza::createErrorStanza(stanza, "modify", "bad-request"));
-			else
-				delete stanza;
+	void Muc::handlePresence(const Stanza& stanza) {
+		if(stanza.subtype().empty()) {
+			this->addUser(stanza.to().resource(), stanza.from());
+		} else if(stanza.subtype() == "unavailable") {
+			this->removeUser(stanza.from(), "");
 		} else {
-			stanza = Stanza::createErrorStanza(stanza, "modify", "bad-request");
-			this->node.sendStanza(stanza);
+            throw bad_request("Invalid presence type");
 		}
 	}
 
-	bool Muc::addUser(const std::string& nick, const Jid& user_jid) {
+	void Muc::addUser(const std::string& nick, const Jid& user_jid) {
 		if(nick.empty()) {
-			return false;
+            throw bad_request("Invalid nick");
 		} else  {
 			MucUserSet::iterator itj = this->users().find_jid(user_jid);
 			MucUserSet::iterator itn = this->users().find_nick(nick);
 			if(itj == this->users().end()) {
 				if(itn != this->users().end()) {
-					return false;
+                    throw bad_request("This nick is already in use");
 				} else  {
 					this->presentUsers(user_jid);
 					this->users().insert(new MucUser(nick, "member",
@@ -82,7 +84,6 @@ namespace XMPP {
 				}
 			}
 		}
-		return true;
 	}
 
 	void Muc::broadcast(Stanza* stanza) {
@@ -94,7 +95,7 @@ namespace XMPP {
 		delete stanza;
 	}
 
-	void Muc::broadcastIq(Stanza* stanza, const StanzaHandler& on_result,
+	void Muc::broadcastIq(Stanza* stanza, const ConstStanzaHandler& on_result,
 			const TimeoutHandler& on_timeout) {
 		foreach(it, this->users()) {
 			Stanza* tmp = new Stanza(*stanza);
@@ -118,7 +119,7 @@ namespace XMPP {
 		stanza->from().resource() = user.nick;
 		TagGenerator generator;
 		generator.openTag("x");
-		generator.addAttribute("xmlns", "http://jabber.org/protocol/muc#user");
+		generator.addAttribute("xmlns", XMLNS_MUC_USER);
 		generator.openTag("item");
 		generator.addAttribute("affiliation", user.affiliation);
 		generator.addAttribute("role", user.role);
@@ -127,7 +128,7 @@ namespace XMPP {
 		return stanza;
 	}
 
-	bool Muc::removeUser(const Jid& user_jid, const std::string& status) {
+	void Muc::removeUser(const Jid& user_jid, const std::string& status) {
 		MucUserSet::iterator it = this->users().find_jid(user_jid);
 		if(it != this->users().end()) {
 			Stanza* stanza = this->createPresenceStanza(*it);
@@ -140,21 +141,18 @@ namespace XMPP {
             if(not this->monitor.empty()) {
                 this->monitor(user_jid, jid.resource(), false);
             }
-		} else {
-			return false;
 		}
-		return true;
 	}
 
-	void Muc::handleGroupChat(Stanza* stanza) {
-		MucUserSet::iterator it = this->users().find_jid(stanza->from());
+	void Muc::handleGroupChat(const Stanza& stanza) {
+		MucUserSet::iterator it = this->users().find_jid(stanza.from());
 		if(it != this->users().end()) {
-			stanza->from().swap(stanza->to());
-			stanza->from().resource() = it->nick;
-			this->broadcast(stanza);
+            Stanza* resp = new Stanza(stanza);
+			swap(resp->to(), resp->from());
+			resp->from().resource() = it->nick;
+			this->broadcast(resp);
 		} else {
-			stanza = Stanza::createErrorStanza(stanza, "cancel", "not-acceptable");
-			this->node.sendStanza(stanza);
+            throw not_acceptable("Only room occupants may send message sto the room");
 		}
 	}
 

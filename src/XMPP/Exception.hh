@@ -53,7 +53,7 @@ namespace XMPP {
             
             virtual Stanza* getErrorStanza(Stanza* stanza) const {
                 return Stanza::createErrorStanza
-                    (stanza, "modify", "item_not_found", this->what());
+                    (stanza, "modify", "item-not-found", this->what());
             }
     };
 

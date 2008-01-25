@@ -71,11 +71,6 @@ class GameManager : public ComponentBase {
 
 		void _closeGameRoom(int room_id);
 
-		/*! \brief handle an incoming game iq */
-		void handleGame(XMPP::Stanza* stanza);
-
-		void handleStanza(XMPP::Stanza* stanza);
-
 		void handleError(const std::string& error);
 
         void onClose();

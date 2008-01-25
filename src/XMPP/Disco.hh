@@ -109,13 +109,13 @@ namespace XMPP {
 			 * The XMPP especifies that this iqs has 
 			 * "http://jabber.org/protocol/disco#info" as xmlns
 			 * */
-			void handleIqInfo(Stanza* stanza);
+			void handleIqInfo(const Stanza& stanza);
 			/*! \brief Handler for the items
 			 *
 			 * The XMPP especifies that this iqs has 
 			 * "http://jabber.org/protocol/disco#items" as xmlns
 			 * */
-			void handleIqItems(Stanza* stanza);
+			void handleIqItems(const Stanza& stanza);
 
 
 			/*! \brief The node's category */

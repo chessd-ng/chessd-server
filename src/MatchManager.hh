@@ -65,11 +65,11 @@ class MatchManager : public ComponentBase {
 		/* several handlers for the incoming events */
 
 		/*! \brief handle an incoming match offer */
-		void handleOffer(XMPP::Stanza* query);
+		void handleOffer(const XMPP::Stanza& query);
 		/*! \brief handle an incoming match acceptance */
-		void handleAccept(XMPP::Stanza* query);
+		void handleAccept(const XMPP::Stanza& query);
 		/*! \brief handle an incoming match declinance */
-		void handleDecline(XMPP::Stanza* query);
+		void handleDecline(const XMPP::Stanza& query);
 
 		void notifyOffer(int id, const XMPP::Jid& requester);
 
@@ -80,8 +80,6 @@ class MatchManager : public ComponentBase {
 		void notifyUserStatus(const XMPP::Jid& jid, bool available);
 
 		void _handleError(const std::string& error);
-
-		void handleStanza(XMPP::Stanza* stanza);
 
         void onClose();
 

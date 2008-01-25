@@ -84,23 +84,20 @@ void MatchManager::insertMatchRule(MatchRule* rule) {
 MatchManager::~MatchManager() {
 }
 
-void MatchManager::handleOffer(Stanza* _stanza) {
-    auto_ptr<Match> match;
-    auto_ptr<Stanza> stanza(_stanza);
+void MatchManager::handleOffer(const Stanza& stanza) {
     try {
-        Jid requester = stanza->from();
+        Jid requester = stanza.from();
         /* parse message */
-        XML::Tag& query = stanza->findChild("query");
-        XML::Tag& offer = query.findChild("match");
+        const XML::Tag& offer = stanza.query().findChild("match");
         const std::string& category = offer.getAttribute("category");
         if(not Util::has_key(this->rules, category))
             throw match_error("This category is not available");
-        match = auto_ptr<Match>(this->rules.find(category)->second->checkOffer(offer, this->teams));
+        std::auto_ptr<Match> match(this->rules.find(category)->second->checkOffer(offer, this->teams));
         bool valid = false;
         foreach(player, match->players()) {
             if(not this->roster.isUserAvailable(*player))
                 throw match_error("User is not available");
-            if(*player == stanza->from())
+            if(*player == stanza.from())
                 valid = true;
         }
         if(not valid)
@@ -118,9 +115,9 @@ void MatchManager::handleOffer(Stanza* _stanza) {
         int id = this->match_db.insertMatch(match.release());
         Stanza* resp = new Stanza("iq");
         resp->subtype() = "result";
-        resp->id() = stanza->id();
-        resp->to() = stanza->from();
-        resp->from() = stanza->to();
+        resp->id() = stanza.id();
+        resp->to() = stanza.from();
+        resp->from() = stanza.to();
 
         generator.openTag("query");
         generator.addAttribute("xmlns", XMLNS_MATCH_OFFER);
@@ -160,14 +157,12 @@ void MatchManager::notifyOffer(int id, const Jid& requester) {
     }
 }
 
-void MatchManager::handleAccept(Stanza* _stanza) {
-    std::auto_ptr<Stanza> stanza(_stanza);
+void MatchManager::handleAccept(const Stanza& stanza) {
     try {
-        XML::Tag& query = stanza->findChild("query");
-        XML::Tag& match = query.findChild("match");
+        const XML::Tag& match = stanza.query().findChild("match");
         int id = Util::parse_string<int>(match.getAttribute("id"));
-        this->match_db.acceptMatch(id, stanza->from());
-        this->sendStanza(Stanza::createIQResult(stanza.release()));
+        this->match_db.acceptMatch(id, stanza.from());
+        this->sendStanza(stanza.createIQResult());
         if(this->match_db.isDone(id)) {
             this->closeMatch(id, true);
         }
@@ -178,15 +173,13 @@ void MatchManager::handleAccept(Stanza* _stanza) {
     }
 }
 
-void MatchManager::handleDecline(Stanza* _stanza) {
-    std::auto_ptr<Stanza> stanza(_stanza);
+void MatchManager::handleDecline(const Stanza& stanza) {
     try {
-        XML::Tag& query = stanza->findChild("query");
-        XML::Tag& match = query.findChild("match");
+        const XML::Tag& match = stanza.query().findChild("match");
         int id = Util::parse_string<int>(match.getAttribute("id"));
-        if(not this->match_db.hasPlayer(id, stanza->from()))
+        if(not this->match_db.hasPlayer(id, stanza.from()))
             throw match_error("Invalid match id");
-        this->sendStanza(Stanza::createIQResult(stanza.release()));
+        this->sendStanza(stanza.createIQResult());
         this->closeMatch(id, false);
     } catch (const XML::xml_error& error) {
         throw bad_request("Invalid format");

@@ -59,14 +59,14 @@ class GameRoom {
 		/*! \brief handle an incoming game iq */
 		void handleGame(XMPP::Stanza* stanza);
 
-		void handleMove(XMPP::Stanza* stanza);
-		void handleResign(XMPP::Stanza* stanza);
-		void handleDrawAccept(XMPP::Stanza* stanza);
-		void handleDrawDecline(XMPP::Stanza* stanza);
-		void handleCancelAccept(XMPP::Stanza* stanza);
-		void handleCancelDecline(XMPP::Stanza* stanza);
-		void handleAdjournAccept(XMPP::Stanza* stanza);
-		void handleAdjournDecline(XMPP::Stanza* stanza);
+		void handleMove(const XMPP::Stanza& stanza);
+		void handleResign(const XMPP::Stanza& stanza);
+		void handleDrawAccept(const XMPP::Stanza& stanza);
+		void handleDrawDecline(const XMPP::Stanza& stanza);
+		void handleCancelAccept(const XMPP::Stanza& stanza);
+		void handleCancelDecline(const XMPP::Stanza& stanza);
+		void handleAdjournAccept(const XMPP::Stanza& stanza);
+		void handleAdjournDecline(const XMPP::Stanza& stanza);
 
         void notifyPlayers();
 

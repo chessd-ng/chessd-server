@@ -113,7 +113,7 @@ namespace XMPP {
 
 	class Muc {
 		public:
-			Muc(Node& node, const Jid& jid, const OccupantMonitor& monitor = OccupantMonitor());
+			Muc(Node& node, const Jid& jid, const OccupantMonitor& monitor );
 
 			~Muc();
 
@@ -121,28 +121,29 @@ namespace XMPP {
 
             const MucUserSet& occupants() const { return this->_users; }
 
-            bool isOccupant(const XMPP::Jid& user_jid) {
+            bool isOccupant(const XMPP::Jid& user_jid) const {
                 return this->users().find_jid(user_jid) != this->users().end();
             }
 
-			void broadcastIq(Stanza* stanza, const StanzaHandler& on_result = StanzaHandler(),
+			void broadcastIq(Stanza* stanza, const ConstStanzaHandler& on_result = ConstStanzaHandler(),
 					const TimeoutHandler& on_timeout = TimeoutHandler());
 
 		private:
 
-			void handlePresence(Stanza* stanza);
+			void handlePresence(const Stanza& stanza);
 
-			void handleGroupChat(Stanza* stanza);
+			void handleGroupChat(const Stanza& stanza);
 
 			void presentUsers(const Jid& jid);
 
-			bool addUser(const std::string& nick, const Jid& user_jid);
+			void addUser(const std::string& nick, const Jid& user_jid);
 
-			bool removeUser(const Jid& user_jid, const std::string& status);
+			void removeUser(const Jid& user_jid, const std::string& status);
 
 			Stanza* createPresenceStanza(const MucUser& user);
 
 			MucUserSet& users() { return this->_users; }
+			const MucUserSet& users() const { return this->_users; }
 
 			Node& node;
 

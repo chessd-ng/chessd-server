@@ -51,7 +51,7 @@ namespace XMPP {
 			 * \param handler is a function.
 			 * \param subtype is the message's type.
 			 */
-			void setMessageHandler(const StanzaHandler& handler,
+			void setMessageHandler(const ConstStanzaHandler& handler,
 					const std::string& subtype);
 
 			/*! \brief Remove a message handler
@@ -67,7 +67,7 @@ namespace XMPP {
 			 * \param handler is a function.
 			 * \param xmlns is the stanza's xmlns.
 			 */
-			void setIqHandler(const StanzaHandler& handler, const std::string& xmlns);
+			void setIqHandler(const ConstStanzaHandler& handler, const std::string& xmlns);
 
 			/*! \brief Remove a iq handler
 			 *
@@ -80,7 +80,7 @@ namespace XMPP {
 			 * All presence stanzas are forwarded to the given handler.
 			 * /param handler is a function.
 			 */
-			void setPresenceHandler(const StanzaHandler& handler);
+			void setPresenceHandler(const ConstStanzaHandler& handler);
 
 			/*! \brief Remove the presence handler. */
 			void removePresenceHandler();
@@ -104,11 +104,12 @@ namespace XMPP {
 			 * \param on_result is the result callback.
 			 * \param on_timeout is the timeout callback.
 			 * */
-			void sendIq(Stanza* stanza, const StanzaHandler& on_result = StanzaHandler(),
+			void sendIq(Stanza* stanza, const ConstStanzaHandler& on_result = ConstStanzaHandler(),
 					const TimeoutHandler& on_timeout = TimeoutHandler());
 
 			void sendStanza(Stanza* stanza);
 
+            const Jid& jid() { return this->_jid; }
 
 		private:
 
@@ -116,31 +117,31 @@ namespace XMPP {
 			void handleMessage(const Stanza& stanza);
 			void handlePresence(const Stanza& stanza);
 
-			typedef std::map<std::string, StanzaHandler> HandlerMap;
+			typedef std::map<std::string, ConstStanzaHandler> HandlerMap;
 			HandlerMap message_handlers;
 			HandlerMap iq_handlers;
-			StanzaHandler presence_handler;
+			ConstStanzaHandler presence_handler;
 			StanzaHandler send_stanza;
 
 			Disco _disco;
 
-			Util::IDSet iq_ids;
-
 			struct IQTrack {
 				Jid jid;
-				StanzaHandler on_result;
+				ConstStanzaHandler on_result;
 				TimeoutHandler on_timeout;
 				IQTrack(const Jid& jid,
-						const StanzaHandler& on_result,
+						const ConstStanzaHandler& on_result,
 						const TimeoutHandler& on_timeout) :
 					jid(jid),
 					on_result(on_result),
 					on_timeout(on_timeout) { }
 			};
 
-			std::map<int, IQTrack> iq_tracks;
+			std::map<long long, IQTrack> iq_tracks;
 
-			Jid jid;
+			Jid _jid;
+
+            long long iq_ids;
 	};
 
 }

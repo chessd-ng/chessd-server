@@ -139,4 +139,13 @@ namespace XMPP {
 		stanza->clearChildren();
 		return stanza;
 	}
+
+	Stanza* Stanza::createIQResult() const {
+        Stanza* stanza = new Stanza("iq");
+        stanza->to() = this->from();
+        stanza->from() = this->to();
+        stanza->id() = this->id();
+		stanza->subtype() = "result";
+		return stanza;
+	}
 }

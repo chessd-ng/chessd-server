@@ -33,16 +33,18 @@ namespace XMPP {
 			const std::string& type) :
 		send_stanza(sender),
 		_disco(sender, name, category, type), 
-	jid(jid){
-			this->setIqHandler(boost::bind(&Disco::handleIqInfo, &this->_disco, _1),
-					"http://jabber.org/protocol/disco#info");
-			this->setIqHandler(boost::bind(&Disco::handleIqItems, &this->_disco, _1),
-					"http://jabber.org/protocol/disco#items");
-		}
+        _jid(jid),
+        iq_ids(0)
+    {
+        this->setIqHandler(boost::bind(&Disco::handleIqInfo, &this->_disco, _1),
+                "http://jabber.org/protocol/disco#info");
+        this->setIqHandler(boost::bind(&Disco::handleIqItems, &this->_disco, _1),
+                "http://jabber.org/protocol/disco#items");
+    }
 
 	Node::~Node() { }
 
-	void Node::setMessageHandler(const StanzaHandler& handler,
+	void Node::setMessageHandler(const ConstStanzaHandler& handler,
 			const string& subtype) {
 		this->message_handlers[subtype] = handler;
 	}
@@ -51,7 +53,7 @@ namespace XMPP {
 		this->message_handlers.erase(subtype);
 	}
 
-	void Node::setIqHandler(const StanzaHandler& handler, const string& xmlns) {
+	void Node::setIqHandler(const ConstStanzaHandler& handler, const string& xmlns) {
 		this->iq_handlers[xmlns] = handler;
 	}
 
@@ -59,17 +61,17 @@ namespace XMPP {
 		this->iq_handlers.erase(xmlns);
 	}
 
-	void Node::setPresenceHandler(const StanzaHandler& handler) {
+	void Node::setPresenceHandler(const ConstStanzaHandler& handler) {
 		this->presence_handler = handler;
 	}
 
 	void Node::removePresenceHandler() {
-		this->presence_handler = StanzaHandler();
+		this->presence_handler = ConstStanzaHandler();
 	}
 
 	void Node::sendStanza(Stanza* stanza) {
         if(stanza->from().empty())
-            stanza->from() = jid;
+            stanza->from() = this->jid();
 		this->send_stanza(stanza);
 	}
 
@@ -83,22 +85,19 @@ namespace XMPP {
                     if(it == this->iq_handlers.end()) {
                         throw feature_not_implemented("Unknown xmlns");
                     } else {
-                        /* TODO pass a reference instead ? */
-                        it->second(new Stanza(stanza));
+                        it->second(stanza);
                     }
                 } else if((stanza.subtype() == "result" or stanza.subtype() == "error") and
                         Util::isNumber(stanza.id())) {
-                    int id = Util::parse_string<int>(stanza.id());
+                    long long id = Util::parse_string<long long>(stanza.id());
                     if(not Util::has_key(this->iq_tracks, id))
                         return;
                     const IQTrack& iq_track = this->iq_tracks.find(id)->second;
                     if(iq_track.jid != stanza.from())
                         return;
                     if(not iq_track.on_result.empty()) {
-                        /* TODO pass a reference instead ? */
-                        iq_track.on_result(new Stanza(stanza));
+                        iq_track.on_result(stanza);
                     }
-                    this->iq_ids.releaseID(id);
                     this->iq_tracks.erase(id);
                 } else {
                     throw bad_request("Invalid iq type");
@@ -118,7 +117,7 @@ namespace XMPP {
 			if(it == this->message_handlers.end()) {
                 throw feature_not_implemented("");
 			} else {
-				it->second(new Stanza(stanza));
+				it->second(stanza);
 			}
 		} else {
             throw bad_request("Missing message subtype");
@@ -127,7 +126,7 @@ namespace XMPP {
 
 	void Node::handlePresence(const Stanza& stanza) {
 		if(not this->presence_handler.empty()) {
-			this->presence_handler(new Stanza(stanza));
+			this->presence_handler(stanza);
 		}
 	}
 
@@ -148,10 +147,11 @@ namespace XMPP {
 		}
 	}
 
-	void Node::sendIq(Stanza* stanza, const StanzaHandler& on_result, const TimeoutHandler& on_timeout) {
-		int id = this->iq_ids.acquireID();
+	void Node::sendIq(Stanza* stanza, const ConstStanzaHandler& on_result, const TimeoutHandler& on_timeout) {
+		long long id = this->iq_ids ++;
 		stanza->id() = Util::to_string(id);
-		this->iq_tracks.insert(make_pair(id, IQTrack(stanza->to(), on_result, on_timeout)));
+        if(not on_result.empty() or not on_timeout.empty())
+            this->iq_tracks.insert(make_pair(id, IQTrack(stanza->to(), on_result, on_timeout)));
 		this->sendStanza(stanza);
 	}
 

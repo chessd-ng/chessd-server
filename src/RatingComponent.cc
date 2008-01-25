@@ -48,10 +48,9 @@ RatingComponent::RatingComponent(
 RatingComponent::~RatingComponent() {
 }
 
-void RatingComponent::handleRating(Stanza* _stanza) {
-    std::auto_ptr<Stanza> stanza(_stanza);
+void RatingComponent::handleRating(const Stanza& stanza) {
     try {
-        const Tag& query = stanza->findChild("query");
+        const Tag& query = stanza.query();
 
         /* check if the format is correct */
         foreach(tag, query.tags()) {
@@ -60,7 +59,7 @@ void RatingComponent::handleRating(Stanza* _stanza) {
         }
 
         /* execute the transaction */
-        this->database.queueTransaction(boost::bind(&RatingComponent::fetchRating, this, *stanza, _1));
+        this->database.queueTransaction(boost::bind(&RatingComponent::fetchRating, this, stanza, _1));
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request("Invalid format");
     }

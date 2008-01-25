@@ -57,7 +57,7 @@ class RatingComponent : public ComponentBase {
 		/* several handlers for the incoming events */
 
 		/*! \brief handle an incoming match iq */
-		void handleRating(XMPP::Stanza* stanza);
+		void handleRating(const XMPP::Stanza& stanza);
 
 		void fetchRating(const XMPP::Stanza& stanza, DatabaseInterface& database);
 

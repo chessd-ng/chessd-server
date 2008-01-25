@@ -18,6 +18,8 @@
 
 #include "Roster.hh"
 
+#include "Exception.hh"
+
 #include <iostream>
 
 using namespace std;
@@ -29,16 +31,13 @@ namespace XMPP {
 
     Roster::~Roster() { }
 
-    void Roster::handlePresence(Stanza* stanza) {
-        if(stanza->subtype().empty()) {
-            this->setUserStatus(stanza->from(), true);
-            delete stanza;
-        } else if(stanza->subtype() == "unavailable") {
-            this->setUserStatus(stanza->from(), false);
-            delete stanza;
+    void Roster::handlePresence(const Stanza& stanza) {
+        if(stanza.subtype().empty()) {
+            this->setUserStatus(stanza.from(), true);
+        } else if(stanza.subtype() == "unavailable") {
+            this->setUserStatus(stanza.from(), false);
         } else {
-            stanza = Stanza::createErrorStanza(stanza, "modify", "bad-request");
-            this->stanza_sender(stanza);
+            throw bad_request("Invalid presence");
         }
     }
 
