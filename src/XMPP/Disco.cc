@@ -53,7 +53,7 @@ namespace XMPP {
 
         generator.openTag("query");
         generator.addAttribute("xmlns", XMLNS_DISCO_INFO);
-        generator.openTag("indentity");
+        generator.openTag("identity");
         generator.addAttribute("category", this->category());
         generator.addAttribute("type", this->type());
         generator.addAttribute("name", this->name());
