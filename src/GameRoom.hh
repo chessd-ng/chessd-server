@@ -101,7 +101,7 @@ class GameRoom {
 
 		XMPP::Jid room_jid;
 
-        DatabaseManager database_manager;
+        DatabaseManager& database_manager;
 
 		GameRoomHandlers handlers;
 
