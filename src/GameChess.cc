@@ -124,17 +124,10 @@ GameResult* GameChess::done(void) const {
 }
 
 void GameChess::move(const Player& player, const std::string& movement) {
-<<<<<<< HEAD:src/GameChess.cc
-	if(colormap[player]!=chess.Turn())
-		throw wrong_turn(std::string("It's not ")+player.full()+std::string(" turn"));
-	if(chess.verifyandmakeMove(movement)==false)
-		throw invalid_move("Invalid Move");
-=======
 	if(colormap[player]!=chess.turn())
-		throw "It's not your turn";
+		throw wrong_turn(std::string("It's not ")+player.full()+std::string(" turn"));
 	if(chess.verifyAndMakeMove(movement)==false)
-		throw "Invalid Move";
->>>>>>> libchess-experiment:src/GameChess.cc
+		throw invalid_move("Invalid Move");
 }
 
 const TeamList& GameChess::teams() const {

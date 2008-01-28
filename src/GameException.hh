@@ -10,12 +10,12 @@ class game_exception : public std::runtime_error {
 
 class missing_information : public game_exception {
 	public:
-		missing_information(const std::string &msg) : runtime_error(msg) { }
+		missing_information(const std::string &msg) : game_exception(msg) { }
 };
 
 class bad_information : public game_exception {
 	public:
-		bad_information(const std::string &msg) : runtime_error(msg) { }
+		bad_information(const std::string &msg) : game_exception(msg) { }
 };
 
 class wrong_turn : public game_exception {

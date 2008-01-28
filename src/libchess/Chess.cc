@@ -22,7 +22,7 @@
 #include <vector>
 #include <stdlib.h>
 
-Chess::Chess : ChessBasedGame(8,8) {
+Chess::Chess() : ChessBasedGame(8,8) {
 	putPieces();
 	atual=State();
 	historico=History(this->atual);

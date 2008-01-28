@@ -43,7 +43,7 @@ void MatchRuleChess::validateXML(const XML::Tag& _match_offer) const {
 						if(!c_it->hasAttribute("color"))
 							throw bad_information("xml does not have color for a player");
 						if(!c_it->hasAttribute("time"))
-							throw bad_information();
+							throw bad_information("xml does not have time for a player");
 						if(isTimeValid(*c_it)==false)
 							throw bad_information(std::string("invalid time for category ")+this->getCategory());
 					}
@@ -61,9 +61,8 @@ void MatchRuleChess::validateXML(const XML::Tag& _match_offer) const {
 		throw bad_information("wrong matchrule xml name");
 	throw bad_information("xml is wrong in someway");
 }
+
 StandardPlayerList MatchRuleChess::getPlayersfromXML(const XML::Tag& _match_offer) const {
-	if(this->validateXML(_match_offer)==false)
-		throw "Bad XML for MatchRuleChess";
 	StandardPlayerList players;
 	foreach(c_it,_match_offer.children()) {
 		if(typeid(*c_it)==typeid(XML::Tag)) {
