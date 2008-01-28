@@ -30,8 +30,34 @@ GameStandard::GameStandard(const StandardPlayerList& _players) :
 {
 }
 
-GameResult* GameStandard::newGameResult(const std::string& endreason, const TeamResultList &l, const std::vector<State> &s) const {
-	return new ChessStandardGameResult(endreason,l,s);
+GameResult* GameStandard::result() const {
+	bool checkmate;
+	std::string reason;
+	TeamResultList trl;
+	for(int i=0;i<(int)_teams.size();i++)
+		trl.push_back(make_pair(_teams[i],UNDEFINED));
+
+	if((checkmate=chess.verifyCheckMate()) or this->_resign!=Chess::UNDEFINED) {
+		reason=(checkmate==true)?"Checkmate":"The other player resigned";
+		if(this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE)) {
+			trl[0].second=WINNER;
+			trl[1].second=LOSER;
+		}
+		else {
+			trl[1].second=WINNER;
+			trl[0].second=LOSER;
+		}
+	}
+	else if(this->_draw==true) {
+		trl[0].second=trl[1].second=DRAWER;
+		reason="The players agreed on a draw";
+	}
+	else if(chess.verifyDraw()==true) {
+		trl[0].second=trl[1].second=DRAWER;
+		reason="Draw";
+	}
+
+	return new ChessStandardGameResult(reason,trl,chess.getHistory());
 }
 
 ChessStandardGameResult::ChessStandardGameResult(const std::string &endreason,const TeamResultList &l,const std::vector<State> &s) :

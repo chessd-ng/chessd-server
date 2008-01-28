@@ -56,7 +56,9 @@ class GameChess : public Game {
 		/*! \brief Has the game ended?
 		 * \return Returns the game result if the game is over, NULL otherwise.
 		 */
-		virtual GameResult* done() const;
+		virtual bool done() const;
+
+		virtual GameResult* result() const = 0;
 
 		virtual void move(const Player& player, const std::string& movement);
 
@@ -64,16 +66,17 @@ class GameChess : public Game {
 
 		static XML::Tag* generateStateTag(const State &est) ;
 		
-		virtual GameResult* newGameResult(const std::string& endreason, const TeamResultList &l, const std::vector<State> &s) const = 0;
-	private:
+	protected:
+		//these 3 below is used for passing information from done() to result()
 		Chess chess;
 		TeamList _teams;
+		Chess::Color _resign;
+		bool _draw;
+
+	private:
 		std::string _title;
 		std::string _category;
 
-		//unify the color name
-		Chess::Color _resign;
-		bool _draw;
 
 		Util::Time whitetime;
 		//map de player -> cor

@@ -28,7 +28,7 @@ class GameStandard : public GameChess {
 
 		virtual ~GameStandard() {};
 
-		virtual GameResult* newGameResult(const std::string& endreason, const TeamResultList &l, const std::vector<State> &s) const;
+		virtual GameResult* result() const;
 
 	private:
 };
