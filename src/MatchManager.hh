@@ -23,7 +23,6 @@
 #include <set>
 #include <memory>
 #include <boost/ptr_container/ptr_map.hpp>
-#include "CoreInterface.hh"
 #include "XMPP/Component.hh"
 #include "XMPP/RootNode.hh"
 #include "XMPP/Disco.hh"
@@ -36,6 +35,7 @@
 #include "MatchDatabase.hh"
 
 #include "ComponentBase.hh"
+#include "GameManager.hh"
 
 class MatchManager : public ComponentBase {
 	public:
@@ -44,7 +44,7 @@ class MatchManager : public ComponentBase {
 		 * \param core_interface is the interface to the core.
 		 * \param config is the configuration for this component.
 		 */
-		MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& handleError);
+		MatchManager(const XML::Tag& config, GameManager& game_manager, const XMPP::ErrorHandler& handleError);
 
 		/*! \brief Destructor
 		 *
@@ -99,6 +99,8 @@ class MatchManager : public ComponentBase {
 		MatchDatabase match_db;
 
 		Util::IDSet match_ids;
+
+        GameManager& game_manager;
 
 		XMPP::ErrorHandler handleError;
 };

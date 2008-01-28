@@ -61,19 +61,9 @@ class Core {
 
 		static void init(const XML::Tag& config); 
 
-		static void destroy();
-
-		void startGame(Game* game);
-		void endGame(int game_id, GameResult* result);
-		void adjournGame(int game_id, GameResult* result);
-		void cancelGame(int game_id);
+		static void close();
 
 	private:
-
-		void _startGame(Game* game);
-		void _endGame(int game_id, GameResult* result);
-		void _adjournGame(int game_id, GameResult* result);
-		void _cancelGame(int game_id);
 
 		Core(const XML::Tag& config);
 
@@ -81,8 +71,8 @@ class Core {
 
         DatabaseManager database_manager;
 
-		MatchManager match_manager;
 		GameManager game_manager;
+		MatchManager match_manager;
 		RatingComponent rating_component;
 
 

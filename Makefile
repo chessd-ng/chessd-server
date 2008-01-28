@@ -2,7 +2,6 @@ SOURCES = \
 		  src/Agreement.cc \
 		  src/ComponentBase.cc \
 		  src/Core.cc \
-		  src/CoreInterface.cc \
 		  src/DatabaseManager.cc \
 		  src/Game.cc \
 		  src/GameChess.cc \

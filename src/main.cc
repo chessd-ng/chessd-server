@@ -18,28 +18,17 @@
 
 #include <iostream>
 #include <string>
+#include <exception>
 
 #include "Core.hh"
 
 using namespace std;
 
-const char* secret = "secret";
-
-void log_traffic(const std::string& data, bool incoming) {
-	cout << "-----------------------------" << endl;
-	cout << (incoming ? "Incoming!" : "Outcoming!") << endl;
-	cout << "-----------" << endl;
-	cout << data << endl;
-	cout << "-----------------------------" << endl;
-    return;
-}
-
 int main(void) {
 	try {
-		XML::Tag* config = XML::loadXmlFile("config.xml");
+		std::auto_ptr<XML::Tag> config(XML::loadXmlFile("config.xml"));
 		Core::init(*config);
 		Core& core = Core::singleton();
-		delete config;
 		try {
 			core.connect();
 		} catch(const char* error) {
@@ -48,9 +37,11 @@ int main(void) {
 		}
 		string cmd;
 		cin >> cmd;
-		Core::destroy();
+		Core::close();
 	} catch (const char* msg) {
 		cout << "Error: " << msg << endl;
-	}
+	} catch (const exception& error) {
+		cout << "Error: " << error.what() << endl;
+    }
 	return 0;
 }

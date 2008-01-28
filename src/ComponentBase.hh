@@ -21,7 +21,6 @@
 
 #include "XML/Xml.hh"
 
-#include "CoreInterface.hh"
 #include "XMPP/RootNode.hh"
 #include "XMPP/Component.hh"
 #include "Threads/Dispatcher.hh"
@@ -81,9 +80,6 @@ class ComponentBase {
 
 		/*! \brief Is it running? */
 		bool running;
-
-		/*! \brief Interface to the core */
-		CoreInterface core_interface;
 
 		/*! \brief A XMPP node*/
 		XMPP::RootNode root_node;

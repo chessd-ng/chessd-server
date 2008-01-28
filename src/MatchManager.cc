@@ -49,10 +49,14 @@ class match_error : public XMPP::xmpp_exception {
 
 
 
-MatchManager::MatchManager(const XML::Tag& config, const XMPP::ErrorHandler& handleError) :
+MatchManager::MatchManager(
+        const XML::Tag& config,
+        GameManager& game_manager,
+        const XMPP::ErrorHandler& handleError) :
     ComponentBase(config, "Match Manager"),
     roster(boost::bind(&ComponentBase::sendStanza, this, _1),
             boost::bind(&MatchManager::notifyUserStatus, this, _1, _2)),
+    game_manager(game_manager),
     handleError(handleError)
 {
 
@@ -133,6 +137,8 @@ void MatchManager::handleOffer(const Stanza& stanza) {
         this->notifyOffer(id, requester);
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request(error.what());
+    } catch (const char* error) {
+        throw XMPP::bad_request(error);
     }
 
 }
@@ -191,7 +197,7 @@ void MatchManager::handleDecline(const Stanza& stanza) {
 void MatchManager::closeMatch(int id, bool accepted) {
     std::auto_ptr<Match> match(this->match_db.closeMatch(id));
     if(accepted) {
-        this->core_interface.startGame(match->createGame());
+        this->game_manager.createGame(match->createGame());
     }
     this->notifyResult(*match, id, accepted);
 }

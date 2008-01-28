@@ -22,9 +22,9 @@
 #include "XMPP/Muc.hh"
 #include "XMPP/Node.hh"
 #include "XMPP/handlers.hh"
-#include "CoreInterface.hh"
 #include "Game.hh"
 #include "Agreement.hh"
+#include "DatabaseManager.hh"
 
 enum GameStatus {
 	GAME_RUNNING,
@@ -43,8 +43,11 @@ struct GameRoomHandlers {
 
 class GameRoom {
 	public:
-		GameRoom(int game_id, Game* game, const XMPP::Jid& room_name,
-				const GameRoomHandlers& handlers);
+        GameRoom(int game_id,
+                Game* game,
+                const XMPP::Jid& room_name,
+                DatabaseManager& database_manager,
+                const GameRoomHandlers& handlers);
 
 		~GameRoom();
 
@@ -54,7 +57,10 @@ class GameRoom {
 		enum GameRequest {
 			REQUEST_DRAW,
 			REQUEST_CANCEL,
-			REQUEST_ADJOURN
+			REQUEST_ADJOURN,
+			REQUEST_DRAW_DECLINE,
+			REQUEST_CANCEL_DECLINE,
+			REQUEST_ADJOURN_DECLINE
 		};
 		/*! \brief handle an incoming game iq */
 		void handleGame(XMPP::Stanza* stanza);
@@ -68,8 +74,6 @@ class GameRoom {
 		void handleAdjournAccept(const XMPP::Stanza& stanza);
 		void handleAdjournDecline(const XMPP::Stanza& stanza);
 
-        void notifyPlayers();
-
 		void notifyRequest(GameRequest request, const XMPP::Jid& requester);
 
 		void notifyResult(const GameResult& result);
@@ -80,9 +84,13 @@ class GameRoom {
 		void cancelGame();
 		void adjournGame();
 
-		void check_end_game();
+		void checkEndGame();
+
+        void endGame();
 
         void reportUser(const XMPP::Jid& jid, const std::string& nick, bool available);
+
+        void checkGameIQ(const XMPP::Jid& from);
 
 		int game_id;
 
@@ -92,6 +100,8 @@ class GameRoom {
 		//GameProtocol protocol;
 
 		XMPP::Jid room_jid;
+
+        DatabaseManager database_manager;
 
 		GameRoomHandlers handlers;
 
@@ -108,8 +118,6 @@ class GameRoom {
 		bool game_active;
 
         std::auto_ptr<XML::Tag> game_state;
-
-		CoreInterface core;
 };
 
 #endif

@@ -25,7 +25,6 @@
 #include <set>
 #include <memory>
 #include <boost/ptr_container/ptr_map.hpp>
-#include "CoreInterface.hh"
 #include "XMPP/Component.hh"
 #include "XMPP/RootNode.hh"
 #include "XMPP/Disco.hh"
@@ -35,6 +34,8 @@
 #include "Util/Timer.hh"
 #include "Util/IDSet.hh"
 
+#include "DatabaseManager.hh"
+
 
 class GameManager : public ComponentBase {
 	public:
@@ -42,7 +43,7 @@ class GameManager : public ComponentBase {
 		 *
 		 * \param config is the configuration for this component.
 		 */
-		GameManager(const XML::Tag& config, const XMPP::ErrorHandler& handle_error);
+		GameManager(const XML::Tag& config, DatabaseManager& database_manager, const XMPP::ErrorHandler& handle_error);
 
 		/*! \brief Destructor
 		 *
@@ -56,7 +57,9 @@ class GameManager : public ComponentBase {
 		 * \param game_id is the game's id
 		 * \param game is the game to be inserted
 		 */
-		void insertGame(int game_id, Game* game);
+		void createGame(Game* game);
+
+
 
 	private:
 
@@ -64,7 +67,7 @@ class GameManager : public ComponentBase {
 		 *
 		 * This one is not thread safe
 		 */
-		void _insertGame(int game_id, Game* game);
+		void _insertGame(Game* game);
 
 		/*! \brief close a game room */
 		void closeGameRoom(int room_id);
@@ -81,9 +84,13 @@ class GameManager : public ComponentBase {
 
 		boost::ptr_map<int, GameRoom> game_rooms;
 
+        DatabaseManager& database_manager;
+
 		XMPP::ErrorHandler handle_error;
 
 		Util::IDSet room_ids;
+
+        long long game_ids;
 
 };
 
