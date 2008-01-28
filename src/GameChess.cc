@@ -20,6 +20,7 @@
 #include <iostream>
 #include "Util/utils.hh"
 #include <string>
+#include "GameException.hh"
 //TODO
 //tempo
 //testar XML
@@ -35,10 +36,10 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 
 	this->_title=this->_players[0].jid.full()+" x "+this->_players[1].jid.full();
 
-	this->_resign=NENHUM;
+	this->_resign=Chess::UNDEFINED;
 	this->_draw=false;
-	colormap[this->_teams[0][0]]=_players[0].color==White?BRANCAS:PRETAS;
-	colormap[this->_teams[1][0]]=_players[1].color==White?BRANCAS:PRETAS;
+	colormap[this->_teams[0][0]]=_players[0].color==White?Chess::WHITE:Chess::BLACK;
+	colormap[this->_teams[1][0]]=_players[1].color==White?Chess::WHITE:Chess::BLACK;
 }
 
 XML::Tag* GameChess::generateStateTag(const State &est) {
@@ -46,7 +47,7 @@ XML::Tag* GameChess::generateStateTag(const State &est) {
 	t.openTag("board");
 	{
 		t.addAttribute("state",est.getFEN());
-		t.addAttribute("turn",est.vez==BRANCAS?"w":"b");
+		t.addAttribute("turn",est.vez==Chess::WHITE?"w":"b");
 		t.addAttribute("castle",est.castle);
 		if(est.enpassant.posx()!=-1)
 			t.addAttribute("enpassant",est.enpassant.toStringNotation());
@@ -89,44 +90,43 @@ void GameChess::draw() {
 void GameChess::adjourn() {
 	//TODO
 }
-GameResult* GameChess::done(void) const {
-	TeamResultList l;
-	for(int i=0;i<(int)_teams.size();i++)
-		l.push_back(make_pair(_teams[i],UNDEFINED));
-
+bool GameChess::done(void) const {
 	bool checkmate;
 	std::string reason;
+	TeamResultList trl;
+	for(int i=0;i<(int)_teams.size();i++)
+		trl.push_back(make_pair(_teams[i],UNDEFINED));
 
-	if((checkmate=chess.verifyCheckMate()) or this->_resign!=color(NENHUM)) {
+	if((checkmate=chess.verifyCheckMate()) or this->_resign!=Chess::UNDEFINED) {
 		reason=(checkmate==true)?"Checkmate":"The other player resigned";
-		if(this->_resign==color(PRETAS) or (chess.Winner()==0)) {
-			l[0].second=WINNER;
-			l[1].second=LOSER;
+		if(this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE)) {
+			trl[0].second=WINNER;
+			trl[1].second=LOSER;
 		}
 		else {
-			l[1].second=WINNER;
-			l[0].second=LOSER;
+			trl[1].second=WINNER;
+			trl[0].second=LOSER;
 		}
 	}
 	else if(this->_draw==true) {
-		l[0].second=l[1].second=DRAWER;
+		trl[0].second=trl[1].second=DRAWER;
 		reason="The players agreed on a draw";
 	}
 	else if(chess.verifyDraw()==true) {
-		l[0].second=l[1].second=DRAWER;
+		trl[0].second=trl[1].second=DRAWER;
 		reason="Draw";
 	}
 
 	if(reason.size()!=0)
-		return this->newGameResult(reason,l,chess.getHistory());
-	return NULL;
+		return true;
+	return false;
 }
 
 void GameChess::move(const Player& player, const std::string& movement) {
-	if(colormap[player]!=chess.Turn())
-		throw "It's not your turn";
-	if(chess.verifyandmakeMove(movement)==false)
-		throw "Invalid Move";
+	if(colormap[player]!=chess.turn())
+		throw wrong_turn(std::string("It's not ")+player.full()+std::string(" turn"));
+	if(chess.verifyAndMakeMove(movement)==false)
+		throw invalid_move("Invalid Move");
 }
 
 const TeamList& GameChess::teams() const {

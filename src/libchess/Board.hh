@@ -22,36 +22,47 @@
 #include "Piece.hh"
 
 #include <iostream>
+#include <vector>
 
 class Board
 {
 	private:
+	protected:
 		int nlines,ncolums;
-		Piece** board;
+		std::vector<std::vector<Piece*> > board;
 	public:
 		Board(int n,int m); 
-		~Board();
-#ifdef DEBUG
-		//para testes
-		void desenha() const;
-#endif
 
-		//pega o FEN completo
-		std::string getFEN() const;
+		virtual ~Board();
 
-		//Pega apenas a parte das posicoes das pegas do FEN
-		std::string getPosforFEN() const;
-		void createPiece(const Position& pos,const Piece& pe);
+		const std::vector<Piece*>& operator[](int value) const;
 
-		//Funcoes para pegar informacoes do boardleiro
-		char getType(const Position& p) const;
-		char getPieceReal(const Position& p) const;
-		int getPlayer(const Position& p) const;
+		void createPiece(const Position& pos,Piece *pe);
+		
+		//TODO change the name of the three functions below
+		/*Functions to get info about the Board*/
+		int getType(const Position& p) const;
 
-		//essa funcao estabelece o boardleiro a partir do FEN dado
-		void setState(const std::string& FEN);
-		//Executa uma ChessMove
-		void makeChessMove(const ChessMove& j);
+		int getPieceReal(const Position& p) const;
+
+		int getColor(const Position& p) const;
+
+		/*! \brief Mave a move, it just move pieces*/
+		virtual void makeMove(const ChessMove& j)=0;
 };
 
+class ChessBoard : public Board {
+	public:
+		ChessBoard(int n, int m);
+
+		virtual ~ChessBoard();
+
+		//Make a ChessMove
+		virtual void makeMove(const ChessMove &j);
+	private:
+};
+
+//Recreate the Board From the FEN given
+//void setState(const std::string& FEN);
+//std::string Board::getPosforFEN() const;
 #endif
