@@ -195,11 +195,36 @@ void MatchManager::handleDecline(const Stanza& stanza) {
 }
 
 void MatchManager::closeMatch(int id, bool accepted) {
-    std::auto_ptr<Match> match(this->match_db.closeMatch(id));
+    Match* match = this->match_db.closeMatch(id);
     if(accepted) {
-        this->game_manager.createGame(match->createGame());
+        this->game_manager.createGame(
+                match->createGame(),
+                boost::bind(&MatchManager::notifyGameStart, this, id, match, _1));
+    } else {
+        this->notifyResult(*match, id, accepted);
+        delete match;
     }
-    this->notifyResult(*match, id, accepted);
+}
+
+void MatchManager::notifyGameStart(int match_id, Match* match, const XMPP::Jid& jid) {
+	XML::TagGenerator generator;
+    Stanza stanza("iq");
+
+    stanza.subtype() = "set";
+    stanza.id() = "zzzz";
+
+	generator.openTag("query");
+	generator.addAttribute("xmlns", XMLNS_MATCH_ACCEPT);
+	generator.openTag("match");
+	generator.addAttribute("id", Util::to_string(match_id));
+	generator.addAttribute("room", jid.full());
+
+    stanza.children().push_back(generator.getTag());
+    foreach(player, match->players()) {
+        stanza.to() = *player;
+        this->root_node.sendStanza(new XMPP::Stanza(stanza));
+    }
+    delete match;
 }
 
 void MatchManager::notifyResult(const Match& match, int id, bool accepted) {

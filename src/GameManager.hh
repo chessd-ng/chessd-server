@@ -36,6 +36,7 @@
 
 #include "DatabaseManager.hh"
 
+typedef boost::function<void (const XMPP::Jid& gmae_room)> OnGameStart;
 
 class GameManager : public ComponentBase {
 	public:
@@ -51,23 +52,23 @@ class GameManager : public ComponentBase {
 		 */
 		~GameManager();
 
-		/*! \brief Insert a game
+		/*! \brief Create a game
 		 *
 		 * This is thread safe.
-		 * \param game_id is the game's id
 		 * \param game is the game to be inserted
+		 * \param on_game_start is a notifier for the game jid
 		 */
-		void createGame(Game* game);
+		void createGame(Game* game, const OnGameStart& on_game_start = OnGameStart());
 
 
 
 	private:
 
-		/*! \brief insertGame helper
+		/*! \brief createGame helper
 		 *
 		 * This one is not thread safe
 		 */
-		void _insertGame(Game* game);
+		void _createGame(Game* game, const OnGameStart& on_game_start = OnGameStart());
 
 		/*! \brief close a game room */
 		void closeGameRoom(int room_id);

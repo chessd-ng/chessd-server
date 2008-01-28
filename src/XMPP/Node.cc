@@ -99,8 +99,6 @@ namespace XMPP {
                         iq_track.on_result(stanza);
                     }
                     this->iq_tracks.erase(id);
-                } else {
-                    throw bad_request("Invalid iq type");
                 }
             } else {
                 throw bad_request("No id");

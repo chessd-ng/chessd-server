@@ -83,7 +83,7 @@ GameRoom::GameRoom(int game_id,
 
     /* Set game iqs */
     this->node.setIqHandler(boost::bind(&GameRoom::handleMove, this, _1),
-            XMLNS_GAME);
+            XMLNS_GAME_MOVE);
     this->node.setIqHandler(boost::bind(&GameRoom::handleResign, this, _1),
             XMLNS_GAME_RESIGN);
     this->node.setIqHandler(boost::bind(&GameRoom::handleDrawAccept, this, _1),
@@ -120,7 +120,7 @@ void GameRoom::checkGameIQ(const XMPP::Jid& from) {
         throw XMPP::not_acceptable("Only occupants are allowed to send queries to the game");
     if(not Util::has_key(this->all_players, from))
         throw XMPP::not_acceptable("Only players can do that");
-    if(this->game_active)
+    if(not this->game_active)
         throw XMPP::not_acceptable("Game is not active");
 }
 
@@ -310,6 +310,7 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
 void GameRoom::endGame() {
     GameResult* result = this->game->result();
     this->game_active = false;
+    this->notifyResult(*result);
     this->database_manager.queueTransaction(boost::bind(storeResult, result, _1));
 }
 

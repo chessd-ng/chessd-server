@@ -9,10 +9,10 @@ SOURCES = \
 		  src/GameRoom.cc \
 		  src/GameStandard.cc \
 		  src/libchess/Board.cc \
+		  src/libchess/ChessBasedGame.cc \
 		  src/libchess/Chess.cc \
 		  src/libchess/ChessMove.cc \
 		  src/libchess/Piece.cc \
-		  src/libchess/rules.cc \
 		  src/libchess/State.cc \
 		  src/main.cc \
 		  src/MatchChess.cc \

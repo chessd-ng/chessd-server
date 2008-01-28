@@ -49,7 +49,7 @@
 -->
 <iq type='set' to='match.shiva' id='match'>
 	<query xmlns='http://c3sl.ufpr.br/chessd#match#accept'>
-        <match id="0"/>
+        <match id="0" room="room_name@games.shiva"/>
     </query>
 </iq>
 
@@ -73,15 +73,6 @@
 	<query xmlns='http://c3sl.ufpr.br/chessd#match#decline/accept'>
         <match id="0"/>
     </query>
-</iq>
-
-<!--
-     Uma vez que o desafio foi aceito, o jogo
-     será iniciado, e todas as partes receberão
-     um convite da sala do jogo para jogar
--->
-<iq from="game_0@games.shiva" type="set" to="eduari@shiva/Psi" >
-    <query xmlns="http://c3sl.ufpr.br/chessd#game#start"/>
 </iq>
 
 <!--

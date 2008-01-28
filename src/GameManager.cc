@@ -46,11 +46,11 @@ void GameManager::onError(const string& msg) {
     this->handle_error(msg);
 }
 
-void GameManager::createGame(Game* game) {
-	this->dispatcher.queue(boost::bind(&GameManager::_insertGame, this, game));
+void GameManager::createGame(Game* game, const OnGameStart& on_game_start) {
+	this->dispatcher.queue(boost::bind(&GameManager::_createGame, this, game, on_game_start));
 }
 
-void GameManager::_insertGame(Game* game) {
+void GameManager::_createGame(Game* game, const OnGameStart& on_game_start) {
     int game_id = this->game_ids++;
 	int room_id = this->room_ids.acquireID();
 	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
@@ -65,6 +65,9 @@ void GameManager::_insertGame(Game* game) {
 	this->root_node.disco().items().insert(new XMPP::DiscoItem(room_jid.node(),
 				room_jid));
 	game_rooms.insert(room_id, game_room);
+    /* Notify game ceation */
+    if(not on_game_start.empty())
+        on_game_start(room_jid);
 }
 
 void GameManager::closeGameRoom(int room_id) {

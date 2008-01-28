@@ -85,6 +85,8 @@ class MatchManager : public ComponentBase {
 
         void onError(const std::string& error);
 
+        void notifyGameStart(int match_id, Match* match, const XMPP::Jid& jid);
+
 		/*! \brief A XMPP roster */
 		XMPP::Roster roster;
 
