@@ -36,10 +36,10 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 
 	this->_title=this->_players[0].jid.full()+" x "+this->_players[1].jid.full();
 
-	this->_resign=NENHUM;
+	this->_resign=Chess::UNDEFINED;
 	this->_draw=false;
-	colormap[this->_teams[0][0]]=_players[0].color==White?BRANCAS:PRETAS;
-	colormap[this->_teams[1][0]]=_players[1].color==White?BRANCAS:PRETAS;
+	colormap[this->_teams[0][0]]=_players[0].color==White?Chess::WHITE:Chess::BLACK;
+	colormap[this->_teams[1][0]]=_players[1].color==White?Chess::WHITE:Chess::BLACK;
 }
 
 XML::Tag* GameChess::generateStateTag(const State &est) {
@@ -47,7 +47,7 @@ XML::Tag* GameChess::generateStateTag(const State &est) {
 	t.openTag("board");
 	{
 		t.addAttribute("state",est.getFEN());
-		t.addAttribute("turn",est.vez==BRANCAS?"w":"b");
+		t.addAttribute("turn",est.vez==Chess::WHITE?"w":"b");
 		t.addAttribute("castle",est.castle);
 		if(est.enpassant.posx()!=-1)
 			t.addAttribute("enpassant",est.enpassant.toStringNotation());
@@ -98,9 +98,9 @@ GameResult* GameChess::done(void) const {
 	bool checkmate;
 	std::string reason;
 
-	if((checkmate=chess.verifyCheckMate()) or this->_resign!=color(NENHUM)) {
+	if((checkmate=chess.verifyCheckMate()) or this->_resign!=Chess::UNDEFINED) {
 		reason=(checkmate==true)?"Checkmate":"The other player resigned";
-		if(this->_resign==color(PRETAS) or (chess.Winner()==0)) {
+		if(this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE)) {
 			l[0].second=WINNER;
 			l[1].second=LOSER;
 		}
@@ -124,10 +124,17 @@ GameResult* GameChess::done(void) const {
 }
 
 void GameChess::move(const Player& player, const std::string& movement) {
+<<<<<<< HEAD:src/GameChess.cc
 	if(colormap[player]!=chess.Turn())
 		throw wrong_turn(std::string("It's not ")+player.full()+std::string(" turn"));
 	if(chess.verifyandmakeMove(movement)==false)
 		throw invalid_move("Invalid Move");
+=======
+	if(colormap[player]!=chess.turn())
+		throw "It's not your turn";
+	if(chess.verifyAndMakeMove(movement)==false)
+		throw "Invalid Move";
+>>>>>>> libchess-experiment:src/GameChess.cc
 }
 
 const TeamList& GameChess::teams() const {

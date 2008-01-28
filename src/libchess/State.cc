@@ -32,7 +32,7 @@ State::State() {
 	this->lastenpassant=Position(-1,-1);
 	this->halfmoves=0;
 	this->fullmoves=1;
-	this->vez=BRANCAS;
+	this->vez=ChessPiece::WHITE;
 	//cuidado com isso
 	this->tabfen=std::string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 }
@@ -43,7 +43,7 @@ State::State(const std::string posfen) {
 	this->lastenpassant=Position(-1,-1);
 	this->halfmoves=0;
 	this->fullmoves=1;
-	this->vez=BRANCAS;
+	this->vez=ChessPiece::WHITE;
 }
 State::State(const State& a) {
 	*this=a;
@@ -55,7 +55,7 @@ std::string State::getentireFEN() const {
 	std::string ans;
 	ans=this->tabfen;
 	ans+=" ";
-	ans+=(char)(this->vez == BRANCAS ? 'w' : 'b');
+	ans+=(char)(this->vez == ChessPiece::WHITE ? 'w' : 'b');
 	ans+=" ";
 	ans+=this->castle;
 	ans+=" ";
