@@ -118,6 +118,8 @@ class GameRoom {
 		bool game_active;
 
         std::auto_ptr<XML::Tag> game_state;
+
+        Util::Time start_time;
 };
 
 #endif

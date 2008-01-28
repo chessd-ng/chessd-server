@@ -22,6 +22,7 @@
 #include <boost/generator_iterator.hpp>
 
 #include "XMPP/Exception.hh"
+#include "GameException.hh"
 
 #define XMLNS_GAME                  "http://c3sl.ufpr.br/chessd#game"
 #define XMLNS_GAME_MOVE             "http://c3sl.ufpr.br/chessd#game#move"
@@ -52,9 +53,9 @@ static const char result_table[][32] = {
     "loser"
 };
 
-class invalid_move : public XMPP::xmpp_exception {
+class xmpp_invalid_move : public XMPP::xmpp_exception {
     public:
-        invalid_move(const std::string& what) : xmpp_exception(what) { }
+        xmpp_invalid_move(const std::string& what) : xmpp_exception(what) { }
 
         virtual XMPP::Stanza* getErrorStanza(XMPP::Stanza* stanza) const {
             return XMPP::Stanza::createErrorStanza
@@ -75,7 +76,8 @@ GameRoom::GameRoom(int game_id,
     node(handlers.send_stanza, room_jid, game->title(), "game", "game"),
     muc(node, room_jid, boost::bind(&GameRoom::reportUser, this, _1, _2, _3)),
     game_active(true),
-    game_state(game->state())
+    game_state(game->state()),
+    start_time(Util::Timer::Now())
 {
 
     /* Set features */
@@ -129,15 +131,15 @@ void GameRoom::handleMove(const XMPP::Stanza& stanza) {
     try {
         const XML::Tag& move = stanza.query().findChild("move");
         std::string move_string = move.getAttribute("long");
-        this->game->move(stanza.from(), move_string);
+        this->game->move(stanza.from(), move_string, Util::Timer::Now() - this->start_time);
         this->node.sendStanza(stanza.createIQResult());
         this->game_state = std::auto_ptr<XML::Tag>(this->game->state());
         this->notifyMove(move_string);
         if(this->game->done()) {
             this->endGame();
         }
-    } catch (const char* msg) {
-        throw invalid_move(msg);
+    } catch (const game_exception& error) {
+        throw xmpp_invalid_move(error.what());
     }
 }
 

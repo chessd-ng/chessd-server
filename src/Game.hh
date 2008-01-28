@@ -25,6 +25,7 @@
 #include "Team.hh"
 #include "Rating.hh"
 #include "XML/Xml.hh"
+#include "Util/Timer.hh"
 
 enum TeamResult {
 	WINNER,
@@ -98,8 +99,11 @@ class Game {
 		
 		/*! \brief Make a move in the game
 		 *
-		 * \param movement is the description of the movement*/
-		virtual void move(const Player& player, const std::string& movement) = 0;
+         * \param player us the player who made the move
+		 * \param movement is the description of the movement
+         * \param time_stamp is the time of the move since the begining of the game
+         */
+		virtual void move(const Player& player, const std::string& movement, const Util::Time& time_stamp) = 0;
 
 		virtual const TeamList& teams() const = 0;
 };
