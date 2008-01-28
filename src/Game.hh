@@ -89,10 +89,12 @@ class Game {
 		virtual void adjourn() = 0;
 
 		/*! \brief Has the game ended?
-		 *
-		 * \return Returns the game result if the game is over, NULL otherwise.
 		 */
-		virtual GameResult* done() const = 0;
+		virtual bool done() const = 0;
+
+        /*! \brief Returns the game result
+         */
+		virtual GameResult* result() const = 0;
 		
 		/*! \brief Make a move in the game
 		 *
