@@ -92,12 +92,11 @@ class GameRoom {
 
         void checkGameIQ(const XMPP::Jid& from);
 
+        XML::Tag* gameState();
+
 		int game_id;
 
 		std::auto_ptr<Game> game;
-
-
-		//GameProtocol protocol;
 
 		XMPP::Jid room_jid;
 
@@ -106,7 +105,6 @@ class GameRoom {
 		GameRoomHandlers handlers;
 
 		XMPP::Node node;
-		//XMPP::Roster roster;
 		XMPP::Muc muc;
 
 		Agreement draw_agreement;
@@ -116,8 +114,6 @@ class GameRoom {
 		std::set<XMPP::Jid> all_players;
 
 		bool game_active;
-
-        std::auto_ptr<XML::Tag> game_state;
 
         Util::Time start_time;
 };

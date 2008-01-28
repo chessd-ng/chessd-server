@@ -76,7 +76,6 @@ GameRoom::GameRoom(int game_id,
     node(handlers.send_stanza, room_jid, game->title(), "game", "game"),
     muc(node, room_jid, boost::bind(&GameRoom::reportUser, this, _1, _2, _3)),
     game_active(true),
-    game_state(game->state()),
     start_time(Util::Timer::Now())
 {
 
@@ -133,7 +132,6 @@ void GameRoom::handleMove(const XMPP::Stanza& stanza) {
         std::string move_string = move.getAttribute("long");
         this->game->move(stanza.from(), move_string, Util::Timer::Now() - this->start_time);
         this->node.sendStanza(stanza.createIQResult());
-        this->game_state = std::auto_ptr<XML::Tag>(this->game->state());
         this->notifyMove(move_string);
         if(this->game->done()) {
             this->endGame();
@@ -151,7 +149,7 @@ void GameRoom::notifyState(const XMPP::Jid& user) {
     stanza->subtype() = "set";
     generator.openTag("query");
     generator.addAttribute("xmlns", XMLNS_GAME_STATE);
-    generator.addChild(this->game_state->clone());
+    generator.addChild(this->gameState());
     stanza->children().push_back(generator.getTag());
     this->node.sendIq(stanza);
 }
@@ -274,8 +272,12 @@ XMPP::Stanza* createMoveStanza(XML::Tag* state, const std::string& long_move) {
     return stanza;
 }
 
+XML::Tag* GameRoom::gameState() {
+    return this->game->state(Util::Timer::Now() - this->start_time);
+}
+
 void GameRoom::notifyMove(const std::string& long_move) {
-    XMPP::Stanza* stanza = createMoveStanza(this->game_state->clone(), long_move);
+    XMPP::Stanza* stanza = createMoveStanza(this->gameState(), long_move);
     this->muc.broadcastIq(stanza);
 }
 

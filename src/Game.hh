@@ -68,8 +68,9 @@ class Game {
 	public:
 		virtual ~Game() { }
 
-		/*! \brief Current state of the game */
-		virtual XML::Tag* state() const = 0;
+		/*! \brief Current state of the game
+         */
+		virtual XML::Tag* state(const Util::Time& current_time) const = 0;
 
 		/*! \brief The game category */
 		virtual const std::string& category() const = 0;
