@@ -18,6 +18,7 @@
 
 #include "MatchChess.hh"
 #include "Util/utils.hh"
+#include "GameException.hh"
 
 /*
  * MatchRuleChess Things
@@ -29,26 +30,36 @@ MatchRuleChess::MatchRuleChess() {
 MatchRuleChess::~MatchRuleChess() {
 }
 
-bool MatchRuleChess::validateXML(const XML::Tag& _match_offer) const {
-	if(_match_offer.name()=="match")
-	if(_match_offer.hasAttribute("category"))
-	if(_match_offer.getAttribute("category") == this->getCategory()) {
-		int conta=0;
-		foreach(c_it,_match_offer.tags()) {
-			if(c_it->name()=="player") {
-				conta++;
-				if(!(c_it->hasAttribute("jid") and \
-							c_it->hasAttribute("color") and \
-							c_it->hasAttribute("time")))
-					return false;
-				if(isTimeValid(*c_it)==false)
-					return false;
+void MatchRuleChess::validateXML(const XML::Tag& _match_offer) const {
+	if(_match_offer.name()=="match") {
+		if(_match_offer.hasAttribute("category")) {
+			if(_match_offer.getAttribute("category") == this->getCategory()) {
+				int conta=0;
+				foreach(c_it,_match_offer.tags()) {
+					if(c_it->name()=="player") {
+						conta++;
+						if(!c_it->hasAttribute("jid"))
+							throw bad_information("xml does not have jid for a player");
+						if(!c_it->hasAttribute("color"))
+							throw bad_information("xml does not have color for a player");
+						if(!c_it->hasAttribute("time"))
+							throw bad_information();
+						if(isTimeValid(*c_it)==false)
+							throw bad_information(std::string("invalid time for category ")+this->getCategory());
+					}
+				}
+				if(conta==2)
+					throw bad_information(std::string("Invalid number of players for category")+this->getCategory());
 			}
+			else
+				throw bad_information("wrong category name");
 		}
-		if(conta==2)
-			return true;
+		else
+			throw bad_information("category missing");
 	}
-	return false;
+	else
+		throw bad_information("wrong matchrule xml name");
+	throw bad_information("xml is wrong in someway");
 }
 StandardPlayerList MatchRuleChess::getPlayersfromXML(const XML::Tag& _match_offer) const {
 	if(this->validateXML(_match_offer)==false)

@@ -76,6 +76,7 @@ void ChessStandardGameResult::updateRating(std::map<Player, Rating> &ratings) co
 		double E=GlickoSystem::E(ratings[playerlist[i]],ratings[playerlist[j]]);
 
 		double fs2=GlickoSystem::gRD(ratings[playerlist[j]]);
+
 //		economical way
 		double denominator=1.0/(GlickoSystem::square(ratings[playerlist[i]].volatility())) + GlickoSystem::square(GlickoSystem::q()) * GlickoSystem::square(fs2) * E * (1.0 - E);
 

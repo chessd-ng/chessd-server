@@ -20,6 +20,7 @@
 #include <iostream>
 #include "Util/utils.hh"
 #include <string>
+#include "GameException.hh"
 //TODO
 //tempo
 //testar XML
@@ -124,9 +125,9 @@ GameResult* GameChess::done(void) const {
 
 void GameChess::move(const Player& player, const std::string& movement) {
 	if(colormap[player]!=chess.Turn())
-		throw "It's not your turn";
+		throw wrong_turn(std::string("It's not ")+player.full()+std::string(" turn"));
 	if(chess.verifyandmakeMove(movement)==false)
-		throw "Invalid Move";
+		throw invalid_move("Invalid Move");
 }
 
 const TeamList& GameChess::teams() const {

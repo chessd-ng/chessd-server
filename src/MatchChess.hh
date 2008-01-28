@@ -36,7 +36,7 @@ class MatchRuleChess : public MatchRule {
 		StandardPlayerList getPlayersfromXML(const XML::Tag& _match_offer) const;
 
 	private:
-		virtual bool validateXML(const XML::Tag& _match_offer) const;
+		virtual void validateXML(const XML::Tag& _match_offer) const;
 
 		virtual bool isTimeValid(const XML::Tag& _player) const =0;
 };
