@@ -20,7 +20,6 @@
 #define GAMECHESS_HH
 
 #include "Game.hh"
-//#include "Chesslib.hh"
 #include "Util/Timer.hh"
 #include "libchess/Chess.hh"
 #include "XMPP/Jid.hh"
@@ -34,7 +33,7 @@ class GameChess : public Game {
 
 		virtual ~GameChess() {};
 
-		virtual XML::Tag* state() const;
+		virtual XML::Tag* state(const Util::Time& current_time) const;
 
 		virtual const std::string& category() const;
 		
@@ -60,33 +59,51 @@ class GameChess : public Game {
 
 		virtual GameResult* result() const = 0;
 
-		virtual void move(const Player& player, const std::string& movement);
+		virtual void move(const Player& player, const std::string& movement, const Util::Time& time_stamp);
 
 		virtual const TeamList& teams() const;
 
-		static XML::Tag* generateStateTag(const State &est) ;
+		XML::Tag* generateStateTag(const State &est,const Util::Time& current_time) const ;
 		
 	protected:
-		//these 3 below is used for passing information from done() to result()
+		/*! \brief returns the end reason if the game has ended*/
+		virtual std::string doneEndReason() const;
+
+		/*! \brief returns the team result list if the game has ended*/
+		virtual TeamResultList doneTeamResultList() const;
+
+		//no problem to stay here.
 		Chess chess;
-		TeamList _teams;
-		Chess::Color _resign;
-		bool _draw;
+
+		Util::Time time_of_last_move;
+
+		XML::Tag *_history;
 
 	private:
 		std::string _title;
+
 		std::string _category;
 
+		TeamList _teams;
+
+		Chess::Color _resign;
+
+		bool _draw;
 
 		Util::Time whitetime;
-		//map de player -> cor
+
 		std::map<Player,Chess::Color> colormap;
+
+		std::map<Player,StandardPlayer*> standard_player_map;
+
 		StandardPlayerList _players;
+
+		XML::TagGenerator history_saved;
 };
 
 class ChessGameResult : public GameResult {
 	public:
-		ChessGameResult(const std::string& endreason,const TeamResultList &l,const std::string& _category,const std::vector<State> &s);
+		ChessGameResult(const std::string& endreason,const TeamResultList &l,const std::string& _category,XML::Tag *hist);
 
 		virtual ~ChessGameResult(){};
 
@@ -104,11 +121,15 @@ class ChessGameResult : public GameResult {
 		virtual void updateRating(std::map<Player, Rating>& ratings) const = 0;
 	protected:
 		TeamResultList teamresultlist;
+
 	private:
 		std::string _end_reason;
+
 		PlayerList playerlist;
+
 		std::string _category;
-		std::vector<State> states;
+
+		XML::Tag *_history;
 };
 
 #endif

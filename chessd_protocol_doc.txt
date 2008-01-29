@@ -86,9 +86,11 @@
 -->
 <iq from="game_0@games.shiva" type="set" id="0" to="raphaelhr@shiva/Psi" >
     <query xmlns="http://c3sl.ufpr.br/chessd#game#state">
-        <game category="standard" >
-            <board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" turn="w" />
-        </game>
+        <state category="standard" >
+			<board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" turn="w" />
+            <player inc="1" color="w" time="900" jid="raphaelhr@shiva/Psi" />
+            <player inc="1" color="b" time="900" jid="eduari@shiva/Psi" />
+        </state>
     </query>
 </iq>
 

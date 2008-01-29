@@ -30,36 +30,34 @@ MatchRuleChess::MatchRuleChess() {
 MatchRuleChess::~MatchRuleChess() {
 }
 
+//FIXME
+//does not verify if the time of the players are equal
 void MatchRuleChess::validateXML(const XML::Tag& _match_offer) const {
-	if(_match_offer.name()=="match") {
-		if(_match_offer.hasAttribute("category")) {
-			if(_match_offer.getAttribute("category") == this->getCategory()) {
-				int conta=0;
-				foreach(c_it,_match_offer.tags()) {
-					if(c_it->name()=="player") {
-						conta++;
-						if(!c_it->hasAttribute("jid"))
-							throw bad_information("xml does not have jid for a player");
-						if(!c_it->hasAttribute("color"))
-							throw bad_information("xml does not have color for a player");
-						if(!c_it->hasAttribute("time"))
-							throw bad_information("xml does not have time for a player");
-						if(isTimeValid(*c_it)==false)
-							throw bad_information(std::string("invalid time for category ")+this->getCategory());
-					}
-				}
-				if(conta==2)
-					throw bad_information(std::string("Invalid number of players for category")+this->getCategory());
-			}
-			else
-				throw bad_information("wrong category name");
-		}
-		else
-			throw bad_information("category missing");
-	}
-	else
+	if(_match_offer.name()!="match")
 		throw bad_information("wrong matchrule xml name");
-	throw bad_information("xml is wrong in someway");
+
+	if(_match_offer.hasAttribute("category")==false)
+		throw bad_information("category missing");
+
+	if(_match_offer.getAttribute("category") != this->getCategory())
+		throw bad_information("category from xml incompatible with class game type");
+
+	int conta=0;
+	foreach(c_it,_match_offer.tags()) {
+		if(c_it->name()=="player") {
+			conta++;
+			if(!c_it->hasAttribute("jid"))
+				throw bad_information("xml does not have jid for a player");
+			if(!c_it->hasAttribute("color"))
+				throw bad_information("xml does not have color for a player");
+			if(!c_it->hasAttribute("time"))
+				throw bad_information("xml does not have time for a player");
+			if(isTimeValid(*c_it)==false)
+				throw bad_information(std::string("invalid time for category ")+this->getCategory());
+		}
+	}
+	if(conta!=2)
+		throw bad_information(std::string("Invalid number of players for category")+this->getCategory());
 }
 
 StandardPlayerList MatchRuleChess::getPlayersfromXML(const XML::Tag& _match_offer) const {
@@ -68,7 +66,7 @@ StandardPlayerList MatchRuleChess::getPlayersfromXML(const XML::Tag& _match_offe
 		if(typeid(*c_it)==typeid(XML::Tag)) {
 			const XML::Tag& tag_c = static_cast<const XML::Tag&>(*c_it);
 			XMPP::Jid aux(tag_c.getAttribute("jid"));
-			Util::Time time(tag_c.getAttribute("time"),Util::Seconds),inc;
+			Util::Time time(tag_c.getAttribute("time"),Util::Minutes),inc;
 			if(tag_c.hasAttribute("inc"))
 				inc=Util::Time(tag_c.getAttribute("inc"),Util::Seconds);
 			StandardPlayerColor c(tag_c.getAttribute("color")=="w"?White:Black);

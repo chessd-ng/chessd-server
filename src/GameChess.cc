@@ -25,7 +25,7 @@
 //tempo
 //testar XML
 
-GameChess::GameChess(const StandardPlayerList& _players, const std::string &_category) {
+GameChess::GameChess(const StandardPlayerList& _players, const std::string &_category) : time_of_last_move() {
 	this->_category=_category;
 	foreach(it,_players) {
 		Team a;
@@ -33,6 +33,9 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 		this->_teams.push_back(a);
 	}
 	this->_players=_players;
+	foreach(it,this->_players) {
+		standard_player_map[it->jid]=&(*it);
+	}
 
 	this->_title=this->_players[0].jid.full()+" x "+this->_players[1].jid.full();
 
@@ -40,10 +43,19 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 	this->_draw=false;
 	colormap[this->_teams[0][0]]=_players[0].color==White?Chess::WHITE:Chess::BLACK;
 	colormap[this->_teams[1][0]]=_players[1].color==White?Chess::WHITE:Chess::BLACK;
+
+	//FIXME
+	//centralize the history
+	history_saved.openTag("game");
+	history_saved.addAttribute("category",this->category());
+	history_saved.addChild(GameChess::generateStateTag(chess.getState(),Util::Time() ));
 }
 
-XML::Tag* GameChess::generateStateTag(const State &est) {
+XML::Tag* GameChess::generateStateTag(const State &est, const Util::Time& current_time) const {
 	XML::TagGenerator t;
+	t.openTag("state");
+	t.addAttribute("category",this->category());
+
 	t.openTag("board");
 	{
 		t.addAttribute("state",est.getFEN());
@@ -57,18 +69,28 @@ XML::Tag* GameChess::generateStateTag(const State &est) {
 		t.addAttribute("fullmoves",State::toString(est.fullmoves));
 	}
 	t.closeTag();
-	return t.getTag();
-}
-XML::Tag* GameChess::state() const {
-	XML::TagGenerator t;
-	t.openTag("game");
-	t.addAttribute("category",this->category());
+	foreach(it,this->_players) {
+		t.openTag("player");
+		{   
+			t.addAttribute("jid",it->jid.full());
+			Util::Time aux=it->time;
+			if( ( chess.turn()==(colormap.find(it->jid)->second) ) and (chess.numberOfTurns() > 2))
+				aux-=current_time-time_of_last_move;
+			
+			//XXX be careful with double from getSeconds
+			t.addAttribute("time", Util::to_string((int)aux.getSeconds()));
 
-	XML::Tag *tag=generateStateTag(chess.getState());
-	t.addChild(tag);
-
+			t.addAttribute("color",it->color==White?"w":"b");
+			t.closeTag();
+		}
+	}
 	t.closeTag();
 	return t.getTag();
+}
+
+XML::Tag* GameChess::state(const Util::Time& current_time) const {
+	return (generateStateTag(chess.getState(),current_time));
+
 }
 
 const std::string& GameChess::category() const {
@@ -82,7 +104,7 @@ void GameChess::resign(const Player& player) {
 	this->_resign=colormap[player];
 }
 void GameChess::call_flag(const Player& player) {
-	//TODO o tempo virá, tenha calma =D
+	//TODO the time will come =D
 }
 void GameChess::draw() {
 	this->_draw=true;
@@ -91,42 +113,88 @@ void GameChess::adjourn() {
 	//TODO
 }
 bool GameChess::done(void) const {
-	bool checkmate;
-	std::string reason;
-	TeamResultList trl;
-	for(int i=0;i<(int)_teams.size();i++)
-		trl.push_back(make_pair(_teams[i],UNDEFINED));
-
-	if((checkmate=chess.verifyCheckMate()) or this->_resign!=Chess::UNDEFINED) {
-		reason=(checkmate==true)?"Checkmate":"The other player resigned";
-		if(this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE)) {
-			trl[0].second=WINNER;
-			trl[1].second=LOSER;
-		}
-		else {
-			trl[1].second=WINNER;
-			trl[0].second=LOSER;
-		}
-	}
-	else if(this->_draw==true) {
-		trl[0].second=trl[1].second=DRAWER;
-		reason="The players agreed on a draw";
-	}
-	else if(chess.verifyDraw()==true) {
-		trl[0].second=trl[1].second=DRAWER;
-		reason="Draw";
-	}
-
-	if(reason.size()!=0)
+	foreach(it,standard_player_map)
+		if(it->second->time <= Util::Time())
+			return true;
+	if(chess.verifyCheckMate() or this->_resign!=Chess::UNDEFINED)
+		return true;
+	else if(this->_draw==true)
+		return true;
+	else if(chess.verifyDraw()==true)
 		return true;
 	return false;
 }
 
-void GameChess::move(const Player& player, const std::string& movement) {
+std::string GameChess::doneEndReason() const {
+	std::string reason;
+	foreach(it,standard_player_map) {
+		if(it->second->time <= Util::Time())
+			return std::string("Time of ")+it->second->jid.full()+std::string(" has ended");
+	}
+	if(chess.verifyCheckMate())
+		return "Checkmate";
+	else if(this->_resign!=Chess::UNDEFINED)
+		return (this->_resign==Chess::WHITE?_teams[0][0].full():_teams[1][0].full())+std::string(" resigned");
+	else if(this->_draw==true)
+		return "The players agreed on a draw";
+	else if(chess.verifyDraw()==true)
+		return "Draw";
+	return "";
+}
+
+TeamResultList GameChess::doneTeamResultList() const {
+	TeamResultList trl;
+	for(int i=0;i<(int)_teams.size();i++)
+		trl.push_back(make_pair(_teams[i],UNDEFINED));
+	foreach(it,standard_player_map) {
+		if(it->second->time <= Util::Time()) {
+			if(it->second->color==White) {
+				trl[0].second=LOSER;
+				trl[1].second=WINNER;
+			} else {
+				trl[0].second=WINNER;
+				trl[1].second=LOSER;
+			}
+		}
+	}
+	if(trl[0].second==UNDEFINED) {
+		if(chess.verifyCheckMate() or (this->_resign!=Chess::UNDEFINED)) {
+			if(this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE)) {
+				trl[0].second=WINNER;
+				trl[1].second=LOSER;
+			}
+			else {
+				trl[0].second=LOSER;
+				trl[1].second=WINNER;
+			}
+		}
+		else if(this->_draw==true)
+			trl[0].second=trl[1].second=DRAWER;
+		else if(chess.verifyDraw()==true)
+			trl[0].second=trl[1].second=DRAWER;
+	}
+
+	return trl;
+}
+
+void GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
+	if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time())
+		throw time_over("Time has ended");
+
 	if(colormap[player]!=chess.turn())
-		throw wrong_turn(std::string("It's not ")+player.full()+std::string(" turn"));
+		throw wrong_turn(std::string("It's not ")+player.full()+std::string("'s turn"));
+
 	if(chess.verifyAndMakeMove(movement)==false)
 		throw invalid_move("Invalid Move");
+
+	if(chess.numberOfTurns() > 2)
+		this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
+
+	time_of_last_move=time_stamp;
+
+	this->history_saved.addChild(this->generateStateTag(chess.getState(),time_stamp));
+	if(done()==true)
+		_history=history_saved.getTag();
 }
 
 const TeamList& GameChess::teams() const {
@@ -136,7 +204,7 @@ const TeamList& GameChess::teams() const {
 //CHESS GAME RESULT Things
 //--------------------------------------
 
-ChessGameResult::ChessGameResult(const std::string &endreason,const TeamResultList &l, const std::string& _category, const std::vector<State> &st) : states(st){
+ChessGameResult::ChessGameResult(const std::string &endreason,const TeamResultList &l, const std::string& _category, XML::Tag* hist) : _history(hist) {
 	this->_end_reason=endreason;
 	this->teamresultlist=l;
 	this->_category=_category;
@@ -160,12 +228,5 @@ const TeamResultList& ChessGameResult::results() const {
 }
 
 XML::Tag* ChessGameResult::history() const {
-	XML::TagGenerator t;
-	t.openTag("game");
-	t.addAttribute("category",this->category());
-	foreach(it,states) {
-		t.addChild(GameChess::generateStateTag(*it));
-	}
-	t.closeTag();
-	return t.getTag();
+	return this->_history;
 }

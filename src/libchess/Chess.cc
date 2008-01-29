@@ -29,6 +29,16 @@ Chess::Chess() : ChessBasedGame(8,8) {
 	_turn=WHITE;
 }
 bool Chess::verifyAndMakeMove(const std::string& move) {
+	if( move.size()!=4 )
+		return false;
+	if(move[0]<'a' or move[0]>'h')
+		return false;
+	if(move[1]<'1' or move[1]>'8')
+		return false;
+	if(move[2]<'a' or move[2]>'h')
+		return false;
+	if(move[1]<'1' or move[1]>'8')
+		return false;
 	ChessMove cm(_turn,move);
 	if(verifyMove(cm) == true) {
 		updateMove(cm);
@@ -115,10 +125,10 @@ void Chess::updateState(const ChessMove& j,bool comeu) {
 	this->atual.vez = (this->atual.vez == WHITE ? BLACK : WHITE );
 	this->atual.halfmoves++;
 	//FIXME sera que tah bom?
-	if((this->gameboard->getType(j.getto()) == 'P') or comeu)
+	if((this->gameboard->getType(j.getto()) == ChessPiece::PAWN) or comeu)
 		this->atual.halfmoves=0;
 	//se o peao moveu 2 casas...
-	if(this->gameboard->getType(j.getto()) == 'P') {
+	if(this->gameboard->getType(j.getto()) == ChessPiece::PAWN) {
 		if( abs(j.getto().posy() - j.getfrom().posy()) == 2) {
 			this->atual.enpassant = Position(j.getto().posx(), (int)((j.getColor() == 0 )? (j.getto().posy()-1) : (j.getto().posy()+1) ) );
 		}
@@ -126,7 +136,7 @@ void Chess::updateState(const ChessMove& j,bool comeu) {
 
 	//Para verificar os casos de castle, necessario verificar se o rei mexeu e torre mexeram
 	//Rei Mexeu?
-	if(this->gameboard->getType(j.getto()) == 'K') {
+	if(this->gameboard->getType(j.getto()) == ChessPiece::KING) {
 		char rei, rainha;
 		rei = ((j.getColor() == 0)? 'K' : 'k');
 		rainha = ((j.getColor() == 0) ? 'Q' : 'q');

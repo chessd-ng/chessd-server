@@ -13,6 +13,8 @@ class ChessBasedGame : public BoardGame {
 
 		ChessBasedGame(int n, int m);
 
+		virtual int numberOfTurns() const;
+
 		virtual int winner() const=0;
 
 		virtual int turn() const=0;

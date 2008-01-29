@@ -28,4 +28,9 @@ class invalid_move : public game_exception {
 		invalid_move(const std::string &msg) : game_exception(msg) { }
 };
 
+class time_over : public game_exception {
+	public:
+		time_over(const std::string &msg) : game_exception(msg) { }
+};
+
 #endif

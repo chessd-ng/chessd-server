@@ -4,6 +4,10 @@ ChessBasedGame::ChessBasedGame(int n, int m) : BoardGame(n,m) {
 	gameboard=new ChessBoard(n,m);
 }
 
+int ChessBasedGame::numberOfTurns() const {
+	return this->historico.getHistory().size()-1;
+}
+
 bool ChessBasedGame::verifyCheck(int jogador) const {
 	return beingAttacked(findKing(jogador),jogador^1);
 }
@@ -28,6 +32,7 @@ void ChessBasedGame::setState(const std::string& FEN) const{
 		}
 	}
 }
+
 std::string ChessBasedGame::getPosForFEN() const {
 	std::string fen;
 	int conta;
