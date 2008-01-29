@@ -45,7 +45,7 @@ class Board
 
 		int getPieceReal(const Position& p) const;
 
-		int getColor(const Position& p) const;
+		int color(const Position& p) const;
 
 		/*! \brief Mave a move, it just move pieces*/
 		virtual void makeMove(const ChessMove& j)=0;
@@ -62,7 +62,4 @@ class ChessBoard : public Board {
 	private:
 };
 
-//Recreate the Board From the FEN given
-//void setState(const std::string& FEN);
-//std::string Board::getPosforFEN() const;
 #endif

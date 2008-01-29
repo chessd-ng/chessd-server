@@ -19,46 +19,69 @@
 #ifndef __JOGADAH__
 #define __JOGADAH__
 #include <string>
-struct Position
-{
-	union {
-		int pos[2];
-		struct {
-			int x,y;
+
+class Position {
+	private:
+		union {
+			int pos[2];
+			struct {
+				int _x,_y;
+			};
 		};
-	};
+	public:
+		int x() const ;
 
-	int posx() const ;
-	int posy() const ;
-	std::string toStringNotation() const ;
+		int y() const ;
 
-	Position(std::string& p);
-	Position(int x, int y);
-	Position() ; 
+		std::string toStringNotation() const ;
 
-	//ver se n precisa copiar
-	bool operator ==(const Position& p) const ;
-	bool operator !=(const Position& p) const ;
-	Position operator +(const Position& p) const {
-		return Position(this->posx()+p.posx(),this->posy()+p.posy());
-	}
+		Position(std::string& p);
+
+		Position(int __x, int __y);
+
+		Position() ; 
+
+		bool operator ==(const Position& p) const;
+
+		bool operator !=(const Position& p) const;
+
+		Position operator +(const Position& p) const;
 };
 
-class ChessMove
-{
+class Move {
 	private:
-		Position from;
-		Position to;
-		int jogador;
+		std::string _move;
+
+	public:
+		const std::string& move() const;
+
+		Move();
+
+		Move(const std::string& __move);
+};
+
+class ChessMove : public Move {
+	private:
+		Position _from;
+
+		Position _to;
+
+		int player;
+
 	public:
 		ChessMove();
-		ChessMove(int jogador,const std::string&);
+
+		ChessMove(int player, const std::string&);
 		
 		ChessMove(const Position& a, const Position& b,const int j);
 
-		Position getto() const ;
-		Position getfrom() const ;
-		int getColor() const ;
+		ChessMove(const Move &mv);
+
+		Position to() const ;
+
+		Position from() const ;
+
+		int color() const ;
 };
 
 #endif

@@ -31,7 +31,7 @@ class ChessBasedGame : public BoardGame {
 
 
 	protected:
-		State atual;
+		State current_state;
 
 		History historico;
 

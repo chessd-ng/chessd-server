@@ -61,12 +61,12 @@ XML::Tag* GameChess::generateStateTag(const State &est, const Util::Time& curren
 		t.addAttribute("state",est.getFEN());
 		t.addAttribute("turn",est.vez==Chess::WHITE?"w":"b");
 		t.addAttribute("castle",est.castle);
-		if(est.enpassant.posx()!=-1)
+		if(est.enpassant.x()!=-1)
 			t.addAttribute("enpassant",est.enpassant.toStringNotation());
 		else
 			t.addAttribute("enpassant","-");
-		t.addAttribute("halfmoves",State::toString(est.halfmoves));
-		t.addAttribute("fullmoves",State::toString(est.fullmoves));
+		t.addAttribute("halfmoves",Util::to_string(est.halfmoves));
+		t.addAttribute("fullmoves",Util::to_string(est.fullmoves));
 	}
 	t.closeTag();
 	foreach(it,this->_players) {
@@ -90,7 +90,6 @@ XML::Tag* GameChess::generateStateTag(const State &est, const Util::Time& curren
 
 XML::Tag* GameChess::state(const Util::Time& current_time) const {
 	return (generateStateTag(chess.getState(),current_time));
-
 }
 
 const std::string& GameChess::category() const {

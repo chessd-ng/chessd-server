@@ -19,12 +19,7 @@
 #include "State.hh"
 #include <string>
 #include <iostream>
-
-std::string State::toString(int n) {
-	char tmp[16];
-	sprintf(tmp,"%d",n);
-	return std::string(tmp);
-}
+#include "Util/utils.hh"
 
 State::State() {
 	this->castle=std::string("KQkq");
@@ -33,9 +28,10 @@ State::State() {
 	this->halfmoves=0;
 	this->fullmoves=1;
 	this->vez=ChessPiece::WHITE;
-	//cuidado com isso
+	//XXX be careful with this
 	this->tabfen=std::string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 }
+
 State::State(const std::string posfen) {
 	this->tabfen=posfen;
 	this->castle=std::string("KQkq");
@@ -45,6 +41,7 @@ State::State(const std::string posfen) {
 	this->fullmoves=1;
 	this->vez=ChessPiece::WHITE;
 }
+
 State::State(const State& a) {
 	*this=a;
 }
@@ -64,9 +61,9 @@ std::string State::getentireFEN() const {
 	else
 		ans+=this->enpassant.toStringNotation();
 	ans+=" ";
-	ans+=toString(this->halfmoves);
+	ans+=Util::to_string(this->halfmoves);
 	ans+=" ";
-	ans+=toString(this->fullmoves);
+	ans+=Util::to_string(this->fullmoves);
 	return ans;
 }
 

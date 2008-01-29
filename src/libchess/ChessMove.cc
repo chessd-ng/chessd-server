@@ -20,11 +20,11 @@
 #include "ChessMove.hh"
 using namespace std;
 
-int Position::posx() const {
-	return (this->pos[0]);
+int Position::x() const {
+	return (this->_x);
 }
-int Position::posy() const {
-	return (this->pos[1]);
+int Position::y() const {
+	return (this->_y);
 }
 
 std::string Position::toStringNotation() const {
@@ -42,9 +42,9 @@ Position::Position(string& p) {
 	}
 }
 
-Position::Position(int x, int y) {
-	this->pos[0]=x;
-	this->pos[1]=y;
+Position::Position(int __x, int __y) {
+	this->pos[0]=__x;
+	this->pos[1]=__y;
 }
 Position::Position() { 
 	this->pos[0]=pos[1]=0;
@@ -62,40 +62,70 @@ bool Position::operator !=(const Position& p) const {
 	return true;
 }
 
+Position Position::operator +(const Position& p) const {
+	return Position(this->x()+p.x(),this->y()+p.y());
+}
+
+Move::Move() {
+}
+
+Move::Move(const std::string& __move) : _move(__move) {
+}
+
+const std::string& Move::move() const {
+	return this->_move;
+}
+
 ChessMove::ChessMove() {
-	this->from=Position();
-	this->to=Position();
+	this->_from=Position();
+	this->_to=Position();
 };
 
-ChessMove::ChessMove(int jogador,const std::string &pgn) {
+ChessMove::ChessMove(int player, const std::string &mv) : Move(mv) {
 	int x,y;
-	if(pgn.size() >=4) {
-		x=pgn[0]-'a';
-		y=pgn[1]-'1';
-		this->from=Position(x,y);
-		x=pgn[2]-'a';
-		y=pgn[3]-'1';
-		this->to=Position(x,y);
-		this->jogador=jogador;
+	if(mv.size() >=4) {
+		x=mv[0]-'a';
+		y=mv[1]-'1';
+		this->_from=Position(x,y);
+		x=mv[2]-'a';
+		y=mv[3]-'1';
+		this->_to=Position(x,y);
+		this->player=player;
 	} else {
-		this->from=this->to=Position(-1,-1);
+		this->_from=this->_to=Position(-1,-1);
 	}
 }
 
-ChessMove::ChessMove(const Position& a, const Position& b,const int j)	{
-	this->from=a;
-	this->to=b;
-	this->jogador=j;
+ChessMove::ChessMove(const Position& a, const Position& b,const int j) : Move(a.toStringNotation()+b.toStringNotation()) {
+	this->_from=a;
+	this->_to=b;
+	this->player=j;
 }
 
-Position ChessMove::getto() const {
-	return this->to;
+ChessMove::ChessMove(const Move &mv) : Move(mv.move()) {
+	int x,y;
+	std::string aux=mv.move();
+	if(aux.size() >=4) {
+		x=aux[0]-'a';
+		y=aux[1]-'1';
+		this->_from=Position(x,y);
+		x=aux[2]-'a';
+		y=aux[3]-'1';
+		this->_to=Position(x,y);
+		this->player=player;
+	} else {
+		this->_from=this->_to=Position(-1,-1);
+	}
 }
-Position ChessMove::getfrom() const {
-	return this->from;
+
+Position ChessMove::to() const {
+	return this->_to;
 }
-int ChessMove::getColor() const {
-	return this->jogador;
+Position ChessMove::from() const {
+	return this->_from;
+}
+int ChessMove::color() const {
+	return this->player;
 }
 
 
