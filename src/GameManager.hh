@@ -91,8 +91,6 @@ class GameManager : public ComponentBase {
 
 		Util::IDSet room_ids;
 
-        long long game_ids;
-
 };
 
 #endif

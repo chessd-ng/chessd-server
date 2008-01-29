@@ -43,7 +43,7 @@ struct GameRoomHandlers {
 
 class GameRoom {
 	public:
-        GameRoom(int game_id,
+        GameRoom(
                 Game* game,
                 const XMPP::Jid& room_name,
                 DatabaseManager& database_manager,
@@ -93,8 +93,6 @@ class GameRoom {
         void checkGameIQ(const XMPP::Jid& from);
 
         XML::Tag* gameState();
-
-		int game_id;
 
 		std::auto_ptr<Game> game;
 

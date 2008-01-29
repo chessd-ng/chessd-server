@@ -50,9 +50,9 @@ namespace XML {
 			str += ' ';
 			str += it->first;
 			str += '=';
-			str += '"';
+			str += '\'';
 			str += it->second;
-			str += '"';
+			str += '\'';
 		}
 		if(this->children().empty()) {
 			str += "/>";

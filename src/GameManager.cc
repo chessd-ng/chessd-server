@@ -29,8 +29,7 @@ GameManager::GameManager(
     ComponentBase(config, "Game Manager"),
     node_name(config.getAttribute("node_name")),
     database_manager(database_manager),
-    handle_error(handle_error),
-    game_ids(0)
+    handle_error(handle_error)
 {
 
 }
@@ -51,11 +50,10 @@ void GameManager::createGame(Game* game, const OnGameStart& on_game_start) {
 }
 
 void GameManager::_createGame(Game* game, const OnGameStart& on_game_start) {
-    int game_id = this->game_ids++;
 	int room_id = this->room_ids.acquireID();
 	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
 	/* Create the game room */
-	GameRoom* game_room = new GameRoom(game_id, game, room_jid, this->database_manager,
+	GameRoom* game_room = new GameRoom(game, room_jid, this->database_manager,
 			GameRoomHandlers(boost::bind(&ComponentBase::sendStanza, this, _1),
 				boost::bind(&GameManager::closeGameRoom, this, room_id)));
 	/* Register the new jabber node */
