@@ -63,7 +63,7 @@ class GameChess : public Game {
 
 		virtual const TeamList& teams() const;
 
-		XML::Tag* generateStateTag(const State &est,const Util::Time& current_time) const ;
+		XML::Tag* generateStateTag(const ChessState &est,const Util::Time& current_time) const ;
 		
 	protected:
 		/*! \brief returns the end reason if the game has ended*/

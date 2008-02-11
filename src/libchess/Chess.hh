@@ -76,10 +76,7 @@ class Chess : public ChessBasedGame {
 
 		//TODO fazer uma virtual dessa funcao
 		/*! \return return the current state*/
-		const State& getState() const;
-
-		/*! \return return a vector of States*/
-		const std::vector<State> &getHistory() const;
+		const ChessState& getState() const;
 
 		/*! \brief A high-level function that make a move if the given move is correct
 		 * \return true if the move is valid

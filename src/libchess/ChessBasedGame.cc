@@ -1,11 +1,24 @@
 #include "ChessBasedGame.hh"
 #include "utils.hh"
+
 ChessBasedGame::ChessBasedGame(int n, int m) : BoardGame(n,m) {
-	gameboard=new ChessBoard(n,m);
+	this->gameboard=new ChessBoard(n,m);
+	this->current_state = new ChessState();
+	this->historico = new ChessHistory();
+}
+
+ChessBasedGame::~ChessBasedGame() {
+	delete gameboard;
+	delete current_state;
+	delete historico;
+}
+
+const std::vector<State*>& ChessBasedGame::getHistory() const {
+	return this->historico->getHistory();
 }
 
 int ChessBasedGame::numberOfTurns() const {
-	return this->historico.getHistory().size()-1;
+	return this->historico->getHistory().size()-1;
 }
 
 bool ChessBasedGame::verifyCheck(int jogador) const {
@@ -180,7 +193,7 @@ bool ChessBasedGame::verifyPawnMove(const ChessMove& jogada) const {
 	else if( (disty == 1) and (distx == 1) ) {
 //		if( (gameboard->color(to) == -1) and (gameboard->color(Position(from.x(),to.y())) != (jogada.color()+1)%2 ) )
 		if( (this->gameboard->color(to) == -1) ) {
-			if( this->current_state.enpassant == to)
+			if( (static_cast<ChessState*>(this->current_state))->enpassant == to)
 				return true;
 			else
 				return false;
@@ -260,7 +273,8 @@ bool ChessBasedGame::verifyKingMove(const ChessMove& J) const {
 				rainha='Q';	rei='K';
 			}
 			//foi castle
-			if((distx > 0 and (current_state.castle.find(rainha,0) < current_state.castle.size())) or ((distx<0)and(current_state.castle.find(rei,0) < current_state.castle.size()))) {
+			std::string castle=(static_cast<ChessState*>(this->current_state))->castle;
+			if((distx > 0 and (castle.find(rainha,0) < castle.size())) or ((distx<0)and(castle.find(rei,0) < castle.size()))) {
 				//verifica se tem alguem entre a torre e o rei
 				if(verifyRookMove(ChessMove(distx>0?Position(0,J.to().y()):Position(7,J.to().y()),Position(J.from().x()-distx/abs(distx),J.to().y()),J.color()))==false)
 					return false;

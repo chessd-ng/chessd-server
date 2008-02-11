@@ -24,32 +24,51 @@
 #include "Piece.hh"
 #include "ChessMove.hh"
 
-struct State {
-	std::string tabfen;
-	std::string castle;
-	Position lastenpassant;
-	Position enpassant;
-	int halfmoves;
-	int fullmoves;
-	int vez;
+class State {
+	private:
 
-	static std::string toString(int n);
+	public:
 
-	State();
-	State(const std::string posfen);
-	State(const State& a);
-	std::string getFEN() const;
-	std::string getentireFEN() const;
+		std::string board_fen;
+
+		int _turn;
+
+		int fullmoves;
+
+//	public:
+
+		State();
+
+		State(const std::string& posfen);
+
+		virtual ~State() { }
+
+		const std::string& boardFEN() const;
+
+		int turn() const;
+
+		virtual std::string FEN() const=0;
 };
 
-class History {
+class ChessState : public State {
 	private:
-		std::vector<State> allgame;
+
 	public:
-		History();
-		History(const State& est);
-		~History();
-		void putinHistory(const State& est);
-		const std::vector<State> &getHistory() const ;
+		
+		std::string castle;
+
+		Position lastenpassant;
+
+		Position enpassant;
+
+		int halfmoves;
+
+//	public:
+
+		ChessState();
+
+		ChessState(const std::string& _board_fen);
+
+		virtual std::string FEN() const;
 };
 #endif

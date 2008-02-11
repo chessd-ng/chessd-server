@@ -1,8 +1,25 @@
+/*
+ *   Copyright (c) 2007-2008 Raphael H. Ribas,  Eduardo A. Ribas.
+ *
+ *   This file is part of Chessd.
+ *
+ *   Chessd is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Chessd is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ */
+
 #ifndef CHESSBASEDGAME_HH
 #define CHESSBASEDGAME_HH
 
 #include "BoardGame.hh" 
-#include "State.hh"
 #include <vector>
 
 class ChessBasedGame : public BoardGame {
@@ -12,6 +29,8 @@ class ChessBasedGame : public BoardGame {
 		};
 
 		ChessBasedGame(int n, int m);
+
+		~ChessBasedGame();
 
 		virtual int numberOfTurns() const;
 
@@ -25,16 +44,11 @@ class ChessBasedGame : public BoardGame {
 
 		virtual const State& getState() const=0;
 
-		virtual const std::vector<State> &getHistory() const=0;
+		virtual bool verifyAndMakeMove(const std::string &move)=0;
 
-		virtual bool verifyAndMakeMove(const std::string &jogada)=0;
-
+		const std::vector<State*>& getHistory() const;
 
 	protected:
-		State current_state;
-
-		History historico;
-
 		/*! \brief Verify if the given player is in Check*/
 		bool verifyCheck(int player) const;
 

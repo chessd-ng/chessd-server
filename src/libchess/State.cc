@@ -22,37 +22,45 @@
 #include "Util/utils.hh"
 
 State::State() {
+}
+
+State::State(const std::string& posfen) {
+	this->board_fen=posfen;
+}
+
+const std::string& State::boardFEN() const {
+	return this->board_fen;
+}
+
+int State::turn() const {
+	return this->_turn;
+}
+
+ChessState::ChessState() {
 	this->castle=std::string("KQkq");
 	this->enpassant=Position(-1,-1);
 	this->lastenpassant=Position(-1,-1);
 	this->halfmoves=0;
 	this->fullmoves=1;
-	this->vez=ChessPiece::WHITE;
+	this->_turn=ChessPiece::WHITE;
 	//XXX be careful with this
-	this->tabfen=std::string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+	this->board_fen=std::string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 }
 
-State::State(const std::string posfen) {
-	this->tabfen=posfen;
+ChessState::ChessState(const std::string& _board_fen) : State(_board_fen) {
 	this->castle=std::string("KQkq");
 	this->enpassant=Position(-1,-1);
 	this->lastenpassant=Position(-1,-1);
 	this->halfmoves=0;
 	this->fullmoves=1;
-	this->vez=ChessPiece::WHITE;
+	this->_turn=ChessPiece::WHITE;
 }
 
-State::State(const State& a) {
-	*this=a;
-}
-std::string State::getFEN() const {
-	return std::string(tabfen);
-}
-std::string State::getentireFEN() const {
+std::string ChessState::FEN() const {
 	std::string ans;
-	ans=this->tabfen;
+	ans=this->board_fen;
 	ans+=" ";
-	ans+=(char)(this->vez == ChessPiece::WHITE ? 'w' : 'b');
+	ans+=(char)(this->_turn == ChessPiece::WHITE ? 'w' : 'b');
 	ans+=" ";
 	ans+=this->castle;
 	ans+=" ";
@@ -66,32 +74,3 @@ std::string State::getentireFEN() const {
 	ans+=Util::to_string(this->fullmoves);
 	return ans;
 }
-
-History::History() {
-	this->allgame.clear();
-}
-
-History::History(const State& est) {
-	this->allgame.clear();
-	this->putinHistory(est);
-}
-
-History::~History() {
-	allgame.clear();
-}
-
-void History::putinHistory(const State& est) {
-	allgame.push_back(est);
-}
-
-const std::vector<State>& History::getHistory() const {
-	return this->allgame;
-}
-
-#ifdef TESTE
-void History::Desenha() const {
-	for(int i=0;i<(int)allgame.size();i++) {
-		std::cout << allgame[i].getentireFEN() << std::endl;
-	}
-}
-#endif

@@ -23,16 +23,9 @@
 #include "Board.hh"
 #include "Piece.hh"
 #include "State.hh"
+#include "History.hh"
 
 class BoardGame {
-	private:
-	protected:
-		virtual void updateTurn()=0;
-
-		mutable Board* gameboard;
-
-		int nlines,ncolums;
-
 	public:
 		BoardGame(int n,int m) : nlines(n), ncolums(m) {}
 
@@ -43,5 +36,18 @@ class BoardGame {
 		virtual int turn() const =0;
 
 		virtual bool verifyAndMakeMove(const std::string &move)=0;
+
+	protected:
+		virtual void updateTurn()=0;
+
+		mutable Board* gameboard;//FIXME mutable is horrible
+
+		int nlines,ncolums;
+
+		State* current_state;
+
+		History* historico;
+
+	private:
 };
 #endif

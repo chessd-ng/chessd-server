@@ -23,10 +23,10 @@
 #include <stdlib.h>
 
 Chess::Chess() : ChessBasedGame(8,8) {
-	putPieces();
-	current_state=State();
-	historico=History(this->current_state);
-	_turn=WHITE;
+	this->putPieces();
+	this->historico->putInHistory(this->current_state);
+	this->current_state=new ChessState();
+	this->_turn=WHITE;
 }
 bool Chess::verifyAndMakeMove(const std::string& move) {
 	if( move.size()!=4 )
@@ -51,11 +51,8 @@ void Chess::updateTurn() {
 	this->_turn=(this->_turn==WHITE?BLACK:WHITE);
 }
 
-const State& Chess::getState() const {
-	return this->current_state;
-}
-const std::vector<State> &Chess::getHistory() const {
-	return this->historico.getHistory();
+const ChessState& Chess::getState() const {
+	return *(static_cast<ChessState*>(this->current_state));
 }
 
 bool Chess::verifyDraw() const {
@@ -115,22 +112,29 @@ void Chess::putPieces() {
 	gameboard->createPiece(Position(3,7),new ChessPiece(ChessPiece::QUEEN,j));
 	gameboard->createPiece(Position(4,7),new ChessPiece(ChessPiece::KING,j));
 }
-//se veio ate aqui, entao a jogada eh valida
+
+//if this function is called, then the move is valid
 void Chess::updateState(const ChessMove& j,bool comeu) {
-	this->current_state.lastenpassant = this->current_state.enpassant;
-	this->current_state.enpassant=Position(-1,-1);
+	ChessState* current_state = static_cast<ChessState*>(this->current_state);
+
+	current_state->lastenpassant = current_state->enpassant;
+
+	current_state->enpassant=Position(-1,-1);
+
 	if(j.color() == BLACK)
-		this->current_state.fullmoves++;
-	this->current_state.tabfen = this->getPosForFEN();
-	this->current_state.vez = (this->current_state.vez == WHITE ? BLACK : WHITE );
-	this->current_state.halfmoves++;
-	//FIXME sera que tah bom?
+		current_state->fullmoves++;
+
+	current_state->board_fen = this->getPosForFEN();
+	current_state->_turn = (this->current_state->_turn == WHITE ? BLACK : WHITE );
+	current_state->halfmoves++;
+
+	//FIXME this code is horrible.
 	if((this->gameboard->getType(j.to()) == ChessPiece::PAWN) or comeu)
-		this->current_state.halfmoves=0;
+		current_state->halfmoves=0;
 	//se o peao moveu 2 casas...
 	if(this->gameboard->getType(j.to()) == ChessPiece::PAWN) {
 		if( abs(j.to().y() - j.from().y()) == 2) {
-			this->current_state.enpassant = Position(j.to().x(), (int)((j.color() == 0 )? (j.to().y()-1) : (j.to().y()+1) ) );
+			current_state->enpassant = Position(j.to().x(), (int)((j.color() == 0 )? (j.to().y()-1) : (j.to().y()+1) ) );
 		}
 	}
 
@@ -140,12 +144,12 @@ void Chess::updateState(const ChessMove& j,bool comeu) {
 		char rei, rainha;
 		rei = ((j.color() == 0)? 'K' : 'k');
 		rainha = ((j.color() == 0) ? 'Q' : 'q');
-		if(this->current_state.castle.find(rei) < this->current_state.castle.size())
-			this->current_state.castle.erase(this->current_state.castle.find(rei),1);
-		if(this->current_state.castle.find(rainha) < this->current_state.castle.size())
-			this->current_state.castle.erase(this->current_state.castle.find(rainha),1);
-		if(this->current_state.castle.size() == 0)
-			this->current_state.castle+='-';
+		if(current_state->castle.find(rei) < current_state->castle.size())
+			current_state->castle.erase(current_state->castle.find(rei),1);
+		if(current_state->castle.find(rainha) < current_state->castle.size())
+			current_state->castle.erase(current_state->castle.find(rainha),1);
+		if(current_state->castle.size() == 0)
+			current_state->castle+='-';
 	}
 	//Are the Rooks at their initial places?
 	{
@@ -160,20 +164,22 @@ void Chess::updateState(const ChessMove& j,bool comeu) {
 			p[0]=Position(0,7);p[1]=Position(7,7);
 		}
 		if ( this->gameboard->getPieceReal(p[0]) != torre ){
-			if(this->current_state.castle.find(rainha) < this->current_state.castle.size())
-				this->current_state.castle.erase(this->current_state.castle.find(rainha),1);
+			if(current_state->castle.find(rainha) < current_state->castle.size())
+				current_state->castle.erase(current_state->castle.find(rainha),1);
 		}
 		if ( this->gameboard->getPieceReal(p[1]) != torre ){
-			if(this->current_state.castle.find(rei) < this->current_state.castle.size())
-				this->current_state.castle.erase(this->current_state.castle.find(rei),1);
+			if(current_state->castle.find(rei) < current_state->castle.size())
+				current_state->castle.erase(current_state->castle.find(rei),1);
 		}
-		if(this->current_state.castle.size() == 0)
-			this->current_state.castle="-";
+		if(current_state->castle.size() == 0)
+			current_state->castle="-";
 	}
 }
 
 void Chess::updateHistory() {
-	this->historico.putinHistory(this->current_state);
+	this->historico->putInHistory(this->current_state);
+	this->current_state = new ChessState();
+	*(static_cast<ChessState*>(this->current_state)) = *static_cast<const ChessState*>(this->historico->lastState());
 }
 
 void Chess::makeMove(const ChessMove &j) const {
@@ -226,7 +232,7 @@ bool Chess::verifyMove(const ChessMove &j) const {
 		if(this->verifyCheck(j.color()) == true)
 			ans=false;
 		if(jogesp)
-			this->setState(this->current_state.getFEN());
+			this->setState(current_state->boardFEN());
 		else {
 			this->gameboard->createPiece(j.from(),new ChessPiece(a));
 			this->gameboard->createPiece(j.to(),new ChessPiece(b));
@@ -262,7 +268,7 @@ bool Chess::verifyCheckMate(int jogador) const {
 }
 
 bool Chess::verifyDraw(int jogador) const { 
-	if(current_state.halfmoves >= 50)
+	if(static_cast<ChessState*>(current_state)->halfmoves >= 50)
 		return true;
 	if(verifyCheck(jogador) == true)
 		return false;
