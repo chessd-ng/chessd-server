@@ -9,9 +9,11 @@ SOURCES = \
 		  src/GameRoom.cc \
 		  src/GameStandard.cc \
 		  src/libchess/Board.cc \
+		  src/libchess/BugHouse.cc \
 		  src/libchess/ChessBasedGame.cc \
 		  src/libchess/Chess.cc \
 		  src/libchess/ChessMove.cc \
+	 	  src/libchess/History.cc \
 		  src/libchess/Piece.cc \
 		  src/libchess/State.cc \
 		  src/main.cc \
@@ -51,9 +53,9 @@ SOURCES = \
 SRCDIR = src
 OBJDIR = obj
 DEPSDIR = .deps
-CXXFLAGS=-Wall -ggdb3
+#CXXFLAGS=-Wall -ggdb3
 #CXXFLAGS=-Wall -O2 -pg -march=native
-#CXXFLAGS=-Wall -O3 -fomit-frame-pointer -march=native
+CXXFLAGS=-Wall -O3 -fomit-frame-pointer -march=native -funroll-loops
 CXXFLAGS+=-I${SRCDIR} `pkg-config --cflags iksemel` `pkg-config --cflags libpqxx`
 LDLIBS=-lrt -lpthread `pkg-config --libs iksemel` `pkg-config --libs libpqxx`
 TARGET=chessd
