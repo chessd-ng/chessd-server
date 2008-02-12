@@ -207,11 +207,14 @@ void MatchManager::closeMatch(int id, bool accepted) {
 }
 
 void MatchManager::notifyGameStart(int match_id, Match* match, const XMPP::Jid& jid) {
+    this->dispatcher.queue(boost::bind(&MatchManager::_notifyGameStart, this, match_id, match, jid));
+}
+
+void MatchManager::_notifyGameStart(int match_id, Match* match, const XMPP::Jid& jid) {
 	XML::TagGenerator generator;
     Stanza stanza("iq");
 
     stanza.subtype() = "set";
-    stanza.id() = "zzzz";
 
 	generator.openTag("query");
 	generator.addAttribute("xmlns", XMLNS_MATCH_ACCEPT);
@@ -222,7 +225,7 @@ void MatchManager::notifyGameStart(int match_id, Match* match, const XMPP::Jid& 
     stanza.children().push_back(generator.getTag());
     foreach(player, match->players()) {
         stanza.to() = *player;
-        this->root_node.sendStanza(new XMPP::Stanza(stanza));
+        this->root_node.sendIq(new XMPP::Stanza(stanza));
     }
     delete match;
 }

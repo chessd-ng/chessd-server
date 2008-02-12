@@ -29,19 +29,18 @@ int main(void) {
 		std::auto_ptr<XML::Tag> config(XML::loadXmlFile("config.xml"));
 		Core::init(*config);
 		Core& core = Core::singleton();
-		try {
-			core.connect();
-		} catch(const char* error) {
-			cout << error << endl;
-			return 1;
-		}
+        core.start();
+
+        /* Run until any input is given */
 		string cmd;
 		cin >> cmd;
 		Core::close();
 	} catch (const char* msg) {
 		cout << "Error: " << msg << endl;
+        return 1;
 	} catch (const exception& error) {
 		cout << "Error: " << error.what() << endl;
+        return 1;
     }
 	return 0;
 }
