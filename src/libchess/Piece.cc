@@ -18,7 +18,7 @@
 
 #include <iostream>
 #include <ctype.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include "Piece.hh"
 
 char TabelaChar[]=".KQRBNP";
@@ -39,6 +39,7 @@ Piece::Piece(int __type,int __color) : _type(__type), _color(__color) {
 
 ChessPiece::ChessPiece(int __type, int __color) : Piece(__type,__color) {
 }
+
 ChessPiece::ChessPiece(char name) : Piece(chartotype(name),chartocolor(name)) {
 }
 
@@ -80,4 +81,8 @@ ChessPiece::PieceColor ChessPiece::chartocolor(char name) {
 
 int ChessPiece::pieceReal() const {
 	return (int)(this->color() == WHITE ? (TabelaChar[this->type()]) : (tolower(TabelaChar[this->type()])));
+}
+
+bool ChessPiece::operator==(const ChessPiece& cp) const {
+	return this->pieceReal()==cp.pieceReal();
 }

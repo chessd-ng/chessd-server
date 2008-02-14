@@ -23,6 +23,7 @@ using namespace std;
 int Position::x() const {
 	return (this->_x);
 }
+
 int Position::y() const {
 	return (this->_y);
 }
@@ -75,11 +76,9 @@ Move::Move(const std::string& __move) : _move(__move) {
 const std::string& Move::move() const {
 	return this->_move;
 }
-
-ChessMove::ChessMove() {
-	this->_from=Position();
-	this->_to=Position();
-};
+/*
+ * CHESSMOVE THINGS
+*/
 
 ChessMove::ChessMove(int player, const std::string &mv) : Move(mv) {
 	int x,y;
@@ -118,14 +117,39 @@ ChessMove::ChessMove(const Move &mv) : Move(mv.move()) {
 	}
 }
 
-Position ChessMove::to() const {
+const Position& ChessMove::to() const {
 	return this->_to;
 }
-Position ChessMove::from() const {
+
+const Position& ChessMove::from() const {
 	return this->_from;
 }
+
 int ChessMove::color() const {
 	return this->player;
 }
 
+/*
+ * BUGHOUSEMOVE THINGS
+*/
 
+BugHouseMove::BugHouseMove(int player, const std::string& mv) : ChessMove(player,mv) {
+	if(mv[1]=='@') {
+		this->_to=Position(mv[2]-'a',mv[3]-'1');
+		this->_from=Position(-1000,-1000);
+		if(player==0)
+			this->_piece=ChessPiece(toupper(mv[0]));
+		else
+			this->_piece=ChessPiece(tolower(mv[0]));
+	}
+	else
+		this->_piece=ChessPiece('.');
+}
+
+bool BugHouseMove::hasPiece() const {
+	return this->_piece==ChessPiece('.');
+}
+
+const ChessPiece& BugHouseMove::piece() const {
+	return this->_piece;
+}

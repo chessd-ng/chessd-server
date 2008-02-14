@@ -18,7 +18,9 @@
 
 #ifndef __JOGADAH__
 #define __JOGADAH__
+
 #include <string>
+#include "Piece.hh"
 
 class Position {
 	private:
@@ -28,6 +30,7 @@ class Position {
 				int _x,_y;
 			};
 		};
+
 	public:
 		int x() const ;
 
@@ -61,7 +64,7 @@ class Move {
 };
 
 class ChessMove : public Move {
-	private:
+	protected:
 		Position _from;
 
 		Position _to;
@@ -69,19 +72,29 @@ class ChessMove : public Move {
 		int player;
 
 	public:
-		ChessMove();
-
-		ChessMove(int player, const std::string&);
+		ChessMove(int player, const std::string& mv);
 		
 		ChessMove(const Position& a, const Position& b,const int j);
 
 		ChessMove(const Move &mv);
 
-		Position to() const ;
+		const Position& to() const ;
 
-		Position from() const ;
+		const Position& from() const ;
 
 		int color() const ;
+};
+
+class BugHouseMove : public ChessMove {
+	private:
+		ChessPiece _piece;
+
+	public:
+		BugHouseMove(int player, const std::string& mv);
+
+		bool hasPiece() const;
+
+		const ChessPiece& piece() const;
 };
 
 #endif

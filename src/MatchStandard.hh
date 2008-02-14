@@ -27,8 +27,6 @@ class MatchRuleStandard : public MatchRuleChess {
 
 		virtual ~MatchRuleStandard();
 
-		virtual std::string getCategory() const;
-
 		virtual Match* checkOffer(const XML::Tag& match_offer,
 				const TeamDatabase& teams) const ;
 	private:
@@ -42,12 +40,9 @@ struct MatchStandard : public MatchChess {
 
 		virtual ~MatchStandard();
 		
-		virtual const std::string& category() const;
-
 		virtual Game* createGame() const;
 
 	private:
-		std::string _category;
 };
 
 #endif

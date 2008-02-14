@@ -208,7 +208,7 @@ void Chess::updateMove(const ChessMove &j) {
 
 	//Is the Pawn at the end of the tab? 
 	//FIXME gambiarra de transformar peao em rainha
-	if(this->gameboard->getType(j.to()) == 'P') {
+	if(this->gameboard->getType(j.to()) == ChessPiece::PAWN) {
 		int final = ( (j.color() == 0) ? 7 : 0);
 		if(j.to().y() == final) {
 			this->gameboard->createPiece(j.to(),new ChessPiece(ChessPiece::QUEEN,(ChessPiece::PieceColor)(j.color())));

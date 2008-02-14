@@ -118,7 +118,8 @@ class ChessGameResult : public GameResult {
 		/*! \brief generates a History tag*/
 		virtual XML::Tag* history() const;
 
-		virtual void updateRating(std::map<Player, Rating>& ratings) const = 0;
+		virtual void updateRating(std::map<Player, Rating>& ratings) const;
+
 	protected:
 		TeamResultList teamresultlist;
 

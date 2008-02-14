@@ -16,28 +16,18 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef GAMESTANDARD_HH
-#define GAMESTANDARD_HH
+#include "GameBlitz.hh"
 
-#include "GameChess.hh"
+GameBlitz::GameBlitz(const StandardPlayerList& _players) :
+	GameChess(_players,"blitz")
+{
+}
 
-class GameStandard : public GameChess {
-	public:
-		GameStandard(const StandardPlayerList& _players);
+GameResult* GameBlitz::result() const {
+	return new ChessBlitzGameResult(this->doneEndReason(),this->doneTeamResultList(),this->_history);
+}
 
-		virtual ~GameStandard() {};
-
-		virtual GameResult* result() const;
-
-	private:
-};
-
-class ChessStandardGameResult : public ChessGameResult {
-	public:
-		ChessStandardGameResult(const std::string &endreason,const TeamResultList &l,XML::Tag* _hist);
-
-//		virtual void updateRating(std::map<Player, Rating> &ratings) const;
-	private:
-};
-
-#endif
+ChessBlitzGameResult::ChessBlitzGameResult(const std::string &endreason, const TeamResultList &l, XML::Tag* _hist) :
+	ChessGameResult(endreason,l,"blitz",_hist)
+{
+}

@@ -24,10 +24,14 @@
  * MatchRuleChess Things
 */
 
-MatchRuleChess::MatchRuleChess() {
+MatchRuleChess::MatchRuleChess(const std::string& __category) : _category(__category) {
 }
 
 MatchRuleChess::~MatchRuleChess() {
+}
+
+const std::string& MatchRuleChess::getCategory() const {
+	return this->_category;
 }
 
 //FIXME
@@ -61,6 +65,7 @@ void MatchRuleChess::validateXML(const XML::Tag& _match_offer) const {
 }
 
 StandardPlayerList MatchRuleChess::getPlayersfromXML(const XML::Tag& _match_offer) const {
+	this->validateXML(_match_offer);
 	StandardPlayerList players;
 	foreach(c_it,_match_offer.children()) {
 		if(typeid(*c_it)==typeid(XML::Tag)) {
@@ -80,8 +85,9 @@ StandardPlayerList MatchRuleChess::getPlayersfromXML(const XML::Tag& _match_offe
  * MatchChess things
 */
 
-MatchChess::MatchChess(const StandardPlayerList &players) : 
-	_match_players(players)
+MatchChess::MatchChess(const StandardPlayerList &players, const std::string& __category) : 
+	_match_players(players) ,
+	_category(__category)
 {
 	foreach(it,players)
 		this->_players.push_back(Player(it->jid));
@@ -92,6 +98,10 @@ MatchChess::~MatchChess(){
 
 const PlayerList& MatchChess::players() const {
 	return this->_players;
+}
+
+const std::string& MatchChess::category() const {
+	return this->_category;
 }
 
 XML::Tag* MatchChess::notification() const {

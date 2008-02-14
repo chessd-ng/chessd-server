@@ -42,7 +42,7 @@ class ChessBasedGame : public BoardGame {
 
 		virtual bool verifyDraw() const=0;
 
-		virtual const State& getState() const=0;
+		virtual const ChessState& getState() const=0;
 
 		virtual bool verifyAndMakeMove(const std::string &move)=0;
 

@@ -20,4 +20,52 @@
 
 BugHouse::BugHouse() {
 	this->games=std::vector<Chess>(2);
+	this->pieces=std::vector<std::vector<ChessPiece*> >(4);
+	playerteam[0]=0;
+	playerteam[1]=1;
+	playerteam[2]=1;
+	playerteam[3]=0;
+}
+
+int BugHouse::numberOfTurns(int game) const {
+	return this->games[game].numberOfTurns();
+}
+
+int BugHouse::winner() const {
+	for(int i=0;i<games.size();i++)
+		if(this>games[i].verifyCheckMate())
+			return *this->playerteam.find(games[i].winner()+i*2);
+	return -1;
+}
+
+int BugHouse::turn(int game) const {
+	return this->games[game].turn();
+}
+
+bool BugHouse::verifyCheckMate() const {
+	for(int i=0;i<games.size();i++)
+		if(this->games[i].verifyCheckMate())
+			return true;
+	return false;
+}
+
+bool BugHouse::verifyDraw() const {
+//	for(int i=0;i<games.size();i++)
+//		if(this->games[i].verifyDraw())
+//			return true;
+	return false;
+}
+
+const BugHouseState& BugHouse::getState() const {
+	return this->current_state;
+}
+
+bool BugHouse::verifyAndMakeMove(int player, const std::string& move) {
+	if(move[1]=='@') {
+	} else {
+		int g=player/2;
+		if(games[g].turn() == player%2)
+			return games[g].verifyAndMakeMove(move);
+	}
+	return false;
 }

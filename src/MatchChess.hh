@@ -24,11 +24,11 @@
 
 class MatchRuleChess : public MatchRule {
 	public:
-		MatchRuleChess();
+		MatchRuleChess(const std::string& __category);
 
 		virtual ~MatchRuleChess();
 
-		virtual std::string getCategory() const = 0;
+		virtual const std::string& getCategory() const;
 
 		virtual Match* checkOffer(const XML::Tag& match_offer,
 				const TeamDatabase& teams) const =0;
@@ -36,6 +36,8 @@ class MatchRuleChess : public MatchRule {
 		StandardPlayerList getPlayersfromXML(const XML::Tag& _match_offer) const;
 
 	private:
+		std::string _category;
+
 		virtual void validateXML(const XML::Tag& _match_offer) const;
 
 		virtual bool isTimeValid(const XML::Tag& _player) const =0;
@@ -43,14 +45,13 @@ class MatchRuleChess : public MatchRule {
 
 struct MatchChess : public Match {
 	public:
-
-		MatchChess(const StandardPlayerList &players);
+		MatchChess(const StandardPlayerList& players, const std::string& __category);
 
 		virtual ~MatchChess();
 		
 		virtual const PlayerList& players() const;
 
-		virtual const std::string& category() const = 0;
+		virtual const std::string& category() const ;
 
 		virtual Game* createGame() const = 0;
 
@@ -59,7 +60,9 @@ struct MatchChess : public Match {
 	protected:
 		//this shouldn't be here
 		StandardPlayerList _match_players;
+
 	private:
+		std::string _category;
 		//These two player list is necessary because StandardPlayer does not inherit from Players
 		PlayerList _players;
 };
