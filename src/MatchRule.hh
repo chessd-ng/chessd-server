@@ -51,7 +51,7 @@ class MatchRule {
 		virtual ~MatchRule() { }
 
 		/*! \brief Returns the category name */
-		virtual std::string getCategory() const = 0;
+		virtual const std::string& getCategory() const = 0;
 
 		/*! \brief check a given Match request.
 		 *

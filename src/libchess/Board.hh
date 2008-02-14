@@ -20,6 +20,7 @@
 #define _TABULEIROH_
 
 #include "Piece.hh"
+#include "ChessMove.hh"
 
 #include <iostream>
 #include <vector>

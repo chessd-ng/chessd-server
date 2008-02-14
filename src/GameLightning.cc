@@ -16,28 +16,18 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef GAMESTANDARD_HH
-#define GAMESTANDARD_HH
+#include "GameLightning.hh"
 
-#include "GameChess.hh"
+GameLightning::GameLightning(const StandardPlayerList& _players) :
+	GameChess(_players,"lightning")
+{
+}
 
-class GameStandard : public GameChess {
-	public:
-		GameStandard(const StandardPlayerList& _players);
+GameResult* GameLightning::result() const {
+	return new ChessLightningGameResult(this->doneEndReason(),this->doneTeamResultList(),this->_history);
+}
 
-		virtual ~GameStandard() {};
-
-		virtual GameResult* result() const;
-
-	private:
-};
-
-class ChessStandardGameResult : public ChessGameResult {
-	public:
-		ChessStandardGameResult(const std::string &endreason,const TeamResultList &l,XML::Tag* _hist);
-
-//		virtual void updateRating(std::map<Player, Rating> &ratings) const;
-	private:
-};
-
-#endif
+ChessLightningGameResult::ChessLightningGameResult(const std::string &endreason, const TeamResultList &l, XML::Tag* _hist) :
+	ChessGameResult(endreason,l,"lightning",_hist)
+{
+}

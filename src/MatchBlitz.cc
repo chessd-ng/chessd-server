@@ -16,44 +16,45 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#include "MatchStandard.hh"
-#include "GameStandard.hh"
+#include "MatchBlitz.hh"
+#include "GameBlitz.hh"
 #include "Util/utils.hh"
 
 #include <memory>
 
 /*
- * Coisas do MatchRuleStandard
+ * Coisas do MatchRuleBlitz
 */
-MatchRuleStandard::MatchRuleStandard() : MatchRuleChess("standard") {
+MatchRuleBlitz::MatchRuleBlitz() : MatchRuleChess("blitz") {
 }
 
-MatchRuleStandard::~MatchRuleStandard() {
+MatchRuleBlitz::~MatchRuleBlitz() {
 }
 
-Match* MatchRuleStandard::checkOffer(const XML::Tag& _match_offer, const TeamDatabase&) const {
-	return new MatchStandard(getPlayersfromXML(_match_offer));
+Match* MatchRuleBlitz::checkOffer(const XML::Tag& _match_offer, const TeamDatabase&) const {
+	return new MatchBlitz(getPlayersfromXML(_match_offer));
 }
 
-bool MatchRuleStandard::isTimeValid(const XML::Tag& _player) const {
+bool MatchRuleBlitz::isTimeValid(const XML::Tag& _player) const {
 	if(_player.hasAttribute("time")) {
-		if(11u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Minutes))
+		if((3u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Minutes)) and
+				(10u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Minutes)))
 			return true;
 	}
 	return false;
 }
 
 /*
- * Coisas do MatchStandard
+ * Coisas do MatchBlitz
 */
-MatchStandard::MatchStandard(const StandardPlayerList &players) :
-	MatchChess(players,"standard")
+MatchBlitz::MatchBlitz(const StandardPlayerList &players) :
+	MatchChess(players,"blitz")
 {
 }
 
-MatchStandard::~MatchStandard() {
+MatchBlitz::~MatchBlitz() {
 }
 
-Game* MatchStandard::createGame() const {
-	return new GameStandard(this->_match_players);
+Game* MatchBlitz::createGame() const {
+	return new GameBlitz(this->_match_players);
 }

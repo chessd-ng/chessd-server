@@ -4,7 +4,9 @@ SOURCES = \
 		  src/Core.cc \
 		  src/DatabaseManager.cc \
 		  src/Game.cc \
+		  src/GameBlitz.cc \
 		  src/GameChess.cc \
+		  src/GameLightning.cc \
 		  src/GameManager.cc \
 		  src/GameRoom.cc \
 		  src/GameStandard.cc \
@@ -12,10 +14,13 @@ SOURCES = \
 		  src/libchess/ChessBasedGame.cc \
 		  src/libchess/Chess.cc \
 		  src/libchess/ChessMove.cc \
+		  src/libchess/History.cc \
 		  src/libchess/Piece.cc \
 		  src/libchess/State.cc \
 		  src/main.cc \
+		  src/MatchBlitz.cc \
 		  src/MatchChess.cc \
+		  src/MatchLightning.cc \
 		  src/MatchDatabase.cc \
 		  src/MatchManager.cc \
 		  src/MatchStandard.cc \

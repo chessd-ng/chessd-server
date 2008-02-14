@@ -18,11 +18,47 @@
 
 #include "Chess.hh"
 #include <vector>
+#include <map>
 
-class BugHouse {
+/*
+ * assumptions:
+ * team A will be players 0 and 3
+ * team B will be players 1 and 2
+ * players 0 and 1 will be playing against each other
+ * players 2 and 3 will be playing against each other
+ * 0 and 2 will be white
+ * 1 and 3 will be black
+*/
+
+class BugHouse : public ChessBasedGame {
 	public:
 		BugHouse();
 
+		~BugHouse();
+		
+		/*! \brief return the number of turns of a game*/
+		int numberOfTurns(int game) const;
+
+		/*! \brief returns the team who have won*/
+		int winner() const;
+
+		/*! \brief returns the turn of game*/
+		int turn(int game) const;
+
+		bool verifyCheckMate() const;
+
+		bool verifyDraw() const;
+
+		const BugHouseState& getState() const;
+
+		bool verifyAndMakeMove(const std::string& move);
+
 	private:
 		std::vector<Chess> games;
+
+		std::vector<std::vector<ChessPiece*> > pieces;
+
+		std::map<int,int> playerteam;
+
+		friend class Chess;
 };

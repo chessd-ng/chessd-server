@@ -16,55 +16,35 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef PIECE_HH
-#define PIECE_HH
+#ifndef MATCHBLITZ_HH
+#define MATCHBLITZ_HH
 
-#include <iostream>
+#include "MatchChess.hh"
 
-class Piece {
+class MatchRuleLightning : public MatchRuleChess {
 	public:
-		Piece(int type,int color);
+		MatchRuleLightning();
 
-		Piece();
+		virtual ~MatchRuleLightning();
 
-		virtual ~Piece() { }
-
-		int type() const;
-
-		int color() const;
-
-		virtual int pieceReal() const = 0;
+		virtual Match* checkOffer(const XML::Tag& match_offer,
+				const TeamDatabase& teams) const ;
 
 	private:
-		int _type;
-
-		int _color;
+		virtual bool isTimeValid(const XML::Tag& _player) const ;
 };
 
-class ChessPiece : public Piece {
+struct MatchLightning : public MatchChess {
 	public:
-		enum PieceType {
-			NOTYPE=0,KING=1,QUEEN=2,ROOK=3,BISHOP=4,KNIGHT=5,PAWN=6
-		};
-		enum PieceColor {
-			NOCOLOR=-1,WHITE=0,BLACK=1
-		};
 
-		ChessPiece(int __type, int __color);
+		MatchLightning(const StandardPlayerList &players);
 
-		ChessPiece(char name);
-
-		ChessPiece();
-
-		static PieceType chartotype(char a);
-
-		static PieceColor chartocolor(char a);
-
-		virtual int pieceReal() const;
-
-		bool operator==(const ChessPiece& cp) const;
+		virtual ~MatchLightning();
+		
+		virtual Game* createGame() const;
 
 	private:
+		std::string _category;
 };
 
 #endif

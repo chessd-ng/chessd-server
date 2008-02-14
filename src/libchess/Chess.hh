@@ -16,8 +16,8 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef __CHESSHH__
-#define __CHESSHH__
+#ifndef CHESS_HH
+#define CHESS_HH
 
 #include "ChessBasedGame.hh"
 
