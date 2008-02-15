@@ -39,7 +39,7 @@ Core::Core(const XML::Tag& config_xml) :
 {
 }
 
-void Core::connect() {
+void Core::start() {
 	this->dispatcher.start();
 	this->match_manager.connect();
 	this->game_manager.connect();

@@ -55,7 +55,7 @@ class Core {
 		 *
 		 * \param config holds all configurable information.
 		 */
-		void connect();
+		void start();
 
 		static Core& singleton() { return *Core::_singleton; }
 
@@ -75,14 +75,9 @@ class Core {
 		MatchManager match_manager;
 		RatingComponent rating_component;
 
-
 		static Core* _singleton;
 
 		Threads::Dispatcher dispatcher;
-
-		Util::IDSet game_ids;
-
-		std::map<XMPP::Jid, std::map<std::string, Rating> > ratings;
 };
 
 #endif

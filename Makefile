@@ -56,11 +56,11 @@ SOURCES = \
 SRCDIR = src
 OBJDIR = obj
 DEPSDIR = .deps
-#CXXFLAGS=-Wall -ggdb3
-#CXXFLAGS=-Wall -O2 -pg -march=native
-CXXFLAGS=-Wall -O3 -fomit-frame-pointer -march=native -funroll-loops
+CXXFLAGS+=-Wall -ggdb3
+#CXXFLAGS+=-Wall -O2 -pg -march=native
+#CXXFLAGS+=-Wall -O3 -fomit-frame-pointer -march=native -funroll-loops
 CXXFLAGS+=-I${SRCDIR} `pkg-config --cflags iksemel` `pkg-config --cflags libpqxx`
-LDLIBS=-lrt -lpthread `pkg-config --libs iksemel` `pkg-config --libs libpqxx`
+LDLIBS+=-lrt -lpthread `pkg-config --libs iksemel` `pkg-config --libs libpqxx`
 TARGET=chessd
 CC=gcc
 CXX=g++
@@ -74,23 +74,29 @@ all: ${TARGET}
 -include ${DEPS}
 
 ${TARGET}: ${OBJECTS}
-	${CXX} -o ${TARGET} ${OBJECTS} ${CXXFLAGS} ${LDLIBS}
+	@echo "Linking $@..."
+	@${CXX} -o ${TARGET} ${OBJECTS} ${CXXFLAGS} ${LDLIBS}
 
 .deps/%.d: ${SRCDIR}/%.cc
+	@echo "Checking denpendecies $<..."
 	@mkdir -p $(dir $@)
-	${CXX} ${CXXFLAGS} -MM $< | sed 's/^[^:]*:/$(subst /,\/,$(patsubst ${SRCDIR}/%.cc,${OBJDIR}/%.o,$<)) $(subst /,\/,$@):/' > $@
+	@${CXX} ${CXXFLAGS} -MM $< | sed 's/^[^:]*:/$(subst /,\/,$(patsubst ${SRCDIR}/%.cc,${OBJDIR}/%.o,$<)) $(subst /,\/,$@):/' > $@
 
 obj/%.o: ${SRCDIR}/%.cc
+	@echo "Compiling $<..."
 	@mkdir -p $(dir $@)
-	${CXX} -c ${CXXFLAGS} -o $@ $<
+	@${CXX} -c ${CXXFLAGS} -o $@ $<
 
 clean: clean-target clean-obj
 
 clean-target:
-	rm -f ${TARGET}
+	@echo "Cleaning executable..."
+	@rm -f ${TARGET}
 
 clean-obj:
-	rm -f ${OBJECTS}
+	@echo "Cleaning objects..."
+	@rm -f ${OBJECTS}
 
 clean-deps:
-	rm -rf ${DEPSDIR}
+	@echo "Cleaning dependencies..."
+	@rm -rf ${DEPSDIR}
