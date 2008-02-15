@@ -23,6 +23,8 @@
 #include "Util/utils.hh"
 
 #include "MatchStandard.hh"
+#include "MatchBlitz.hh"
+#include "MatchLightning.hh"
 
 #include "XMPP/Exception.hh"
 #include "Exception.hh"
@@ -78,7 +80,9 @@ MatchManager::MatchManager(
 
     /* FIXME */
     /* this should not be here */
-    this->insertMatchRule(new MatchRuleStandard);
+    this->insertMatchRule(new MatchRuleStandard());
+    this->insertMatchRule(new MatchRuleBlitz());
+    this->insertMatchRule(new MatchRuleLightning());
 }
 
 void MatchManager::insertMatchRule(MatchRule* rule) {

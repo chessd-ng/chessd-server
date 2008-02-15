@@ -16,8 +16,8 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef MATCHBLITZ_HH
-#define MATCHBLITZ_HH
+#ifndef MATCHLIGHTNING_HH
+#define MATCHLIGHTNING_HH
 
 #include "MatchChess.hh"
 
