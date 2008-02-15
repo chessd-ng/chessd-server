@@ -37,6 +37,15 @@ namespace Util {
 
 #define foreach_pair(it, pair) for(typeof(pair.first) it = pair.first; it != pair.second; ++it)
 
+#define if_find(iterator, key, container) \
+    for(bool __continue__ = true; __continue__;) \
+    for(typeof(container)& __cont__ = (container);__continue__;) \
+    for(typeof((__cont__).begin()) iterator = (__cont__).find(key); \
+            __continue__; \
+            __continue__ = false) \
+    if(iterator != (__cont__).end())
+
+
 
     template <class ITERATOR> ITERATOR next(ITERATOR it) {
         return ++it;

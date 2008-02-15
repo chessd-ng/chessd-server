@@ -69,11 +69,11 @@ class ComponentBase {
 
         virtual void onError(const std::string& msg) = 0;
 
+        virtual void handleStanza(XMPP::Stanza* stanza);
+
 		void handleError(const std::string& error);
 
 		void _handleError(const std::string& error);
-
-		void handleStanza(XMPP::Stanza* stanza);
 
 		/*! \brief We run in a separated thread as a dispatcher */
 		Threads::Dispatcher dispatcher;
@@ -99,6 +99,8 @@ class ComponentBase {
 		Threads::Task task_send;
 
 		Threads::Queue<XMPP::Stanza*> stanza_queue;
+
+		void _handleStanza(XMPP::Stanza* stanza);
 
 
 };

@@ -69,35 +69,33 @@ GameRoom::GameRoom(
         const XMPP::Jid& room_jid,
         DatabaseManager& database_manager,
         const GameRoomHandlers& handlers) :
+    Muc(room_jid, game->title(), handlers.send_stanza),
     game(game),
-    room_jid(room_jid),
     database_manager(database_manager),
     handlers(handlers),
-    node(handlers.send_stanza, room_jid, game->title(), "game", "game"),
-    muc(node, room_jid, boost::bind(&GameRoom::reportUser, this, _1, _2, _3)),
     game_active(true),
     start_time(Util::Timer::Now())
 {
 
     /* Set features */
-    this->node.disco().features().insert(XMLNS_GAME);
+    this->disco().features().insert(XMLNS_GAME);
 
     /* Set game iqs */
-    this->node.setIqHandler(boost::bind(&GameRoom::handleMove, this, _1),
+    this->setIqHandler(boost::bind(&GameRoom::handleMove, this, _1),
             XMLNS_GAME_MOVE);
-    this->node.setIqHandler(boost::bind(&GameRoom::handleResign, this, _1),
+    this->setIqHandler(boost::bind(&GameRoom::handleResign, this, _1),
             XMLNS_GAME_RESIGN);
-    this->node.setIqHandler(boost::bind(&GameRoom::handleDrawAccept, this, _1),
+    this->setIqHandler(boost::bind(&GameRoom::handleDrawAccept, this, _1),
             XMLNS_GAME_DRAW);
-    this->node.setIqHandler(boost::bind(&GameRoom::handleDrawDecline, this, _1),
+    this->setIqHandler(boost::bind(&GameRoom::handleDrawDecline, this, _1),
             XMLNS_GAME_DRAW_DECLINE);
-    this->node.setIqHandler(boost::bind(&GameRoom::handleCancelAccept, this, _1),
+    this->setIqHandler(boost::bind(&GameRoom::handleCancelAccept, this, _1),
             XMLNS_GAME_CANCEL);
-    this->node.setIqHandler(boost::bind(&GameRoom::handleCancelDecline, this, _1),
+    this->setIqHandler(boost::bind(&GameRoom::handleCancelDecline, this, _1),
             XMLNS_GAME_CANCEL_DECLINE);
-    this->node.setIqHandler(boost::bind(&GameRoom::handleAdjournAccept, this, _1),
+    this->setIqHandler(boost::bind(&GameRoom::handleAdjournAccept, this, _1),
             XMLNS_GAME_ADJOURN);
-    this->node.setIqHandler(boost::bind(&GameRoom::handleAdjournDecline, this, _1),
+    this->setIqHandler(boost::bind(&GameRoom::handleAdjournDecline, this, _1),
             XMLNS_GAME_ADJOURN_DECLINE);
 
     foreach(team, game->teams()) {
@@ -112,12 +110,8 @@ GameRoom::GameRoom(
 
 GameRoom::~GameRoom() { }
 
-void GameRoom::handleStanza(XMPP::Stanza* stanza) {
-    this->node.handleStanza(stanza);
-}
-
 void GameRoom::checkGameIQ(const XMPP::Jid& from) {
-    if(not this->muc.isOccupant(from))
+    if(not this->isOccupant(from))
         throw XMPP::not_acceptable("Only occupants are allowed to send queries to the game");
     if(not Util::has_key(this->all_players, from))
         throw XMPP::not_acceptable("Only players can do that");
@@ -132,7 +126,7 @@ void GameRoom::handleMove(const XMPP::Stanza& stanza) {
         std::string move_string = move.getAttribute("long");
 
         this->game->move(stanza.from(), move_string, Util::Timer::Now() - this->start_time);
-        this->node.sendStanza(stanza.createIQResult());
+        this->sendStanza(stanza.createIQResult());
         this->notifyMove(move_string);
         if(this->game->done()) {
             this->endGame();
@@ -153,14 +147,14 @@ void GameRoom::notifyState(const XMPP::Jid& user) {
     generator.addAttribute("xmlns", XMLNS_GAME_STATE);
     generator.addChild(this->gameState());
     stanza->children().push_back(generator.getTag());
-    this->node.sendIq(stanza);
+    this->sendIq(stanza);
 }
 
 void GameRoom::handleResign(const XMPP::Stanza& stanza) {
     this->checkGameIQ(stanza.from());
 
     this->game->resign(stanza.from());
-    this->node.sendStanza(stanza.createIQResult());
+    this->sendStanza(stanza.createIQResult());
 
     this->endGame();
 }
@@ -170,7 +164,7 @@ void GameRoom::handleDrawAccept(const XMPP::Stanza& stanza) {
 
     this->draw_agreement.agreed(stanza.from());
 
-    this->node.sendStanza(stanza.createIQResult());
+    this->sendStanza(stanza.createIQResult());
 
     if(this->draw_agreement.left_count() == 0) {
         this->game->draw();
@@ -184,7 +178,7 @@ void GameRoom::handleDrawDecline(const XMPP::Stanza& stanza) {
     this->checkGameIQ(stanza.from());
 
     this->draw_agreement.clear();
-    this->node.sendStanza(stanza.createIQResult());
+    this->sendStanza(stanza.createIQResult());
     this->notifyRequest(REQUEST_DRAW_DECLINE, stanza.from());
 }
 
@@ -192,7 +186,7 @@ void GameRoom::handleCancelAccept(const XMPP::Stanza& stanza) {
     this->checkGameIQ(stanza.from());
 
     this->cancel_agreement.agreed(stanza.from());
-    this->node.sendStanza(stanza.createIQResult());
+    this->sendStanza(stanza.createIQResult());
     if(this->cancel_agreement.left_count()==0) {
         this->cancelGame();
     }
@@ -205,7 +199,7 @@ void GameRoom::handleCancelDecline(const XMPP::Stanza& stanza) {
     this->checkGameIQ(stanza.from());
 
     this->cancel_agreement.clear();
-    this->node.sendStanza(stanza.createIQResult());
+    this->sendStanza(stanza.createIQResult());
     this->notifyRequest(REQUEST_CANCEL_DECLINE, stanza.from());
 }
 
@@ -213,7 +207,7 @@ void GameRoom::handleAdjournAccept(const XMPP::Stanza& stanza) {
     this->checkGameIQ(stanza.from());
 
     this->adjourn_agreement.agreed(stanza.from());
-    this->node.sendStanza(stanza.createIQResult());
+    this->sendStanza(stanza.createIQResult());
     if(this->adjourn_agreement.left_count()==0) {
         this->adjournGame();
     }
@@ -226,7 +220,7 @@ void GameRoom::handleAdjournDecline(const XMPP::Stanza& stanza) {
     this->checkGameIQ(stanza.from());
 
     this->adjourn_agreement.clear();
-    this->node.sendStanza(stanza.createIQResult());
+    this->sendStanza(stanza.createIQResult());
     this->notifyRequest(REQUEST_ADJOURN_DECLINE, stanza.from());
 }
 
@@ -239,7 +233,7 @@ void GameRoom::notifyRequest(GameRequest request, const XMPP::Jid& requester) {
     foreach(player, this->all_players) {
         if(*player != requester) {
             stanza.to() = *player;
-            this->node.sendIq(new XMPP::Stanza(stanza));
+            this->sendIq(new XMPP::Stanza(stanza));
         }
     }
 }
@@ -267,7 +261,7 @@ XMPP::Stanza* createResultStanza(const GameResult& result) {
 
 void GameRoom::notifyResult(const GameResult& result) {
     XMPP::Stanza* stanza = createResultStanza(result);
-    this->muc.broadcastIq(stanza);
+    this->broadcastIq(stanza);
 }
 
 XMPP::Stanza* createMoveStanza(XML::Tag* state, const std::string& long_move) {
@@ -290,7 +284,7 @@ XML::Tag* GameRoom::gameState() {
 
 void GameRoom::notifyMove(const std::string& long_move) {
     XMPP::Stanza* stanza = createMoveStanza(this->gameState(), long_move);
-    this->muc.broadcastIq(stanza);
+    this->broadcastIq(stanza);
 }
 
 void storeResult(GameResult* result, DatabaseInterface& database) {
@@ -347,11 +341,11 @@ XMPP::Stanza* createCanceledStanza() {
 
 void GameRoom::cancelGame() {
     this->game_active = false;
-    this->muc.broadcastIq(createCanceledStanza());
+    this->broadcastIq(createCanceledStanza());
 }
 
-void GameRoom::reportUser(const XMPP::Jid& jid, const std::string& nick, bool available) {
-    if(not available and not this->game_active and this->muc.occupants().size() == 0) {
+void GameRoom::notifyUserStatus(const XMPP::Jid& jid, const std::string& nick, bool available) {
+    if(not available and not this->game_active and this->occupants().size() == 0) {
         this->handlers.close_game();
     }
     if(available) {

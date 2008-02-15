@@ -56,9 +56,9 @@ void GameManager::_createGame(Game* game, const OnGameStart& on_game_start) {
 	GameRoom* game_room = new GameRoom(game, room_jid, this->database_manager,
 			GameRoomHandlers(boost::bind(&ComponentBase::sendStanza, this, _1),
 				boost::bind(&GameManager::closeGameRoom, this, room_id)));
-	/* Register the new jabber node */
-	this->root_node.setNodeHandler(room_jid.node(),
-			boost::bind(&GameRoom::handleStanza, game_room, _1));
+    /* Register the node */
+    this->root_node.setNodeHandler(room_jid.node(),
+            boost::bind(&GameRoom::handleStanza, game_room, _1));
 	/* Add the new jabber node to the disco */
 	this->root_node.disco().items().insert(new XMPP::DiscoItem(room_jid.node(),
 				room_jid));
@@ -75,7 +75,7 @@ void GameManager::closeGameRoom(int room_id) {
 void GameManager::_closeGameRoom(int room_id) {
 	this->room_ids.releaseID(room_id);
 	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
-	this->root_node.removeNodeHandler(room_jid.node());
+	//this->root_node.removeNodeHandler(room_jid.node());
 	this->root_node.disco().items().erase(room_jid);
 	this->game_rooms.erase(room_id);
 }

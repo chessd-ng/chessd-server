@@ -32,20 +32,23 @@ namespace XMPP {
 			const std::string& type) :
 		Node(send_stanza, jid, name, category, type)
     {
-        this->node_handlers.insert(make_pair("",boost::bind(&Node::handleStanza, this, _1)));
     }
 
 	RootNode::~RootNode() { }
 
-	void RootNode::handleStanza(Stanza* _stanza) {
+	void RootNode::handleStanza(Stanza* _stanza) throw() {
         std::auto_ptr<Stanza> stanza(_stanza);
         try {
-            HandlerMap::const_iterator it;
-            it = this->node_handlers.find(stanza->to().node());
-            if(it != this->node_handlers.end())
-                it->second(new Stanza(*stanza));
-            else {
-                throw item_not_found("Item not found");
+            if(stanza->to().node().empty()) {
+                Node::handleStanza(stanza.release());
+            } else {
+                HandlerMap::const_iterator it;
+                it = this->node_handlers.find(stanza->to().node());
+                if(it != this->node_handlers.end()) {
+                    it->second(new Stanza(*stanza));
+                } else {
+                    throw item_not_found("Item not found");
+                }
             }
         } catch (const xmpp_exception& error) {
             this->sendStanza(error.getErrorStanza(stanza.release()));

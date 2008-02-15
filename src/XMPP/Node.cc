@@ -26,6 +26,18 @@ using namespace std;
 
 namespace XMPP {
 
+    struct Node::IQTrack {
+        Jid jid;
+        ConstStanzaHandler on_result;
+        TimeoutHandler on_timeout;
+        IQTrack(const Jid& jid,
+                const ConstStanzaHandler& on_result,
+                const TimeoutHandler& on_timeout) :
+            jid(jid),
+            on_result(on_result),
+            on_timeout(on_timeout) { }
+    };
+
 	Node::Node(const StanzaHandler& sender,
 			const Jid& jid,
 			const std::string& name,
@@ -128,7 +140,7 @@ namespace XMPP {
 		}
 	}
 
-	void Node::handleStanza(Stanza* _stanza) {
+	void Node::handleStanza(Stanza* _stanza) throw() {
         std::auto_ptr<Stanza> stanza(_stanza);
         try {
             if(stanza->type() == "presence") {
