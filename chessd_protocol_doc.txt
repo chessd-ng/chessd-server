@@ -11,8 +11,8 @@
 <iq type='set' to='match.shiva' id='match'>
 	<query xmlns='http://c3sl.ufpr.br/chessd#match#offer'>
 		<match category='standard'>
-            <player jid='raphaelhr@shiva/Psi' time='900' inc='1' color='w'/>
-            <player jid='eduari@shiva/Psi' time='900' inc='1' color='b'/>
+            <player jid='raphaelhr@shiva/Psi' time='900' inc='1' color='white'/>
+            <player jid='eduari@shiva/Psi' time='900' inc='1' color='black'/>
         </match>
 	</query>
 </iq>
@@ -36,8 +36,8 @@
 <iq from="match.shiva" type="set" id="1" to="eduari@shiva/Psi" >
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'/>
         <match category="standard" id="0" >
-            <player inc="1" color="w" time="900" jid="raphaelhr@shiva/Psi" />
-            <player inc="1" color="b" time="900" jid="eduari@shiva/Psi" />
+            <player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" />
+            <player inc="1" color="black" time="900" jid="eduari@shiva/Psi" />
         </match>
     </query>
 </iq>
@@ -88,8 +88,8 @@
     <query xmlns="http://c3sl.ufpr.br/chessd#game#state">
         <state category="standard" >
 			<board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" turn="w" />
-            <player inc="1" color="w" time="900" jid="raphaelhr@shiva/Psi" />
-            <player inc="1" color="b" time="900" jid="eduari@shiva/Psi" />
+            <player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" />
+            <player inc="1" color="black" time="900" jid="eduari@shiva/Psi" />
         </state>
     </query>
 </iq>
