@@ -42,15 +42,16 @@ class MatchDatabase {
 		/*! \brief Inform that a player accepted a match */
 		void acceptMatch(int match_id, const XMPP::Jid& player);
 
+		/*! \brief Ask if there is a match with the given id */
+        bool hasMatch(int match_id) const;
+
 		/*! \brief Ask whether this player blongs to the match.  */
 		bool hasPlayer(int match_id, const XMPP::Jid& player) const;
 
-		/*! \brief Get all the matchs which the player is in.
-		 */
+		/*! \brief Get all the matchs which the player is in.  */
 		const std::set<int>& getPlayerMatchs(const XMPP::Jid& player);
 
-		/*! \brief Removes the match and return the Match instance
-		 */
+		/*! \brief Removes the match and return the Match instance */
 		Match* closeMatch(int match_id);
 
         /*! \brief Get a match by its id. */
@@ -61,6 +62,9 @@ class MatchDatabase {
 
         /*! \brief Ask whether everyone in the has accepted */
         bool isDone(int match_id) const;
+
+        /*! \brief Replaces a match */
+        void replaceMatch(int match_id, Match* match);
 		
 	private:
 
