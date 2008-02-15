@@ -89,7 +89,7 @@ namespace XMPP {
 			 *
 			 * \param stanza is the incoming stanza.
 			 */
-			void handleStanza(Stanza* stanza);
+			virtual void handleStanza(Stanza* stanza) throw();
 
 			Disco& disco() { return this->_disco; }
 			const Disco& disco() const { return this->_disco; }
@@ -125,17 +125,7 @@ namespace XMPP {
 
 			Disco _disco;
 
-			struct IQTrack {
-				Jid jid;
-				ConstStanzaHandler on_result;
-				TimeoutHandler on_timeout;
-				IQTrack(const Jid& jid,
-						const ConstStanzaHandler& on_result,
-						const TimeoutHandler& on_timeout) :
-					jid(jid),
-					on_result(on_result),
-					on_timeout(on_timeout) { }
-			};
+			struct IQTrack;
 
 			std::map<long long, IQTrack> iq_tracks;
 

@@ -80,8 +80,12 @@ void ComponentBase::_handleError(const std::string& error) {
     this->_close();
 }
 
+void ComponentBase::_handleStanza(XMPP::Stanza* stanza) {
+	this->dispatcher.queue(boost::bind(&ComponentBase::handleStanza, this, stanza));
+}
+
 void ComponentBase::handleStanza(XMPP::Stanza* stanza) {
-	this->dispatcher.queue(boost::bind(this->root_node.stanzaHandler(), stanza));
+    this->root_node.handleStanza(stanza);
 }
 
 void ComponentBase::run_recv() {
@@ -90,7 +94,7 @@ void ComponentBase::run_recv() {
 		while(this->running) {
 			stanza = this->component.recvStanza(1);
             if(stanza != 0) {
-                this->handleStanza(stanza);
+                this->_handleStanza(stanza);
             }
 		}
 	} catch (const char* error) {

@@ -30,12 +30,30 @@
 
 namespace XMPP {
 
-	struct MucUser {
-		MucUser(const std::string& nick, const std::string& affiliation,
-				const std::string& role, const Jid& jid);
-		std::string nick, affiliation, role;
-		Jid jid;
-	};
+    struct MucUser {
+        public:
+            MucUser(const std::string& nick, const std::string& affiliation,
+                    const std::string& role, const Jid& jid);
+
+            std::string& nick() { return this->_nick;}
+            const std::string& nick() const { return this->_nick;}
+
+            std::string& affiliation() { return this->_affiliation;}
+            const std::string& affiliation() const { return this->_affiliation;}
+
+            std::string& role() { return this->_role;}
+            const std::string& role() const { return this->_role;}
+
+            XMPP::Jid& jid() { return this->_jid;}
+            const XMPP::Jid& jid() const { return this->_jid;}
+
+
+        private:
+            std::string _nick, _affiliation, _role;
+            Jid _jid;
+
+
+    };
 
 	struct MucUserSet {
 		private:
@@ -77,7 +95,7 @@ namespace XMPP {
                 return this->users.size();
             }
 			void insert(MucUser* user) {
-				Jid jid = user->jid;
+				Jid jid = user->jid();
 				this->users.insert(jid, user);
 			}
 			void erase(const Jid& user_jid) {
@@ -95,13 +113,13 @@ namespace XMPP {
 			// XXX
 			const_iterator find_nick(const std::string& user_nick) const {
 				foreach(it, this->users)
-					if(it->second->nick == user_nick)
+					if(it->second->nick() == user_nick)
 						return const_iterator(it);
 				return const_iterator(this->users.end());
 			}
 			iterator find_nick(const std::string& user_nick) {
 				foreach(it, this->users)
-					if(it->second->nick == user_nick)
+					if(it->second->nick() == user_nick)
 						return iterator(it);
 				return iterator(this->users.end());
 			}
@@ -111,13 +129,15 @@ namespace XMPP {
 
     typedef boost::function<void (const Jid&, const std::string&, bool)> OccupantMonitor;
 
-	class Muc {
+	class Muc : public Node {
 		public:
-			Muc(Node& node, const Jid& jid, const OccupantMonitor& monitor );
+			Muc(const Jid& jid,
+                    const std::string& room_title,
+                    StanzaHandler send_stanza);
 
 			~Muc();
 
-			void broadcast(Stanza* stanza);
+            void broadcast(Stanza* stanza);
 
             const MucUserSet& occupants() const { return this->_users; }
 
@@ -128,9 +148,19 @@ namespace XMPP {
 			void broadcastIq(Stanza* stanza, const ConstStanzaHandler& on_result = ConstStanzaHandler(),
 					const TimeoutHandler& on_timeout = TimeoutHandler());
 
+            virtual void handleStanza(Stanza* stanza) throw();
+
+        protected:
+
+            virtual void notifyUserStatus(
+                    const Jid& jid,
+                    const std::string& nick,
+                    bool available) = 0;
+
+
 		private:
 
-			void handlePresence(const Stanza& stanza);
+			void handlePresence(const Stanza& stanza) throw();
 
 			void handleGroupChat(const Stanza& stanza);
 
@@ -145,16 +175,8 @@ namespace XMPP {
 			MucUserSet& users() { return this->_users; }
 			const MucUserSet& users() const { return this->_users; }
 
-			Node& node;
-
-			Jid jid;
-
 			MucUserSet _users;
-
-            OccupantMonitor monitor;
-
 	};
-
 }
 
 #endif

@@ -41,7 +41,7 @@ struct GameRoomHandlers {
 		close_game(close_game) { }
 };
 
-class GameRoom {
+class GameRoom : public XMPP::Muc {
 	public:
         GameRoom(
                 Game* game,
@@ -50,8 +50,6 @@ class GameRoom {
                 const GameRoomHandlers& handlers);
 
 		~GameRoom();
-
-		void handleStanza(XMPP::Stanza* stanza);
 
 	private:
 		enum GameRequest {
@@ -88,7 +86,7 @@ class GameRoom {
 
         void endGame();
 
-        void reportUser(const XMPP::Jid& jid, const std::string& nick, bool available);
+        void notifyUserStatus(const XMPP::Jid& jid, const std::string& nick, bool available);
 
         void checkGameIQ(const XMPP::Jid& from);
 
@@ -101,9 +99,6 @@ class GameRoom {
         DatabaseManager& database_manager;
 
 		GameRoomHandlers handlers;
-
-		XMPP::Node node;
-		XMPP::Muc muc;
 
 		Agreement draw_agreement;
 		Agreement cancel_agreement;

@@ -26,6 +26,7 @@
 
 #include "XMPP/Exception.hh"
 #include "Exception.hh"
+#include "GameException.hh"
 
 #define XMLNS_MATCH         "http://c3sl.ufpr.br/chessd#match"
 #define XMLNS_MATCH_OFFER   "http://c3sl.ufpr.br/chessd#match#offer"
@@ -137,10 +138,11 @@ void MatchManager::handleOffer(const Stanza& stanza) {
         this->notifyOffer(id, requester);
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request(error.what());
+    } catch (const game_exception& error) {
+        throw XMPP::bad_request(error.what());
     } catch (const char* error) {
         throw XMPP::bad_request(error);
     }
-
 }
 
 void MatchManager::notifyOffer(int id, const Jid& requester) {

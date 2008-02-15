@@ -35,23 +35,23 @@ namespace XMPP {
 
 	MucUser::MucUser(const std::string& nick, const std::string& affiliation,
 			const std::string& role, const Jid& jid) :
-		nick(nick), affiliation(affiliation), role(role), jid(jid) { }
+		_nick(nick), _affiliation(affiliation), _role(role), _jid(jid) { }
 
-    Muc::Muc(Node& node, const Jid& jid, const OccupantMonitor& monitor) :
-        node(node),
-        jid(jid),
-        monitor(monitor)
+    Muc::Muc(const Jid& jid,
+            const std::string& room_title,
+            const StanzaHandler send_stanza) :
+        Node(send_stanza, jid, room_title, "muc", "muc")
     {
-        this->node.disco().features().insert("presence");
-        this->node.setPresenceHandler(boost::bind(&Muc::handlePresence, this, _1));
+        this->disco().features().insert("presence");
+        this->setPresenceHandler(boost::bind(&Muc::handlePresence, this, _1));
 
-        this->node.disco().features().insert(XMLNS_MUC);
-        this->node.setMessageHandler(boost::bind(&Muc::handleGroupChat, this, _1), "groupchat");
+        this->disco().features().insert(XMLNS_MUC);
+        this->setMessageHandler(boost::bind(&Muc::handleGroupChat, this, _1), "groupchat");
     }
 
     Muc::~Muc() { }
 
-	void Muc::handlePresence(const Stanza& stanza) {
+	void Muc::handlePresence(const Stanza& stanza) throw() {
 		if(stanza.subtype().empty()) {
 			this->addUser(stanza.to().resource(), stanza.from());
 		} else if(stanza.subtype() == "unavailable") {
@@ -74,13 +74,14 @@ namespace XMPP {
 					this->presentUsers(user_jid);
 					this->users().insert(new MucUser(nick, "member",
 								"participant", user_jid));
-					this->node.disco().items().insert(
-							new DiscoItem(nick, Jid(this->jid.node(), jid.domain(), nick)));
-					Stanza* stanza = this->createPresenceStanza(*this->users().find_jid(user_jid));
-					this->broadcast(stanza);
-                    if(not this->monitor.empty()) {
-                        this->monitor(user_jid, nick, true);
-                    }
+                    this->disco().items().insert(
+                            new DiscoItem(nick,
+                                Jid(this->jid().node(),
+                                    this->jid().domain(),
+                                    nick)));
+                    Stanza* stanza = this->createPresenceStanza(*this->users().find_jid(user_jid));
+                    this->broadcast(stanza);
+                    this->notifyUserStatus(user_jid, nick, true);
 				}
 			}
 		}
@@ -89,8 +90,8 @@ namespace XMPP {
 	void Muc::broadcast(Stanza* stanza) {
 		foreach(it, this->users()) {
 			Stanza* tmp = new Stanza(*stanza);
-			tmp->to() = it->jid;
-			this->node.sendStanza(tmp);
+			tmp->to() = it->jid();
+			this->sendStanza(tmp);
 		}
 		delete stanza;
 	}
@@ -99,8 +100,8 @@ namespace XMPP {
 			const TimeoutHandler& on_timeout) {
 		foreach(it, this->users()) {
 			Stanza* tmp = new Stanza(*stanza);
-			tmp->to() = it->jid;
-			this->node.sendIq(tmp, on_result, on_timeout);
+			tmp->to() = it->jid();
+			this->sendIq(tmp, on_result, on_timeout);
 		}
 		delete stanza;
 	}
@@ -109,20 +110,20 @@ namespace XMPP {
 		foreach(it, this->users()) {
 			Stanza* stanza = this->createPresenceStanza(*it);
 			stanza->to() = jid;
-			this->node.sendStanza(stanza);
+			this->sendStanza(stanza);
 		}
 	}
 
 	Stanza* Muc::createPresenceStanza(const MucUser& user) {
 		Stanza* stanza = new Stanza("presence");
-		stanza->from() = this->jid;
-		stanza->from().resource() = user.nick;
+		stanza->from() = this->jid();
+		stanza->from().resource() = user.nick();
 		TagGenerator generator;
 		generator.openTag("x");
 		generator.addAttribute("xmlns", XMLNS_MUC_USER);
 		generator.openTag("item");
-		generator.addAttribute("affiliation", user.affiliation);
-		generator.addAttribute("role", user.role);
+		generator.addAttribute("affiliation", user.affiliation());
+		generator.addAttribute("role", user.role());
 		generator.closeTag();
 		stanza->children().push_back(generator.getTag());
 		return stanza;
@@ -134,13 +135,11 @@ namespace XMPP {
 			Stanza* stanza = this->createPresenceStanza(*it);
 			stanza->subtype() = "unavailable";
 			this->broadcast(stanza);
-			Jid jid = this->jid;
-			jid.resource() = it->nick;
-			this->node.disco().items().erase(jid);
+			Jid jid = this->jid();
+			jid.resource() = it->nick();
+			this->disco().items().erase(jid);
 			this->users().erase(it);
-            if(not this->monitor.empty()) {
-                this->monitor(user_jid, jid.resource(), false);
-            }
+            this->notifyUserStatus(user_jid, jid.resource(), true);
 		}
 	}
 
@@ -149,11 +148,36 @@ namespace XMPP {
 		if(it != this->users().end()) {
             Stanza* resp = new Stanza(stanza);
 			swap(resp->to(), resp->from());
-			resp->from().resource() = it->nick;
+			resp->from().resource() = it->nick();
 			this->broadcast(resp);
 		} else {
-            throw not_acceptable("Only room occupants may send message sto the room");
+            throw not_acceptable("Only room occupants may send messages to the room");
 		}
 	}
+
+    void Muc::handleStanza(Stanza* _stanza) throw () {
+        std::auto_ptr<Stanza> stanza(_stanza);
+        try {
+            if(stanza->type() != "presence" and not stanza->to().resource().empty()) {
+                MucUserSet::iterator dest, source;
+                source = this->users().find_jid(stanza->from());
+                if(source == this->users().end()) {
+                    throw not_acceptable("Only room occupants may send messages to the room");
+                }
+                dest = this->users().find_nick(stanza->to().resource());
+                if(dest == this->users().end()) {
+                    throw item_not_found("Occupant is not present on the room");
+                }
+                stanza->to() = dest->jid();
+                stanza->from() = Jid(this->jid().node(), this->jid().domain(), source->nick());
+
+                this->sendStanza(stanza.release());
+            } else {
+                Node::handleStanza(stanza.release());
+            }
+        } catch (const xmpp_exception& exception) {
+            this->sendStanza(exception.getErrorStanza(stanza.release()));
+        }
+    }
 
 }

@@ -60,9 +60,7 @@ class GameManager : public ComponentBase {
 		 */
 		void createGame(Game* game, const OnGameStart& on_game_start = OnGameStart());
 
-
-
-	private:
+    private:
 
 		/*! \brief createGame helper
 		 *
