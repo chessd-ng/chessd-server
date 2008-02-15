@@ -37,11 +37,11 @@ RatingComponent::RatingComponent(
 {
 
     /* Set features */
-    this->root_node.disco().features().insert("http://c3sl.ufpr.br/chessd#rating");
+    this->root_node.disco().features().insert("http://c3sl.ufpr.br/chessd#info");
 
     /* Set rating iqs */
     this->root_node.setIqHandler(boost::bind(&RatingComponent::handleRating, this, _1),
-            "http://c3sl.ufpr.br/chessd#rating");
+            "http://c3sl.ufpr.br/chessd#info");
 
 }
 
@@ -54,8 +54,15 @@ void RatingComponent::handleRating(const Stanza& stanza) {
 
         /* check if the format is correct */
         foreach(tag, query.tags()) {
-            if(tag->name() != "rating" or not tag->hasAttribute("category") or not tag->hasAttribute("jid"))
+            if(tag->name() == "rating") {
+                if(not tag->hasAttribute("category") or not tag->hasAttribute("jid"))
+                    throw XMPP::bad_request("Invalid format");
+            } else if(tag->name() == "type") {
+                if(not tag->hasAttribute("jid"))
+                    throw XMPP::bad_request("Invalid format");
+            } else {
                 throw XMPP::bad_request("Invalid format");
+            }
         }
 
         /* execute the transaction */
@@ -77,16 +84,22 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
     generator.openTag("query");
     generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#rating");
     foreach(tag, query.tags()) {
-        Rating rating = rating_database.getRating
+        if(tag->name() == "rating") {
+            Rating rating = rating_database.getRating
                 (tag->getAttribute("jid"), tag->getAttribute("category"));
-        generator.openTag("rating");
-        generator.addAttribute("jid", tag->getAttribute("jid"));
-        generator.addAttribute("category", tag->getAttribute("category"));
-        generator.addAttribute("rating", Util::to_string(rating.rating()));
-        generator.addAttribute("wins", Util::to_string(rating.wins()));
-        generator.addAttribute("draws", Util::to_string(rating.draws()));
-        generator.addAttribute("losses", Util::to_string(rating.losses()));
-        generator.closeTag();
+            generator.openTag("rating");
+            generator.addAttribute("jid", tag->getAttribute("jid"));
+            generator.addAttribute("category", tag->getAttribute("category"));
+            generator.addAttribute("rating", Util::to_string(rating.rating()));
+            generator.addAttribute("wins", Util::to_string(rating.wins()));
+            generator.addAttribute("draws", Util::to_string(rating.draws()));
+            generator.addAttribute("losses", Util::to_string(rating.losses()));
+            generator.closeTag();
+        } else if(tag->name() == "type") {
+            generator.openTag("type");
+            generator.addAttribute("jid", tag->getAttribute("jid"));
+            generator.addAttribute("type", "user");
+        }
     }
     generator.closeTag();
     generator.closeTag();
