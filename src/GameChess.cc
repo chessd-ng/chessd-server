@@ -103,6 +103,7 @@ const std::string& GameChess::title() const {
 
 void GameChess::resign(const Player& player) {
 	this->_resign=colormap[player];
+	_history=history_saved.getTag();
 }
 
 void GameChess::call_flag(const Player& player) {
@@ -111,6 +112,7 @@ void GameChess::call_flag(const Player& player) {
 
 void GameChess::draw() {
 	this->_draw=true;
+	_history=history_saved.getTag();
 }
 
 void GameChess::adjourn() {
@@ -198,7 +200,7 @@ void GameChess::move(const Player& player, const std::string& movement, const Ut
 	time_of_last_move=time_stamp;
 
 	this->history_saved.addChild(this->generateStateTag(chess.getState(),time_stamp));
-	if(done()==true)
+	if(this->done()==true)
 		_history=history_saved.getTag();
 }
 
