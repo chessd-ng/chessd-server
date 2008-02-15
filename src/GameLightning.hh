@@ -16,8 +16,8 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef GAMEBLITZ_HH
-#define GAMEBLITZ_HH
+#ifndef GAMELIGHTNING_HH
+#define GAMELIGHTNING_HH
 
 #include "GameChess.hh"
 

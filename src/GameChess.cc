@@ -60,7 +60,7 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 	t.openTag("board");
 	{
 		t.addAttribute("state",est.boardFEN());
-		t.addAttribute("turn",est.turn()==Chess::WHITE?"w":"b");
+		t.addAttribute("turn",est.turn()==Chess::WHITE?"white":"black");
 		t.addAttribute("castle",est.castle);
 		if(est.enpassant.x()!=-1)
 			t.addAttribute("enpassant",est.enpassant.toStringNotation());
@@ -81,7 +81,7 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 			//XXX be careful with double from getSeconds
 			t.addAttribute("time", Util::to_string((int)aux.getSeconds()));
 
-			t.addAttribute("color",it->color==White?"w":"b");
+			t.addAttribute("color",it->color==White?"white":"black");
 			t.closeTag();
 		}
 	}

@@ -135,7 +135,7 @@ XML::Tag* MatchChess::notification() const {
 			sprintf(tmp,"%d",tempo);
 			t.addAttribute("inc",std::string(tmp));
 
-			t.addAttribute("color",it->color==White?"w":"b");
+			t.addAttribute("color",it->color==White?"white":"black");
 		}
 		t.closeTag();
 	}
