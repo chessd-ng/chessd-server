@@ -71,7 +71,7 @@ StandardPlayerList MatchRuleChess::getPlayersfromXML(const XML::Tag& _match_offe
 		if(typeid(*c_it)==typeid(XML::Tag)) {
 			const XML::Tag& tag_c = static_cast<const XML::Tag&>(*c_it);
 			XMPP::Jid aux(tag_c.getAttribute("jid"));
-			Util::Time time(tag_c.getAttribute("time"),Util::Minutes),inc;
+			Util::Time time(tag_c.getAttribute("time"),Util::Seconds),inc;
 			if(tag_c.hasAttribute("inc"))
 				inc=Util::Time(tag_c.getAttribute("inc"),Util::Seconds);
 			StandardPlayerColor c(tag_c.getAttribute("color")=="w"?White:Black);

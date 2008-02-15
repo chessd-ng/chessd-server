@@ -37,7 +37,7 @@ Match* MatchRuleStandard::checkOffer(const XML::Tag& _match_offer, const TeamDat
 
 bool MatchRuleStandard::isTimeValid(const XML::Tag& _player) const {
 	if(_player.hasAttribute("time")) {
-		if(11u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Minutes))
+		if(11u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Seconds))
 			return true;
 	}
 	return false;

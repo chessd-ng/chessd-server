@@ -37,8 +37,8 @@ Match* MatchRuleLightning::checkOffer(const XML::Tag& _match_offer, const TeamDa
 
 bool MatchRuleLightning::isTimeValid(const XML::Tag& _player) const {
 	if(_player.hasAttribute("time")) {
-		if((1u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Minutes)) and
-				(2u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Minutes)))
+		if((1u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Seconds)) and
+				(2u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Seconds)))
 			return true;
 	}
 	return false;

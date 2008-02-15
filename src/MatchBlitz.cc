@@ -37,8 +37,8 @@ Match* MatchRuleBlitz::checkOffer(const XML::Tag& _match_offer, const TeamDataba
 
 bool MatchRuleBlitz::isTimeValid(const XML::Tag& _player) const {
 	if(_player.hasAttribute("time")) {
-		if((3u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Minutes)) and
-				(10u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Minutes)))
+		if((3u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Seconds)) and
+				(10u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Seconds)))
 			return true;
 	}
 	return false;
