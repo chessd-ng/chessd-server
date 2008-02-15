@@ -27,6 +27,9 @@ using namespace std;
 using namespace XML;
 using namespace XMPP;
 
+#define XMLNS_CHESSD_INFO "http://c3sl.ufpr.br/chessd#info"
+
+
 RatingComponent::RatingComponent(
         const XML::Tag& config,
         const XMPP::ErrorHandler& error_handler,
@@ -37,11 +40,13 @@ RatingComponent::RatingComponent(
 {
 
     /* Set features */
-    this->root_node.disco().features().insert("http://c3sl.ufpr.br/chessd#info");
+    this->root_node.disco().features().insert(XMLNS_CHESSD_INFO);
 
     /* Set rating iqs */
     this->root_node.setIqHandler(boost::bind(&RatingComponent::handleRating, this, _1),
             "http://c3sl.ufpr.br/chessd#info");
+    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleRating, this, _1),
+            "http://c3sl.ufpr.br/chessd#rating");
 
 }
 
@@ -82,7 +87,7 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
     generator.addAttribute("id", stanza.id());
     generator.addAttribute("type", "result");
     generator.openTag("query");
-    generator.addAttribute("xmlns", "http://c3sl.ufpr.br/chessd#rating");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_INFO);
     foreach(tag, query.tags()) {
         if(tag->name() == "rating") {
             Rating rating = rating_database.getRating

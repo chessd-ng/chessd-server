@@ -89,6 +89,8 @@ class MatchManager : public ComponentBase {
 
         void _notifyGameStart(int match_id, Match* match, const XMPP::Jid& jid);
 
+        void sendOfferResult(const XMPP::Jid& to, const std::string& iq_id, int match_id);
+
 		/*! \brief A XMPP roster */
 		XMPP::Roster roster;
 

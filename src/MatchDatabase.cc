@@ -30,12 +30,16 @@ MatchDatabase::~MatchDatabase() {
 }
 
 int MatchDatabase::insertMatch(Match* match) {
-	int id = this->match_ids.acquireID();
-	this->matchs.insert(id, new MatchInfo(match));
+	int match_id = this->match_ids.acquireID();
+	this->matchs.insert(match_id, new MatchInfo(match));
 	foreach(player, match->players()) {
-		this->player_matchs[*player].insert(id);
+		this->player_matchs[*player].insert(match_id);
 	}
-	return id;
+	return match_id;
+}
+
+void MatchDatabase::replaceMatch(int match_id, Match* match) {
+	this->matchs.insert(match_id, new MatchInfo(match));
 }
 
 MatchDatabase::MatchInfo::MatchInfo(Match* match) : match(match), pending_count(0) {
@@ -86,6 +90,10 @@ Match* MatchDatabase::closeMatch(int match_id) {
 
 const Match& MatchDatabase::getMatch(int match_id) const {
 	return *this->matchs.find(match_id)->second->match;
+}
+
+bool MatchDatabase::hasMatch(int match_id) const {
+	return this->matchs.find(match_id) != this->matchs.end();
 }
 
 vector<int> MatchDatabase::getActiveMatchs() const {

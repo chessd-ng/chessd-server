@@ -93,15 +93,43 @@ void MatchManager::insertMatchRule(MatchRule* rule) {
 MatchManager::~MatchManager() {
 }
 
+void MatchManager::sendOfferResult(const XMPP::Jid& to, const std::string& iq_id, int match_id) {
+    Stanza* resp = new Stanza("iq");
+    resp->subtype() = "result";
+    resp->id() = iq_id;
+    resp->to() = to;
+    resp->from() = this->root_node.jid();
+
+    TagGenerator generator;
+    generator.openTag("query");
+    generator.addAttribute("xmlns", XMLNS_MATCH_OFFER);
+    generator.openTag("match");
+    generator.addAttribute("id", Util::to_string(match_id));
+    resp->children().push_back(generator.getTag());
+
+    this->sendStanza(resp);
+}
+
 void MatchManager::handleOffer(const Stanza& stanza) {
     try {
         Jid requester = stanza.from();
         /* parse message */
         const XML::Tag& offer = stanza.query().findChild("match");
         const std::string& category = offer.getAttribute("category");
+        int match_id;
+
+        if(offer.hasAttribute("id")) {
+            match_id = Util::parse_string<int>(offer.getAttribute("id"));
+        } else {
+            match_id = -1;
+        }
+
+        /* apply match rule */
         if(not Util::has_key(this->rules, category))
             throw match_error("This category is not available");
         std::auto_ptr<Match> match(this->rules.find(category)->second->checkOffer(offer, this->teams));
+
+        /* check if everynoe is available and if the sender is in the match */
         bool valid = false;
         foreach(player, match->players()) {
             if(not this->roster.isUserAvailable(*player))
@@ -120,26 +148,30 @@ void MatchManager::handleOffer(const Stanza& stanza) {
             }
         }
 
-        TagGenerator generator;
-        int id = this->match_db.insertMatch(match.release());
-        Stanza* resp = new Stanza("iq");
-        resp->subtype() = "result";
-        resp->id() = stanza.id();
-        resp->to() = stanza.from();
-        resp->from() = stanza.to();
+        /* If an id is given, consider it to be a rematch */
+        if(match_id != -1) {
+            if(not this->match_db.hasMatch(match_id))
+                throw match_error("Invalid match id");
+            const Match& old_match = this->match_db.getMatch(match_id);
 
-        generator.openTag("query");
-        generator.addAttribute("xmlns", XMLNS_MATCH_OFFER);
-        generator.openTag("match");
-        generator.addAttribute("id", Util::to_string(id));
+            PlayerList old_player_list = old_match.players();
+            PlayerList player_list = match->players();
 
-        resp->children().push_back(generator.getTag());
+            sort(old_player_list.begin(), old_player_list.end());
+            sort(player_list.begin(), player_list.end());
+            if(old_player_list != player_list) {
+                throw match_error("The player in the match must not change in a rematch");
+            }
+            this->match_db.replaceMatch(match_id, match.release());
+        } else {
+            match_id = this->match_db.insertMatch(match.release());
+        }
 
-        this->match_db.acceptMatch(id, requester);
+        this->match_db.acceptMatch(match_id, requester);
 
-        this->sendStanza(resp);
+        this->sendOfferResult(stanza.from(), stanza.id(), match_id);
+        this->notifyOffer(match_id, requester);
 
-        this->notifyOffer(id, requester);
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request(error.what());
     } catch (const game_exception& error) {
