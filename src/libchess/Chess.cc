@@ -28,8 +28,9 @@ Chess::Chess() : ChessBasedGame(8,8) {
 	this->current_state=new ChessState();
 	this->_turn=WHITE;
 }
+
 bool Chess::verifyAndMakeMove(const std::string& move) {
-	if( move.size()!=4 )
+	if( move.size()!=4 and move.size()!=5)
 		return false;
 	if(move[0]<'a' or move[0]>'h')
 		return false;
@@ -58,6 +59,7 @@ const ChessState& Chess::getState() const {
 bool Chess::verifyDraw() const {
 	return verifyDraw(0)==true?true:verifyDraw(1);
 }
+
 int Chess::turn() const {
 	return _turn;
 }
@@ -117,8 +119,6 @@ void Chess::putPieces() {
 void Chess::updateState(const ChessMove& j,bool comeu) {
 	ChessState* current_state = static_cast<ChessState*>(this->current_state);
 
-	current_state->lastenpassant = current_state->enpassant;
-
 	current_state->enpassant=Position(-1,-1);
 
 	if(j.color() == BLACK)
@@ -131,15 +131,15 @@ void Chess::updateState(const ChessMove& j,bool comeu) {
 	//FIXME this code is horrible.
 	if((this->gameboard->getType(j.to()) == ChessPiece::PAWN) or comeu)
 		current_state->halfmoves=0;
-	//se o peao moveu 2 casas...
+
+	//if the pawn moved 2 squares...
 	if(this->gameboard->getType(j.to()) == ChessPiece::PAWN) {
 		if( abs(j.to().y() - j.from().y()) == 2) {
 			current_state->enpassant = Position(j.to().x(), (int)((j.color() == 0 )? (j.to().y()-1) : (j.to().y()+1) ) );
 		}
 	}
 
-	//Para verificar os casos de castle, necessario verificar se o rei mexeu e torre mexeram
-	//Rei Mexeu?
+	//Has the king moved?
 	if(this->gameboard->getType(j.to()) == ChessPiece::KING) {
 		char rei, rainha;
 		rei = ((j.color() == 0)? 'K' : 'k');
@@ -183,8 +183,8 @@ void Chess::updateHistory() {
 }
 
 void Chess::makeMove(const ChessMove &j) const {
-	//FIXME gambiarras
-	//Verifica se foi Castle
+	//FIXME workarrounds
+	//verify if the move was Castle
 	if(this->verifyCastle(j) ) {
 		int distx;
 		distx=j.to().x() - j.from().x() ;
@@ -211,7 +211,10 @@ void Chess::updateMove(const ChessMove &j) {
 	if(this->gameboard->getType(j.to()) == ChessPiece::PAWN) {
 		int final = ( (j.color() == 0) ? 7 : 0);
 		if(j.to().y() == final) {
-			this->gameboard->createPiece(j.to(),new ChessPiece(ChessPiece::QUEEN,(ChessPiece::PieceColor)(j.color())));
+			if(j.move().size()==5)
+				this->gameboard->createPiece(j.to(),new ChessPiece(ChessPiece::chartotype(j.move()[4]),(ChessPiece::PieceColor)(j.color())));
+			else
+				this->gameboard->createPiece(j.to(),new ChessPiece(ChessPiece::QUEEN,(ChessPiece::PieceColor)(j.color())));
 		}
 	}
 	this->updateState(j,comeu);
@@ -219,26 +222,29 @@ void Chess::updateMove(const ChessMove &j) {
 	this->updateTurn();
 }
 
+bool Chess::willBeInCheck(const ChessMove& j) const {
+	//TODO a better way to take out mutable from Board
+	char a=this->gameboard->getPieceReal(j.from());
+	char b=this->gameboard->getPieceReal(j.to());
+	bool jogesp=this->verifyCastle(j) or this->verifyEnPassant(j);
+
+	this->makeMove(j);
+	bool ans=true;
+	if(this->verifyCheck(j.color()) == true)
+		ans=false;
+	if(jogesp)
+		this->setState(current_state->boardFEN());
+	else {
+		this->gameboard->createPiece(j.from(),new ChessPiece(a));
+		this->gameboard->createPiece(j.to(),new ChessPiece(b));
+	}
+	return ans;
+}
+
 bool Chess::verifyMove(const ChessMove &j) const {
 	if(this->verifyPieceMove(j))
-	{
-		//TODO um jeito melhor
-		char a=this->gameboard->getPieceReal(j.from());
-		char b=this->gameboard->getPieceReal(j.to());
-		bool jogesp=this->verifyCastle(j) or this->verifyEnPassant(j);
+		return willBeInCheck(j);
 
-		this->makeMove(j);
-		bool ans=true;
-		if(this->verifyCheck(j.color()) == true)
-			ans=false;
-		if(jogesp)
-			this->setState(current_state->boardFEN());
-		else {
-			this->gameboard->createPiece(j.from(),new ChessPiece(a));
-			this->gameboard->createPiece(j.to(),new ChessPiece(b));
-		}
-		return ans;
-	}
 	return false;
 }
 

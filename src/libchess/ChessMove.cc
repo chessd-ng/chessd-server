@@ -147,7 +147,7 @@ BugHouseMove::BugHouseMove(int player, const std::string& mv) : ChessMove(player
 }
 
 bool BugHouseMove::hasPiece() const {
-	return this->_piece==ChessPiece('.');
+	return !(this->_piece==ChessPiece('.'));
 }
 
 const ChessPiece& BugHouseMove::piece() const {

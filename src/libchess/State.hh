@@ -16,8 +16,8 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef __ESTADOH__
-#define __ESTADOH__
+#ifndef STATE_HH
+#define STATE_HH
 
 #include <vector>
 #include <string>
@@ -56,8 +56,6 @@ class ChessState : public State {
 	public:
 		
 		std::string castle;
-
-		Position lastenpassant;
 
 		Position enpassant;
 

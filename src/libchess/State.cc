@@ -39,7 +39,6 @@ int State::turn() const {
 ChessState::ChessState() {
 	this->castle=std::string("KQkq");
 	this->enpassant=Position(-1,-1);
-	this->lastenpassant=Position(-1,-1);
 	this->halfmoves=0;
 	this->fullmoves=1;
 	this->_turn=ChessPiece::WHITE;
@@ -50,7 +49,6 @@ ChessState::ChessState() {
 ChessState::ChessState(const std::string& _board_fen) : State(_board_fen) {
 	this->castle=std::string("KQkq");
 	this->enpassant=Position(-1,-1);
-	this->lastenpassant=Position(-1,-1);
 	this->halfmoves=0;
 	this->fullmoves=1;
 	this->_turn=ChessPiece::WHITE;

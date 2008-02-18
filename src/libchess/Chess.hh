@@ -22,8 +22,36 @@
 #include "ChessBasedGame.hh"
 
 class Chess : public ChessBasedGame {
+	public:
+		/*! \brief Constructor function that iniciates a board given its dimensions and the rest...*/
+		Chess();
+
+		/*! \return the winner player*/
+		virtual int winner() const ;
+
+		/*! \brief return whose turn it is*/
+		virtual int turn() const;
+
+		/*! \brief verify if a player has won*/
+		virtual bool verifyCheckMate() const;
+
+		/*! \brief verify if the game ended on a draw*/
+		virtual bool verifyDraw() const ;
+
+		//TODO fazer uma virtual dessa funcao
+		/*! \return return the current state*/
+		const ChessState& getState() const;
+
+		/*! \brief A high-level function that make a move if the given move is correct
+		 * \return true if the move is valid
+		 * \return false if the move isn't valid
+		 * */
+		virtual bool verifyAndMakeMove(const std::string &jogada);
+
 	private:
 		bool verifyCastle(const ChessMove& j) const;
+
+		bool willBeInCheck(const ChessMove& mv) const;
 
 		/*! \brief Verify is a given move is valid. This is a high level function*/
 		bool verifyMove(const ChessMove& j) const;
@@ -57,33 +85,6 @@ class Chess : public ChessBasedGame {
 		virtual void updateTurn();
 
 		int _turn;
-	public:
-
-		/*! \brief verify if a player has won*/
-		virtual bool verifyCheckMate() const;
-
-		/*! \brief verify if the game ended on a draw*/
-		virtual bool verifyDraw() const ;
-
-		/*! \return the winner player*/
-		virtual int winner() const ;
-
-		/*! \brief return whose turn it is*/
-		int turn() const;
-
-		/*! \brief Constructor function that iniciates a board given its dimensions and the rest...*/
-		Chess();
-
-		//TODO fazer uma virtual dessa funcao
-		/*! \return return the current state*/
-		const ChessState& getState() const;
-
-		/*! \brief A high-level function that make a move if the given move is correct
-		 * \return true if the move is valid
-		 * \return false if the move isn't valid
-		 * */
-		virtual bool verifyAndMakeMove(const std::string &jogada);
-
 };
 
 #endif
