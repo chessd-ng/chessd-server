@@ -141,7 +141,7 @@ std::string GameChess::doneEndReason() const {
 	if(chess.verifyCheckMate())
 		return "Checkmate";
 	else if(this->_resign!=Chess::UNDEFINED)
-		return (this->_resign==Chess::WHITE?_teams[0][0].full():_teams[1][0].full())+std::string(" resigned");
+		return std::string(this->_resign==Chess::WHITE?"white":"black")+std::string(" has resigned");
 	else if(this->_draw==true)
 		return "The players agreed on a draw";
 	else if(chess.verifyDraw()==true)
@@ -185,17 +185,19 @@ TeamResultList GameChess::doneTeamResultList() const {
 }
 
 void GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
-	if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time())
-		throw time_over("Time has ended");
+	if(chess.numberOfTurns() > 2) {
+		if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time()) {
+			this->standard_player_map[player]->time-=time_stamp-time_of_last_move;
+			return;
+		} else
+			this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
+	}
 
 	if(colormap[player]!=chess.turn())
-		throw wrong_turn(std::string("It's not ")+player.full()+std::string("'s turn"));
+		throw wrong_turn(std::string("It's not ")+std::string(colormap[player]==Chess::WHITE?"white":"black")+std::string("'s turn"));
 
 	if(chess.verifyAndMakeMove(movement)==false)
 		throw invalid_move("Invalid Move");
-
-	if(chess.numberOfTurns() > 2)
-		this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
 
 	time_of_last_move=time_stamp;
 
