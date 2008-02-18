@@ -42,8 +42,8 @@ namespace Util {
 		this->_seconds += time._seconds;
 		this->_nanoseconds += time._nanoseconds;
 		if(this->_nanoseconds >= one_second) {
-			this->_seconds -= one_second;
-			this->_nanoseconds ++;
+			this->_nanoseconds -= one_second;
+			this->_seconds ++;
 		}
 		return *this;
 	}
@@ -51,9 +51,9 @@ namespace Util {
 	const Time& Time::operator -= (Time time) {
 		this->_seconds -= time._seconds;
 		this->_nanoseconds -= time._nanoseconds;
-		if(this->_nanoseconds >= one_second) {
-			this->_seconds += one_second;
-			this->_nanoseconds --;
+		if(this->_nanoseconds < 0) {
+			this->_nanoseconds += one_second;
+			this->_seconds --;
 		}
 		return *this;
 	}
@@ -115,18 +115,17 @@ namespace Util {
 
 
 	double Time::getSeconds() const {
-		double factor = 1.0;
-		return (this->_seconds + this->_nanoseconds / double(one_second)) * factor;
+		return (this->_seconds + this->_nanoseconds / double(one_second));
 	}
 
 	double Time::getMiliseconds() const {
 		double factor = 1000.0;
-		return (this->_seconds + this->_nanoseconds / double(one_second)) * factor;
+		return (this->_seconds + this->_nanoseconds / double(one_second)) * 1000.0;
 	}
 
 	double Time::getMicroseconds() const {
 		double factor = 1000000.0;
-		return (this->_seconds + this->_nanoseconds / double(one_second)) * factor;
+		return (this->_seconds + this->_nanoseconds / double(one_second)) * 1000000.0;
 	}
 
 	Time operator* (unsigned int constant, const _Minutes&) {
