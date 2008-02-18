@@ -139,7 +139,7 @@ namespace XMPP {
 			jid.resource() = it->nick();
 			this->disco().items().erase(jid);
 			this->users().erase(it);
-            this->notifyUserStatus(user_jid, jid.resource(), true);
+            this->notifyUserStatus(user_jid, jid.resource(), false);
 		}
 	}
 
