@@ -19,6 +19,13 @@
 #ifndef MOVE_HH
 #define MOVE_HH
 
+/*! \brief This class implments the move pattern
+ *
+ * The move pattern is used to pass an object to a function
+ * meaning that the object is not going to be used by the caller anymore.
+ * So, he function can safely modify the object without any visible effect
+ * by the caller.
+ */
 template <class T>
 class Moved {
 	public:

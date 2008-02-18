@@ -44,6 +44,22 @@ Rating RatingDatabase::getRating(const std::string& user, const std::string& cat
     }
 }
 
+std::string RatingDatabase::getUserType(const std::string& user)
+{
+    std::string query =
+        "SELECT type"
+        " FROM player_type"
+        " WHERE username='" + this->work.esc(user) + "'";
+        
+    pqxx::result r = work.exec(query);
+
+    if(r.size() == 0) {
+        return "user";
+    } else {
+        return r[0][0].c_str();
+    }
+}
+
 Rating RatingDatabase::getRatingForUpdate(const std::string& user, const std::string& category)
 {
     std::string query =

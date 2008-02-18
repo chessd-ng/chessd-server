@@ -28,7 +28,7 @@
 #include "Threads/Queue.hh"
 
 
-/*! \brief A base implementation for components */
+/*! \brief A base implementation for components. */
 class ComponentBase {
 	public:
 		/*! \brief Constructor
@@ -51,7 +51,9 @@ class ComponentBase {
 		 */
 		void connect();
 
-		/*! \brief Closes the conenction to the server */
+		/*! \brief Closes the conxection to the server.
+         *
+         * This is a tunnel to the real one.*/
 		void close();
 
         /*! \brief send s stanza to the server */
@@ -63,16 +65,31 @@ class ComponentBase {
 
 	protected:
 
+        /*! \brief Real close */
 		void _close();
 
+        /*! \brief Close notification.
+         *
+         * Reimplement this method to receive notification that
+         * the connection is about to close. */
         virtual void onClose() = 0;
 
+        /*! \brief Error notification.
+         *
+         * Reimplement this method to receive notification that
+         * the connection has failed. */
         virtual void onError(const std::string& msg) = 0;
 
-        virtual void handleStanza(XMPP::Stanza* stanza);
-
+        /*! \brief Handle a connection error
+         *
+         * This is a tunnel to the real one.
+         */
 		void handleError(const std::string& error);
 
+        /*! \brief Handle a connection error
+         *
+         * The real one.
+         */
 		void _handleError(const std::string& error);
 
 		/*! \brief We run in a separated thread as a dispatcher */
@@ -86,9 +103,23 @@ class ComponentBase {
 
 	private:
 
+        /*! \brief Receive messages from the server.
+         *
+         * This method is executed in a separated thread.
+         */
 		void run_recv();
 
+        /*! \brief Send messages to the server.
+         *
+         * This method is executed in a separated thread.
+         */
 		void run_send();
+
+        /*! \brief Handle an incoming stanza.
+         *
+         * This is a tunnel to RootNode::handleStanza
+         * */
+		void handleStanza(XMPP::Stanza* stanza);
 
         std::string server_address;
         int server_port;
@@ -99,8 +130,6 @@ class ComponentBase {
 		Threads::Task task_send;
 
 		Threads::Queue<XMPP::Stanza*> stanza_queue;
-
-		void _handleStanza(XMPP::Stanza* stanza);
 
 
 };

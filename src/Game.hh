@@ -68,44 +68,45 @@ class Game {
 	public:
 		virtual ~Game() { }
 
-		/*! \brief Current state of the game
+		/*! \brief Current state of the game.
+         *
+         * \param current_time is the time counted from the begining of the game.
          */
 		virtual XML::Tag* state(const Util::Time& current_time) const = 0;
 
-		/*! \brief The game category */
+		/*! \brief The game category. */
 		virtual const std::string& category() const = 0;
 
-		/*! \brief A title for the game */
+		/*! \brief A title for the game. */
 		virtual const std::string& title() const = 0;
 
-		/*! \brief The player has resigned */
+		/*! \brief The player has resigned. */
 		virtual void resign(const Player& player) = 0;
 
-		/*! \brief The player has called a flag */
+		/*! \brief The player has called a flag. */
 		virtual void call_flag(const Player& player) = 0;
 
-		/*! \brief The players agreed on a draw */
+		/*! \brief The players agreed on a draw. */
 		virtual void draw() = 0;
 
-		/*! \brief The players agreed on a draw */
+		/*! \brief The players agreed on a draw. */
 		virtual void adjourn() = 0;
 
-		/*! \brief Has the game ended?
-		 */
+		/*! \brief Has the game ended?  */
 		virtual bool done() const = 0;
 
-        /*! \brief Returns the game result
-         */
+        /*! \brief Returns the game result. */
 		virtual GameResult* result() const = 0;
 		
-		/*! \brief Make a move in the game
+		/*! \brief Make a move in the game.
 		 *
-         * \param player us the player who made the move
-		 * \param movement is the description of the movement
-         * \param time_stamp is the time of the move since the begining of the game
+         * \param player us the player who made the move.
+		 * \param movement is the description of the movement.
+         * \param time_stamp is the time of the move since the begining of the game.
          */
 		virtual void move(const Player& player, const std::string& movement, const Util::Time& time_stamp) = 0;
 
+		/*! \brief The list of teams playing the game. */
 		virtual const TeamList& teams() const = 0;
 };
 

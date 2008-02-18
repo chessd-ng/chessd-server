@@ -37,6 +37,8 @@ class RatingDatabase {
 
         void setRating(const std::string& user, const std::string& category, const Rating& rating);
 
+        std::string getUserType(const std::string& user);
+
     private:
 
         pqxx::work& work;

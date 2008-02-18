@@ -27,7 +27,6 @@
 
 struct PersistentGame {
     public:
-        //int game_id;
         std::vector<std::string> players;
         std::string category;
         std::string result;
@@ -35,13 +34,16 @@ struct PersistentGame {
         std::string history;
 };
 
+/*! \brief An interface to the games in the database */
 class GameDatabase {
     public:
 
+        /*! brief Constructor */
         GameDatabase(pqxx::work& w);
 
         //PersistentGame* getGame(int game_id) const;
 
+        /*! \brief Store a game in the database */
         void insertGame(const PersistentGame& game);
 
     private:

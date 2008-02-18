@@ -28,6 +28,7 @@
 
 #include <boost/ptr_container/ptr_map.hpp>
 
+/*! \brief A non-persistence database of the current matchs. */
 class MatchDatabase {
 	public:
 		MatchDatabase();

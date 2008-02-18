@@ -45,8 +45,6 @@ RatingComponent::RatingComponent(
     /* Set rating iqs */
     this->root_node.setIqHandler(boost::bind(&RatingComponent::handleRating, this, _1),
             "http://c3sl.ufpr.br/chessd#info");
-    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleRating, this, _1),
-            "http://c3sl.ufpr.br/chessd#rating");
 
 }
 
@@ -103,7 +101,8 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
         } else if(tag->name() == "type") {
             generator.openTag("type");
             generator.addAttribute("jid", tag->getAttribute("jid"));
-            generator.addAttribute("type", "user");
+            generator.addAttribute("type", rating_database.getUserType(tag->getAttribute("jid")));
+            generator.closeTag();
         }
     }
     generator.closeTag();

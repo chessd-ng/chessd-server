@@ -21,7 +21,6 @@
 
 class Rating {
 	public:
-		//FIXME check volatility
 		Rating() : _rating(0), _volatility(0.0), _wins(0), _losses(0), _draws(0) { }
 		Rating(int rating, double volatility) : _rating(rating), _volatility(volatility), _wins(0), _losses(0), _draws(0) { }
 
