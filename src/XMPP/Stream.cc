@@ -25,8 +25,14 @@
 
 #include <iksemel.h>
 
+#include "boost/date_time/posix_time/posix_time.hpp"
+
 using namespace std;
 using namespace XML;
+
+static void log_message(const std::string& msg) {
+    cerr << boost::posix_time::second_clock::local_time() << ": " << msg << endl;
+}
 
 namespace XMPP {
 
@@ -99,15 +105,15 @@ namespace XMPP {
 		} else {
 			Tag* tag = this->hinfo->incoming.front();
 			this->hinfo->incoming.pop();
-            cout << " <<<<<<<<<<<< Chegando <<<<<<<<<<<<<" << endl;
-			cout << tag->xml() << endl;
+            log_message(" <<<<<<<<<<<< Chegando <<<<<<<<<<<<<");
+			log_message(tag->xml());
 			return tag;
 		}
 	}
 
 	void Stream::sendTag(Tag* tag) {
-        cout << " >>>>>>>>>>>> Mandando >>>>>>>>>>>>>> " << endl;
-		cout << tag->xml() << endl;
+        log_message(" >>>>>>>>>>>> Mandando >>>>>>>>>>>>>> ");
+		log_message(tag->xml());
 		iks* tree = tag2iks(*tag);
 		delete tag;
 		int ret = iks_send(this->hinfo->parser, tree);

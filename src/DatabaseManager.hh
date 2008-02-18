@@ -35,19 +35,34 @@
 
 typedef boost::function<void (DatabaseInterface&)> Transactor;
 
+/*! \brief Controls access to the database. 
+ *
+ * Every transaction is exected in a separated thread
+ * */
 class DatabaseManager {
     public:
 
+        /*! \brief Constructor. */
         DatabaseManager(const XML::Tag& config);
 
+        /*! \brief Destructor. */
         ~DatabaseManager();
 
+        /*! \brief Queue a trnasaction.
+         *
+         * \param transaction is a function that performs the transation.
+         * The transaction is executed in a separated thread.
+         * The transation may be executed more than once
+         * in case ofa a rollback.
+         * */
         void queueTransaction(const Transactor& transaction);
 
     private:
 
+        /*! \brief Collects unused resources. */
         void colector();
 
+        /*! \brief Execute a transation. */
         void execTransaction(const Transactor& transactor);
 
         std::string connection_string;
@@ -57,7 +72,6 @@ class DatabaseManager {
         Threads::Queue<Threads::Task*> running_tasks;
 
         Threads::Task colector_task;
-
 };
 
 #endif

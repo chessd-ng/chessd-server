@@ -25,6 +25,10 @@
 
 #include "RatingDatabase.hh"
 
+/*! \brief An interface to the database.
+ *
+ * An instance of this class is received on a database transaction.
+ */
 class DatabaseInterface : public pqxx::transactor<>
 {
     public:

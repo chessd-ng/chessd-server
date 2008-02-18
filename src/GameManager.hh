@@ -38,45 +38,56 @@
 
 typedef boost::function<void (const XMPP::Jid& gmae_room)> OnGameStart;
 
+/*! \brief Manage all games in the server plus control the game component. */
 class GameManager : public ComponentBase {
 	public:
-		/*! \brief Constructor
+		/*! \brief Constructor.
 		 *
 		 * \param config is the configuration for this component.
 		 */
 		GameManager(const XML::Tag& config, DatabaseManager& database_manager, const XMPP::ErrorHandler& handle_error);
 
-		/*! \brief Destructor
+		/*! \brief Destructor.
 		 *
-		 * Closes server connection if available
+		 * Closes server connection if available.
 		 */
 		~GameManager();
 
 		/*! \brief Create a game
 		 *
-		 * This is thread safe.
-		 * \param game is the game to be inserted
-		 * \param on_game_start is a notifier for the game jid
+		 * \param game is the game to be inserted.
+		 * \param on_game_start is a notifier for the game jid.
+		 * This is a tunnel the real one.
 		 */
 		void createGame(Game* game, const OnGameStart& on_game_start = OnGameStart());
 
     private:
 
-		/*! \brief createGame helper
+		/*! \brief Create a game. The real one.
 		 *
-		 * This one is not thread safe
+		 * This one is not thread safe.
 		 */
 		void _createGame(Game* game, const OnGameStart& on_game_start = OnGameStart());
 
-		/*! \brief close a game room */
+		/*! \brief Close a game room.
+         *
+         * This is a tunnel.
+         * */
 		void closeGameRoom(int room_id);
 
+		/*! \brief close a game room.
+         *
+         * This is the real one.
+         * */
 		void _closeGameRoom(int room_id);
 
+        /*! \brief handle an error */
 		void handleError(const std::string& error);
 
+        /*! \brief Receive a close notification */
         void onClose();
 
+        /*! \brief Receive an error notification */
         void onError(const std::string& msg);
 
 		std::string node_name;

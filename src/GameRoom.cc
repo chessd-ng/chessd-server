@@ -318,10 +318,10 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
 }
 
 void GameRoom::endGame() {
-    GameResult* result = this->game->result();
+    std::auto_ptr<GameResult> result(this->game->result());
     this->game_active = false;
     this->notifyResult(*result);
-    this->database_manager.queueTransaction(boost::bind(storeResult, result, _1));
+    //this->database_manager.queueTransaction(boost::bind(storeResult.release(), result, _1));
 }
 
 void GameRoom::adjournGame() {

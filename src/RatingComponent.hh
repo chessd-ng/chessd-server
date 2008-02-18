@@ -26,6 +26,7 @@
 #include "ComponentBase.hh"
 #include "DatabaseManager.hh"
 
+/*! \brief This is the component that handles user info requests */
 class RatingComponent : public ComponentBase {
 	public:
 		/*! \brief Constructor
@@ -54,11 +55,12 @@ class RatingComponent : public ComponentBase {
 
         void onError(const std::string& error);
 
-		/* several handlers for the incoming events */
+		/* several Handlers for the incoming events. */
 
-		/*! \brief handle an incoming match iq */
+		/*! \brief Handle an incoming match iq. */
 		void handleRating(const XMPP::Stanza& stanza);
 
+        /*! \brief This is a transaction that reds users ratings. */
 		void fetchRating(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
         XMPP::ErrorHandler error_handler;

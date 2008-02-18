@@ -22,19 +22,28 @@
 #include "XMPP/Jid.hh"
 #include <map>
 
+/*! \brief A helper class to manage any kind of agreement betwen users */
+
 class Agreement {
 	public:
 		Agreement();
 
+        /*! \brief Insert a user and set its state to not agreed */
 		void insert(const XMPP::Jid& jid);
 
+        /*! \brief Set a user state to agreed*/
 		void agreed(const XMPP::Jid& jid);
 
+        /*! \brief Returns how many users has not agreed */
 		int left_count() const { return this->agreement.size() - this->_agreed_count; }
+
+        /*! \brief Returns how many users has agreed */
 		int agreed_count() const { return this->_agreed_count; }
 
+        /*! \brief Reset the class to initial state */
 		void clear();
 
+        /*! \brief Returns then number of users in he agreement */
 		int size() const { return this->agreement.size(); }
 	private:
 		typedef std::map<XMPP::Jid, bool> AgreementMap;

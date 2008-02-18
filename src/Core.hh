@@ -35,32 +35,31 @@
 #include "Game.hh"
 #include "Rating.hh"
 
-/*! \brief This class is the implementation of the server core.
- *
- *  It is responsible to interconnect all of the elements of
- *  the server. */
 
 typedef std::map<std::string, Rating> UserRatings;
 
 typedef boost::function<void (UserRatings*)> RatingCallback;
 
-
+/*! \brief This class is the implementation of the server core.
+ *
+ *  It is responsible to interconnect all of the elements of
+ *  the server. */
 class Core {
 	public:
 
 
 		~Core();
 
-		/*! \brief Connects to the XMPP server.
-		 *
-		 * \param config holds all configurable information.
-		 */
+		/*! \brief Connects all components.  */
 		void start();
 
+		/*! \brief Singleton.  */
 		static Core& singleton() { return *Core::_singleton; }
 
+		/*! \brief Init the server. */
 		static void init(const XML::Tag& config); 
 
+		/*! \brief Close the server. */
 		static void close();
 
 	private:
