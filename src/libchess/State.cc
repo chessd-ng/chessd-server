@@ -17,9 +17,9 @@
  */
 
 #include "State.hh"
+#include "../Util/utils.hh"
 #include <string>
 #include <iostream>
-#include "Util/utils.hh"
 
 State::State() {
 }

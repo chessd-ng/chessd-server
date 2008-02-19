@@ -16,8 +16,8 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef _TABULEIROH_
-#define _TABULEIROH_
+#ifndef BOARD_HH
+#define BOARD_HH
 
 #include "Piece.hh"
 #include "ChessMove.hh"

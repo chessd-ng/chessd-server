@@ -38,7 +38,7 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 		standard_player_map[it->jid]=&(*it);
 	}
 
-	this->_title=this->_players[0].jid.full()+" x "+this->_players[1].jid.full();
+	this->_title=this->_players[0].jid.parcial()+" x "+this->_players[1].jid.parcial();
 
 	this->_resign=Chess::UNDEFINED;
 	this->_draw=false;

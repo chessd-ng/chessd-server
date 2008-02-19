@@ -16,8 +16,8 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef _JOGOH_
-#define _JOGOH_
+#ifndef BOARDGAME_HH
+#define BOARDGAME_HH
 
 #include "ChessMove.hh"
 #include "Board.hh"

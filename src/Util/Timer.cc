@@ -119,12 +119,10 @@ namespace Util {
 	}
 
 	double Time::getMiliseconds() const {
-		double factor = 1000.0;
 		return (this->_seconds + this->_nanoseconds / double(one_second)) * 1000.0;
 	}
 
 	double Time::getMicroseconds() const {
-		double factor = 1000000.0;
 		return (this->_seconds + this->_nanoseconds / double(one_second)) * 1000000.0;
 	}
 
