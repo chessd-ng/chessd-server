@@ -72,3 +72,11 @@ std::string ChessState::FEN() const {
 	ans+=Util::to_string(this->fullmoves);
 	return ans;
 }
+
+BugHouseState::BugHouseState() {
+	states=std::vector<ChessState>(2);
+}
+
+ChessState& BugHouseState::operator[](int v) {
+	return states[v];
+}

@@ -47,6 +47,14 @@ class Chess : public ChessBasedGame {
 		 * \return false if the move isn't valid
 		 * */
 		virtual bool verifyAndMakeMove(const std::string &jogada);
+	protected:
+		/*! \brief puts the new State on history*/
+		void updateHistory();
+
+		virtual void updateTurn();
+
+		/*! \brief Verify if the player given lost*/
+		bool verifyCheckMate(int player) const;
 
 	private:
 		bool verifyCastle(const ChessMove& j) const;
@@ -59,9 +67,6 @@ class Chess : public ChessBasedGame {
 		/*! \brief Verify if the Game is Draw*/
 		bool verifyDraw(int player) const;
 
-		/*! \brief Verify if the player given lost*/
-		bool verifyCheckMate(int player) const;
-
 		/*! \brief make a given move and does not verify anything, just makes the move*/
 		void makeMove(const ChessMove &j) const; //FIXME this const is not good
 
@@ -73,16 +78,11 @@ class Chess : public ChessBasedGame {
 		//FIXME sera que tah bom esse comeu??
 		void updateState(const ChessMove& j,bool comeu);
 
-		/*! \brief puts the new State on history*/
-		void updateHistory();
-
 		//TODO
 		//ChessMove PGNtoChessMove(std::string);
 		//std::string ChessMovetoPGN(const ChessMove& c);
 
 		virtual void putPieces();
-
-		virtual void updateTurn();
 
 		int _turn;
 };

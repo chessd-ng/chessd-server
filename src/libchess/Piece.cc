@@ -43,6 +43,9 @@ ChessPiece::ChessPiece(int __type, int __color) : Piece(__type,__color) {
 ChessPiece::ChessPiece(char name) : Piece(chartotype(name),chartocolor(name)) {
 }
 
+ChessPiece::ChessPiece(const ChessPiece& cp) : Piece(cp.type(),cp.color()) {
+}
+
 ChessPiece::ChessPiece() : Piece(NOTYPE,NOCOLOR) {
 }
 

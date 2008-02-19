@@ -79,7 +79,7 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 				aux-=current_time-time_of_last_move;
 			
 			//XXX be careful with double from getSeconds
-			t.addAttribute("time", Util::to_string((int)aux.getSeconds()));
+			t.addAttribute("time", Util::to_string((int)(aux.getSeconds()+0.001)));
 
 			t.addAttribute("color",it->color==White?"white":"black");
 			t.closeTag();

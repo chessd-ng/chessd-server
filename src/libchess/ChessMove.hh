@@ -16,8 +16,8 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef __JOGADAH__
-#define __JOGADAH__
+#ifndef CHESSMOVE_HH
+#define CHESSMOVE_HH
 
 #include <string>
 #include "Piece.hh"
