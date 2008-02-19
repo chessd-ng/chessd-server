@@ -74,7 +74,6 @@ namespace Threads {
 			/*! \brief Run the task */
 			void run();
 		private:
-			Mutex mutex;
 			Condition condition;
 			TaskStatus status;
 			bool waiting;

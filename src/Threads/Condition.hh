@@ -21,13 +21,19 @@
 
 #include <pthread.h>
 
+#include "Util/Timer.hh"
 #include "Mutex.hh"
+
+#include <stdexcept>
+
+#define     ETIMEDOUT       110
 
 namespace Threads {
 
 	class Condition {
 		private:
 			pthread_cond_t condition;
+            Mutex mutex;
 		public:
 			Condition() {
 				pthread_cond_init(&condition, 0);
@@ -38,9 +44,23 @@ namespace Threads {
 			void signal() {
 				pthread_cond_signal(&condition);
 			}
-			void wait(Mutex& mutex) {
-				pthread_cond_wait(&condition, &mutex.mutex);
+            void lock() {
+                this->mutex.lock();
+            }
+            void unlock() {
+                this->mutex.unlock();
+            }
+            void tryLock() {
+                this->mutex.tryLock();
+            }
+			void wait() {
+				pthread_cond_wait(&condition, &this->mutex.mutex);
 			}
+            bool wait(Util::Time time) {
+                timespec t = time.getTimespec();
+                return pthread_cond_timedwait(&condition, &this->mutex.mutex, &t) == 0;
+            }
+
 			void broadcast() {
 				pthread_cond_broadcast(&condition);
 			}

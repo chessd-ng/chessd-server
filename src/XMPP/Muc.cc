@@ -51,7 +51,7 @@ namespace XMPP {
 
     Muc::~Muc() { }
 
-	void Muc::handlePresence(const Stanza& stanza) throw() {
+	void Muc::handlePresence(const Stanza& stanza) {
 		if(stanza.subtype().empty()) {
 			this->addUser(stanza.to().resource(), stanza.from());
 		} else if(stanza.subtype() == "unavailable") {
@@ -96,14 +96,13 @@ namespace XMPP {
 		delete stanza;
 	}
 
-	void Muc::broadcastIq(Stanza* stanza, const ConstStanzaHandler& on_result,
+	void Muc::broadcastIq(const Stanza& stanza, const ConstStanzaHandler& on_result,
 			const TimeoutHandler& on_timeout) {
 		foreach(it, this->users()) {
-			Stanza* tmp = new Stanza(*stanza);
+			Stanza* tmp = new Stanza(stanza);
 			tmp->to() = it->jid();
 			this->sendIq(tmp, on_result, on_timeout);
 		}
-		delete stanza;
 	}
 
 	void Muc::presentUsers(const Jid& jid) {

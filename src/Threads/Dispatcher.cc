@@ -18,6 +18,8 @@
 
 #include "Dispatcher.hh"
 
+#include <iostream>
+
 namespace Threads {
 
 	Dispatcher::Dispatcher() : 
@@ -33,16 +35,25 @@ namespace Threads {
 	}
 
 	void Dispatcher::run() {
+        Message message;
 		while(this->running) {
-			Message* message = this->_queue.pop();
-			message->send();
-			delete message;
+            if(this->agenda.empty()) {
+                message = this->_queue.pop();
+            } else {
+                if(not this->_queue.pop(message, this->agenda.begin()->first)) {
+                    message = this->agenda.begin()->second;
+                    this->agenda.erase(this->agenda.begin());
+                }
+            }
+			message();
+            /*message = this->_queue.pop();
+            message();*/
 		}
 	}
 
 	void Dispatcher::stop() {
 		/* A stop message is sent to the dispatcher instead of just
-		 * setting running to false. This we make sure the dispatcher
+		 * setting running to false. This way we make sure the dispatcher
 		 * will stop. */
 		if(this->running == true) {
 			this->queue(boost::bind(&Dispatcher::_stop, this));

@@ -18,6 +18,8 @@
 
 #include "Timer.hh"
 
+#include <sys/time.h>
+
 #include <ctime>
 #include <cmath>
 
@@ -33,9 +35,12 @@ namespace Util {
 
 
 	Time Timer::now() {
-		timespec ts;
+		/*timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
-		return Time(ts.tv_sec, ts.tv_nsec);
+		return Time(ts.tv_sec, ts.tv_nsec);*/
+		timeval tv;
+		gettimeofday(&tv, 0);
+		return Time(tv.tv_sec, tv.tv_usec*1000);
 	}
 	
 	const Time& Time::operator += (Time time) {
@@ -128,7 +133,7 @@ namespace Util {
 
 	Time operator* (unsigned int constant, const _Minutes&) {
 		Time tmp;
-		tmp._seconds = constant*60u;
+		tmp._seconds = constant * 60u;
 		tmp._nanoseconds = 0;
 		return tmp;
 	}
