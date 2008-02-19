@@ -62,7 +62,7 @@ namespace XMPP {
 		return resp;
 	}
 
-	string Jid::parcial() const {
+	string Jid::partial() const {
 		string resp;
 		if(not this->node().empty())
 			resp = this->node() + "@";
