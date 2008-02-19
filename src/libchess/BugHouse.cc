@@ -19,12 +19,12 @@
 #include "BugHouse.hh"
 
 BugHouse::BugHouse() {
-	this->games=std::vector<Chess>(2);
-	this->pieces=std::vector<std::vector<ChessPiece*> >(4);
-	playerteam[0]=0;
-	playerteam[1]=1;
-	playerteam[2]=1;
-	playerteam[3]=0;
+	this->games=std::vector<BugHouseChess>(2);
+	this->updateState();
+	this->playerteam[0]=0;
+	this->playerteam[1]=1;
+	this->playerteam[2]=1;
+	this->playerteam[3]=0;
 }
 
 int BugHouse::numberOfTurns(int game) const {
@@ -32,9 +32,9 @@ int BugHouse::numberOfTurns(int game) const {
 }
 
 int BugHouse::winner() const {
-	for(int i=0;i<games.size();i++)
-		if(this>games[i].verifyCheckMate())
-			return *this->playerteam.find(games[i].winner()+i*2);
+	for(int i=0;i<(int)games.size();i++)
+		if(this->games[i].verifyCheckMate())
+			return this->playerteam.find(games[i].winner()+i*2)->second;
 	return -1;
 }
 
@@ -43,7 +43,7 @@ int BugHouse::turn(int game) const {
 }
 
 bool BugHouse::verifyCheckMate() const {
-	for(int i=0;i<games.size();i++)
+	for(int i=0;i<(int)games.size();i++)
 		if(this->games[i].verifyCheckMate())
 			return true;
 	return false;
@@ -61,11 +61,17 @@ const BugHouseState& BugHouse::getState() const {
 }
 
 bool BugHouse::verifyAndMakeMove(int player, const std::string& move) {
-	if(move[1]=='@') {
-	} else {
-		int g=player/2;
-		if(games[g].turn() == player%2)
-			return games[g].verifyAndMakeMove(move);
+	int g=player/2;
+	if(games[g].turn() == player%2) {
+		if(games[g].verifyAndMakeMove(move)) {
+			updateState();
+			return true;
+		}
 	}
 	return false;
+}
+
+void BugHouse::updateState() {
+	current_state[0]=games[0].getState();
+	current_state[1]=games[1].getState();
 }

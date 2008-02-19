@@ -20,6 +20,7 @@
 #define PIECE_HH
 
 #include <iostream>
+class ChessPiece;
 
 class Piece {
 	public:
@@ -53,6 +54,8 @@ class ChessPiece : public Piece {
 		ChessPiece(int __type, int __color);
 
 		ChessPiece(char name);
+
+		ChessPiece(const ChessPiece& cp);
 
 		ChessPiece();
 

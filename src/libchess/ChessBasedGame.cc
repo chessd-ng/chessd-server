@@ -1,5 +1,5 @@
 #include "ChessBasedGame.hh"
-#include "utils.hh"
+#include "../Util/utils.hh"
 
 ChessBasedGame::ChessBasedGame(int n, int m) : BoardGame(n,m) {
 	this->gameboard=new ChessBoard(n,m);
@@ -56,13 +56,13 @@ std::string ChessBasedGame::getPosForFEN() const {
 				conta++;
 			else {
 				if(conta>0)
-					fen+=toString(conta);
+					fen+=Util::to_string(conta);
 				conta=0;
 				fen+=(char)((*this->gameboard)[i][j]->pieceReal());
 			}
 		}
 		if(conta>0)
-			fen+=toString(conta);
+			fen+=Util::to_string(conta);
 		
 		fen+= '/' ;
 	}
@@ -294,7 +294,7 @@ bool ChessBasedGame::verifyKingMove(const ChessMove& J) const {
 bool ChessBasedGame::beingAttacked(const Position &onde, int jogador) const {
 	for(int i=0;i<this->nlines;i++)
 		for(int j=0;j<this->ncolums;j++)
-			if(this->gameboard->color(Position(j,i)) == jogador)
+			if((*this->gameboard)[i][j]->color() == jogador)
 				if(this->verifyPieceMove(ChessMove(Position(j,i),onde,jogador)))
 					return true;
 	return false;

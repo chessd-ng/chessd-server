@@ -16,7 +16,7 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#include "Chess.hh"
+#include "BugHouseChess.hh"
 #include <vector>
 #include <map>
 
@@ -30,7 +30,7 @@
  * 1 and 3 will be black
 */
 
-class BugHouse : public ChessBasedGame {
+class BugHouse {
 	public:
 		BugHouse();
 
@@ -51,14 +51,15 @@ class BugHouse : public ChessBasedGame {
 
 		const BugHouseState& getState() const;
 
-		bool verifyAndMakeMove(const std::string& move);
+		bool verifyAndMakeMove(int player, const std::string& move);
 
 	private:
-		std::vector<Chess> games;
 
-		std::vector<std::vector<ChessPiece*> > pieces;
+		void updateState();
+
+		std::vector<BugHouseChess> games;
 
 		std::map<int,int> playerteam;
 
-		friend class Chess;
+		BugHouseState current_state;
 };

@@ -69,4 +69,14 @@ class ChessState : public State {
 
 		virtual std::string FEN() const;
 };
+
+class BugHouseState {
+	private:
+	public:
+		BugHouseState();
+
+		std::vector<ChessState> states;
+
+		ChessState& operator[](int v);
+};
 #endif

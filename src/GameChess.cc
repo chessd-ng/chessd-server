@@ -38,7 +38,7 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 		standard_player_map[it->jid]=&(*it);
 	}
 
-	this->_title=this->_players[0].jid.full()+" x "+this->_players[1].jid.full();
+	this->_title=this->_players[0].jid.parcial()+" x "+this->_players[1].jid.parcial();
 
 	this->_resign=Chess::UNDEFINED;
 	this->_draw=false;
@@ -79,7 +79,7 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 				aux-=current_time-time_of_last_move;
 			
 			//XXX be careful with double from getSeconds
-			t.addAttribute("time", Util::to_string((int)aux.getSeconds()));
+			t.addAttribute("time", Util::to_string((int)(aux.getSeconds()+0.001)));
 
 			t.addAttribute("color",it->color==White?"white":"black");
 			t.closeTag();
