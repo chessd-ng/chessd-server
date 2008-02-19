@@ -318,14 +318,14 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
 
     std::map<Player, Rating> tmp;
     foreach(player, result->players()) {
-        std::string name = player->parcial();
+        std::string name = player->partial();
         Rating rating = rating_database.getRatingForUpdate(name, category);
         tmp.insert(std::make_pair(*player, rating));
         game.players.push_back(name);
     }
     result->updateRating(tmp);
     foreach(it, tmp) {
-        rating_database.setRating(it->first.parcial(), category, it->second);
+        rating_database.setRating(it->first.partial(), category, it->second);
     }
 
     game.category = category;
