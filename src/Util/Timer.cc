@@ -32,7 +32,7 @@ namespace Util {
 	static const int one_second = 1000000000;
 
 
-	Time Timer::Now() {
+	Time Timer::now() {
 		timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		return Time(ts.tv_sec, ts.tv_nsec);
@@ -119,12 +119,10 @@ namespace Util {
 	}
 
 	double Time::getMiliseconds() const {
-		double factor = 1000.0;
 		return (this->_seconds + this->_nanoseconds / double(one_second)) * 1000.0;
 	}
 
 	double Time::getMicroseconds() const {
-		double factor = 1000000.0;
 		return (this->_seconds + this->_nanoseconds / double(one_second)) * 1000000.0;
 	}
 
