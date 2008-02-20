@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2007-2008 Raphael H. Ribas,  Eduardo A. Ribas.
+ *   Copyright (c) 2007-2008 C3SL.
  *
  *   This file is part of Chessd.
  *
@@ -99,6 +99,9 @@ class GameRoom : public XMPP::Muc {
 
 		/*! \brief Handle a adjourn-decline stanza. */
 		void handleAdjournDecline(const XMPP::Stanza& stanza);
+
+		/*! \brief Handle a state request. */
+        void handleState(const XMPP::Stanza& stanza);
 
         /*! \brief Notify a request to the users. */
 		void notifyRequest(GameRequest request, const XMPP::Jid& requester);

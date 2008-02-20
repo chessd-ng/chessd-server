@@ -1,0 +1,20 @@
+----------------
+
+To compile this code you need the follwing libraries:
+
+- Boost
+- Boost-date-time
+- iksemel
+- lpthread
+- libpqxx
+
+It is recommended iksemel 1.3 due to bug fixes and It's mandatory
+for 64bit systems due to compatibility issues.
+
+In order to run the server you need a jabber server
+properly configured to accept three components and
+the chessd configuration must matchs the jabber config.
+
+Currently only postgresql is supported. So you need to
+setup a the postgres server. The database scheme is
+located in the database folder.

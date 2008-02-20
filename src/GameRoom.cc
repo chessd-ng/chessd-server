@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2007-2008 Raphael H. Ribas,  Eduardo A. Ribas.
+ *   Copyright (c) 2007-2008 C3SL.
  *
  *   This file is part of Chessd.
  *
@@ -101,6 +101,8 @@ GameRoom::GameRoom(
             XMLNS_GAME_ADJOURN);
     this->setIqHandler(boost::bind(&GameRoom::handleGameIq, this, _1),
             XMLNS_GAME_ADJOURN_DECLINE);
+    this->setIqHandler(boost::bind(&GameRoom::handleState, this, _1),
+            XMLNS_GAME_STATE);
 
     foreach(team, game->teams()) {
         foreach(player, *team) {
@@ -118,7 +120,7 @@ GameRoom::GameRoom(
 GameRoom::~GameRoom() { }
 
 void GameRoom::checkTime() {
-    if(this->game_active and this->move_count <= 1 and (Util::Timer::now() - this->start_time) > (5 * Util::Minutes)) {
+    if(this->game_active and this->move_count <= 1 and this->currentTime() > (5 * Util::Minutes)) {
         /* FIXME */
         this->cancelGame();
     }
@@ -133,6 +135,29 @@ void GameRoom::checkTime() {
         this->dispatcher.schedule(boost::bind(&GameRoom::checkTime, this), Util::Timer::now() + 20 * Util::Seconds);
     }
 }
+
+static XMPP::Stanza* createStateStanza(XML::Tag* game_state) {
+    XML::TagGenerator generator;
+    XMPP::Stanza* stanza = new XMPP::Stanza("iq");
+    stanza->subtype() = "set";
+    generator.openTag("query");
+    generator.addAttribute("xmlns", XMLNS_GAME_STATE);
+    generator.addChild(game_state);
+    stanza->children().push_back(generator.getTag());
+    return stanza;
+}
+
+void GameRoom::handleState(const XMPP::Stanza& stanza) {
+    if(not this->isOccupant(stanza.from()))
+        throw XMPP::not_acceptable("Only occupants are allowed to send queries to the game");
+
+    XMPP::Stanza* result = createStateStanza(this->gameState());
+    result->to() = stanza.from();
+    result->subtype() = "result";
+    result->id() = stanza.id();
+    this->sendStanza(result);
+}
+
 
 void GameRoom::handleGameIq(const XMPP::Stanza& stanza) {
     if(not this->isOccupant(stanza.from()))
@@ -168,16 +193,9 @@ void GameRoom::handleGameIq(const XMPP::Stanza& stanza) {
 }
 
 void GameRoom::notifyState(const XMPP::Jid& user) {
-    XML::TagGenerator generator;
-    XMPP::Stanza* stanza = new XMPP::Stanza("iq");
-
+    XMPP::Stanza* stanza = createStateStanza(this->gameState());
     stanza->to() = user;
-    stanza->from() = this->room_jid;
     stanza->subtype() = "set";
-    generator.openTag("query");
-    generator.addAttribute("xmlns", XMLNS_GAME_STATE);
-    generator.addChild(this->gameState());
-    stanza->children().push_back(generator.getTag());
     this->sendIq(stanza);
 }
 
