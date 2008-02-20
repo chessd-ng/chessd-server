@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2007-2008 Raphel H. Ribas,  Eduardo A. Ribas.
+ *   Copyright (c) 2007-2008 C3SL.
  *
  *   This file is part of Chessd.
  *
