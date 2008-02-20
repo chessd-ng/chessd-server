@@ -56,7 +56,55 @@ const ChessState& Chess::getState() const {
 	return *(static_cast<ChessState*>(this->current_state));
 }
 
+bool Chess::verifyThreefoldRepetition() const {
+	int count=0;
+	ChessHistory *history=static_cast<ChessHistory*>(this->historico);
+	for(int i=0;i<historico->size()-1;i++)
+		if((*history)[i]==(*history)[history->size()-1])
+			count++;
+	if(count>=3)
+		return true;
+	return false;
+}
+
+bool Chess::verifyImpossibilityOfCheckmate() const {
+	std::vector<std::pair<ChessPiece,Position> > aux[2];
+	for(int i=0;i<this->nlines;i++)
+		for(int j=0;j<this->ncolums;j++) {
+			if((*this->gameboard)[i][j]->type() != ChessPiece::NOTYPE)
+				aux[(*this->gameboard)[i][j]->color()].push_back(std::make_pair(*static_cast<ChessPiece*>((*this->gameboard)[i][j]),Position(j,i)));
+		}
+
+	if(aux[0].size()==1 and aux[1].size()==2) {
+		for(int i=0;i<(int)aux[1].size();i++)
+			if(aux[1][i].first.type()==ChessPiece::BISHOP or aux[1][i].first.type()==ChessPiece::KNIGHT)
+				return true;
+	}
+
+	else if(aux[0].size()==2 and aux[1].size()==1) {
+		for(int i=0;i<(int)aux[0].size();i++)
+			if(aux[0][i].first.type()==ChessPiece::BISHOP or aux[0][i].first.type()==ChessPiece::KNIGHT)
+				return true;
+	}
+
+	else if(aux[0].size()==2 and aux[1].size()==2) {
+		for(int i=0;i<(int)aux[0].size();i++)
+			if(aux[0][i].first.type()==ChessPiece::BISHOP)
+				for(int j=0;j<(int)aux[1].size();j++)
+					if(aux[1][j].first.type()==ChessPiece::BISHOP)
+						if((aux[0][i].second.x+aux[0][i].second.y)%2 == (aux[1][j].second.x+aux[1][j].second.y)%2)
+							return true;
+	}
+	return false;
+}
+
 bool Chess::verifyDraw() const {
+	if(verifyThreefoldRepetition()==true)
+		return true;
+
+	if(verifyImpossibilityOfCheckmate()==true)
+		return true;
+
 	return verifyDraw(0)==true?true:verifyDraw(1);
 }
 
@@ -274,10 +322,12 @@ bool Chess::verifyCheckMate(int jogador) const {
 }
 
 bool Chess::verifyDraw(int jogador) const { 
-	if(static_cast<ChessState*>(current_state)->halfmoves >= 50)
-		return true;
 	if(verifyCheck(jogador) == true)
 		return false;
+
+	if(static_cast<ChessState*>(current_state)->halfmoves >= 50)
+		return true;
+
 	for(int i=0; i<this->nlines;i++) 
 		for(int j=0;j<this->ncolums;j++) 
 			if( this->gameboard->color(Position(j,i)) == jogador ) {

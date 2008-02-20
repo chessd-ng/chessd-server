@@ -44,6 +44,11 @@ const std::vector<State*>& History::getHistory() const {
 const State* History::lastState() const {
 	return allgame[allgame.size()-1];
 }
+
+int History::size() const {
+	return allgame.size();
+}
+
 ChessHistory::ChessHistory() : History() {
 }
 

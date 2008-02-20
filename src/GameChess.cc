@@ -146,7 +146,7 @@ std::string GameChess::doneEndReason() const {
 	if(time_over!=-1)
 		return std::string("Time of ")+std::string(time_over==int(White)?"white":"black")+std::string(" has ended");
 	if(chess.verifyCheckMate())
-		return "Checkmate";
+		return std::string(this->chess.turn()==Chess::WHITE?"black":"white")+std::string(" has won by Checkmate");
 	else if(this->_resign!=Chess::UNDEFINED)
 		return std::string(this->_resign==Chess::WHITE?"white":"black")+std::string(" has resigned");
 	else if(this->_draw==true)

@@ -67,6 +67,10 @@ class Chess : public ChessBasedGame {
 		/*! \brief Verify if the Game is Draw*/
 		bool verifyDraw(int player) const;
 
+		bool verifyThreefoldRepetition() const;
+
+		bool verifyImpossibilityOfCheckmate() const;
+
 		/*! \brief make a given move and does not verify anything, just makes the move*/
 		void makeMove(const ChessMove &j) const; //FIXME this const is not good
 

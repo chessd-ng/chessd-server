@@ -37,6 +37,8 @@ class History {
 		const std::vector<State*>& getHistory() const ;
 
 		const State* lastState() const ;
+
+		int size() const;
 };
 
 class ChessHistory : public History {

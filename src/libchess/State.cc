@@ -73,6 +73,10 @@ std::string ChessState::FEN() const {
 	return ans;
 }
 
+bool ChessState::operator==(const ChessState& s) const {
+	return (this->board_fen == s.board_fen) and (this->castle == s.castle) and (this->enpassant == s.enpassant);
+}
+
 BugHouseState::BugHouseState() {
 	states=std::vector<ChessState>(2);
 }

@@ -68,6 +68,8 @@ class ChessState : public State {
 		ChessState(const std::string& _board_fen);
 
 		virtual std::string FEN() const;
+
+		bool operator==(const ChessState& s) const;
 };
 
 class BugHouseState {
