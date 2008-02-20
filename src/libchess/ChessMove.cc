@@ -20,19 +20,12 @@
 #include "ChessMove.hh"
 using namespace std;
 
-int Position::x() const {
-	return (this->_x);
-}
-
-int Position::y() const {
-	return (this->_y);
-}
-
 std::string Position::toStringNotation() const {
-	std::string ans;
-	ans=(char)(pos[0] + 'a');
-	ans+=(char)(pos[1] + '1');
-	return ans;
+	char aux[3];
+	aux[0]=(char)(pos[0] + 'a');
+	aux[1]=(char)(pos[1] + '1');
+	aux[2]=0;
+	return aux;
 }
 
 Position::Position(string& p) {
@@ -64,7 +57,7 @@ bool Position::operator !=(const Position& p) const {
 }
 
 Position Position::operator +(const Position& p) const {
-	return Position(this->x()+p.x(),this->y()+p.y());
+	return Position(this->x+p.x,this->y+p.y);
 }
 
 Move::Move() {

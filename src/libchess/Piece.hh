@@ -20,7 +20,6 @@
 #define PIECE_HH
 
 #include <iostream>
-class ChessPiece;
 
 class Piece {
 	public:

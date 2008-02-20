@@ -129,10 +129,10 @@ void BugHouseChess::makeMove(const BugHouseMove& mv) const {
 
 void BugHouseChess::updateMove(const BugHouseMove& mv) {
 	if(mv.hasPiece()) {
-		eaten_piece=*(static_cast<ChessPiece*>((*gameboard)[mv.to().y()][mv.to().x()]));
+		this->eaten_piece=*(static_cast<ChessPiece*>((*this->gameboard)[mv.to().y][mv.to().x]));
 		this->makeMove(mv);
 		this->updateState(mv);
-		Chess::updateHistory();
+		Chess::updateHistory;
 		Chess::updateTurn();
 	} else {
 		throw "this should not happen";
