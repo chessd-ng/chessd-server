@@ -55,7 +55,7 @@ class GameChess : public Game {
 		/*! \brief Has the game ended?
 		 * \return Returns the game result if the game is over, NULL otherwise.
 		 */
-		virtual bool done() const;
+		virtual bool done(const Util::Time& current_time) ;
 
 		virtual GameResult* result() const = 0;
 

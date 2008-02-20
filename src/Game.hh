@@ -93,7 +93,7 @@ class Game {
 		virtual void adjourn() = 0;
 
 		/*! \brief Has the game ended?  */
-		virtual bool done() const = 0;
+		virtual bool done(const Util::Time& current_time) = 0;
 
         /*! \brief Returns the game result. */
 		virtual GameResult* result() const = 0;
