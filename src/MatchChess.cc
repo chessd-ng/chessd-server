@@ -35,7 +35,7 @@ const std::string& MatchRuleChess::getCategory() const {
 }
 
 //FIXME
-//does not verify if the time of the players are equal
+//does not work for untimed matches
 void MatchRuleChess::validateXML(const XML::Tag& _match_offer) const {
 	if(_match_offer.name()!="match")
 		throw bad_information("wrong matchrule xml name");
@@ -55,14 +55,19 @@ void MatchRuleChess::validateXML(const XML::Tag& _match_offer) const {
 			count++;
 			if(!c_it->hasAttribute("jid"))
 				throw bad_information("xml does not have jid for a player");
+
 			if(!c_it->hasAttribute("color"))
 				throw bad_information("xml does not have color for a player");
+
 			if(c_it->getAttribute("color")!="white" and c_it->getAttribute("color")!="black")
 				throw bad_information("wrong color for a player");
+
 			if(colors.insert(c_it->getAttribute("color")).second==false)
 				throw bad_information("Players of equal colors in the same match");
+
 			if(!c_it->hasAttribute("time"))
 				throw bad_information("xml does not have time for a player");
+
 			if(time.first==true) {
 				if(time.second!=c_it->getAttribute("time"))
 					throw bad_information("time for players are diferent");

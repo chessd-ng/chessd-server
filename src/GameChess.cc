@@ -77,7 +77,7 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 		{   
 			t.addAttribute("jid",it->jid.full());
 			Util::Time aux=it->time;
-			if( ( chess.turn()==(colormap.find(it->jid)->second) ) and (chess.numberOfTurns() > 2))
+			if( ( chess.turn()==(colormap.find(it->jid)->second) ) and (chess.numberOfTurns() >= 2))
 				aux-=current_time-time_of_last_move;
 			
 			//XXX be careful with double from getSeconds
@@ -191,7 +191,7 @@ TeamResultList GameChess::doneTeamResultList() const {
 }
 
 void GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
-	if(chess.numberOfTurns() > 2) {
+	if(chess.numberOfTurns() >= 2) {
 		if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time())
 			return;
 		this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
