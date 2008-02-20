@@ -130,6 +130,8 @@ class GameRoom : public XMPP::Muc {
         /*! \brief check timeouts */
         void checkTime();
 
+        Util::Time currentTime();
+
         XML::Tag* gameState();
 
 		std::auto_ptr<Game> game;

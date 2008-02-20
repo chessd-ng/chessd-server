@@ -111,23 +111,26 @@ GameRoom::GameRoom(
     }
 
     /* set time check */
-    this->dispatcher.schedule(boost::bind(&GameRoom::checkTime, this), Util::Timer::now() + 5 * Util::Seconds);
+    this->dispatcher.schedule(boost::bind(&GameRoom::checkTime, this), Util::Timer::now() + 20 * Util::Seconds);
 
 }
 
 GameRoom::~GameRoom() { }
 
 void GameRoom::checkTime() {
-    if(this->game_active and this->move_count == 0 and (Util::Timer::now() - this->start_time) > (5 * Util::Minutes)) {
+    if(this->game_active and this->move_count <= 1 and (Util::Timer::now() - this->start_time) > (5 * Util::Minutes)) {
         /* FIXME */
         this->cancelGame();
     }
     
+    if(this->game_active and this->game->done(this->currentTime())) {
+        this->endGame();
+    }
     if(not this->game_active and this->occupants().size() == 0) {
         this->handlers.close_game();
     } else {
         /* set time check */
-        this->dispatcher.schedule(boost::bind(&GameRoom::checkTime, this), Util::Timer::now() + 5 * Util::Seconds);
+        this->dispatcher.schedule(boost::bind(&GameRoom::checkTime, this), Util::Timer::now() + 20 * Util::Seconds);
     }
 }
 
@@ -159,7 +162,7 @@ void GameRoom::handleGameIq(const XMPP::Stanza& stanza) {
         this->handleAdjournDecline(stanza);
     }
 
-    if(this->game->done()) {
+    if(this->game->done(this->currentTime())) {
         this->endGame();
     }
 }
@@ -178,12 +181,16 @@ void GameRoom::notifyState(const XMPP::Jid& user) {
     this->sendIq(stanza);
 }
 
+Util::Time GameRoom::currentTime() {
+    return Util::Timer::now() - this->start_time;
+}
+
 void GameRoom::handleMove(const XMPP::Stanza& stanza) {
     try {
         const XML::Tag& move = stanza.query().findChild("move");
         std::string move_string = move.getAttribute("long");
 
-        this->game->move(stanza.from(), move_string, Util::Timer::now() - this->start_time);
+        this->game->move(stanza.from(), move_string, this->currentTime());
         this->sendStanza(stanza.createIQResult());
         this->notifyMove(move_string);
         this->move_count ++;
@@ -299,7 +306,7 @@ XMPP::Stanza* createMoveStanza(XML::Tag* state, const std::string& long_move) {
 
 XML::Tag* GameRoom::gameState() {
     if(this->game_state.get() == 0) {
-        return this->game->state(Util::Timer::now() - this->start_time);
+        return this->game->state(this->currentTime());
     } else {
         return this->game_state->clone();
     }
