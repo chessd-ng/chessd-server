@@ -1,12 +1,16 @@
+This document assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
+The protocol described here is in development and will suffer changes in the future that
+may my break compatibility with previous versions.
+
 <!--
-     Primeiro mande uma msg apara o component de desafio dizendo
-     que você está disponível para jogos.
+     First thing to do is to send a presence to the match component.
+     Note: the field to depends on the server configuration.
 -->
 <presence to='match.shiva'/>
 
 <!--
-     Agora você pode pedir um desafio no seguinte formato.
-     Nota, o tempo é em segundos.
+    Now you can offer a match to somone who is available to play.
+    Currently supported categories are standard, blitz and lightning.
 -->
 <iq type='set' to='match.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'>
@@ -18,8 +22,8 @@
 </iq>
 
 <!--
-     Se tudo der certo você receberá uma resposta com o id do desafio
-     caso contrário, receberá uma resposta de erro.
+    The server will acknowledge your request with an iq result.
+    The offer is identified by the given id.
 -->
 <iq type='result' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'>
@@ -28,10 +32,7 @@
 </iq>
 
 <!--
-     O desafiado receberá um aviso do
-     servidor com as informações do desafio.
-     Note o campo id na tag match que
-     idenfica o desafio.
+    The other player will receive a notification of the offer.
 -->
 <iq from="match.shiva" type="set" id="1" to="eduari@shiva/Psi" >
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'/>
@@ -43,20 +44,19 @@
 </iq>
 
 <!--
-      Para o desafiado aceitar a partida, deverá enviar
-      a seguinte mensagem, note que o campo id idenfica
-      qual desafio está sendo aceito.
+    In order to accept the offer, the player must send
+    an iq to the server with the offer's id.
 -->
 <iq type='set' to='match.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#accept'>
-        <match id="0" room="room_name@games.shiva"/>
+        <match id="0"/>
     </query>
 </iq>
 
 <!--
-      O desafio pode ser recusado mandando a seguinte mensagem.
-      O desafiador também pode enviar essa mensagem para
-      cancelar o desafio.
+    The user can decline the offer by sending the follwing message.
+    Note that both users, the one who offered and the one who received the offer,
+    can send this message and the effect is the same, the offer is canceled.
 -->
 <iq type='set' to='match.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#decline'>
@@ -65,22 +65,21 @@
 </iq>
 
 <!--
-     Quando o desafio for aceito ou recusado, todas
-     as partes envolvidas no desafio serão avisadas
-     do resultado.
+    When the offer is accepted, the players involved will receive
+    a notification with the offer's id and the game room where
+    the game started.
 -->
 <iq type='set' from='match.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#decline/accept'>
-        <match id="0"/>
+        <match id="0" room="game_0@games.shiva"/>
     </query>
 </iq>
 
 <!--
-    Para modificar os parametros do desafio, uma das
-    partes pode mandar uma mensagem com a descrição do novo
-    desafio só que deverá incluir o id do desafio anterior.
+    To change the paramenters of a offer, one of the players
+    could send a reoffer, which is the same of a offer but
+    it carries the offer's id being replaced.
 -->
-
 <iq type='set' to='match.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'>
         <match category='standard' id='0'>
@@ -91,13 +90,13 @@
 </iq>
 
 <!--
-     Então as partes deverão entrar na sala
+    The game room work just like Muc extension.
+    The players must join the room before start playing.
 -->
 <presence to='game_0@games.shiva/raphaelhr'/>
 
 <!--
-     Ao entrar na sala o jogador receberá o estado
-     da partida
+    When a player joins a game he will receive the current game state.
 -->
 <iq from="game_0@games.shiva" type="set" id="0" to="raphaelhr@shiva/Psi" >
     <query xmlns="http://c3sl.ufpr.br/chessd#game#state">
@@ -110,7 +109,7 @@
 </iq>
 
 <!--
-     O jogador pode fazer um movimento com a seguinte mensagem
+    A player can issue a move sending the following message
 -->
 <iq type='set' to='game_0@games.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#game#move'>
@@ -125,39 +124,47 @@
 </iq>
 
 <!-- 
-     Se a jogada for inválida, o jogador receberá
-     um iq de erro, caso contrário receberá um result vazio
+    If the move is invalid the player will receive an iq error.
 -->
 
 <!--
-     A cada jogada realizada todos os jogadores presentes
-     receberão o novo estado do jogo
+    For each move in the game, the players in the room will receive
+    a notification of the move
 -->
+<iq from="game_0@games.shiva" type="set" id="0" to="raphaelhr@shiva/Psi" >
+    <query xmlns="http://c3sl.ufpr.br/chessd#game#state">
+        <state category="standard" >
+        <move long='e2e4'>
+            <board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR" turn="w" />
+            <player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" />
+            <player inc="1" color="black" time="900" jid="eduari@shiva/Psi" />
+        </state>
+    </query>
+</iq>
 
 <!--
-     Um jogador pode desisitir, pedir empate/cancelamento/adjourn
-     com a seguinte msg
+    A player can resign, offer draw/cancel/adjourn using the floowing message.
+    The diference is just the xmlns.
 -->
 <iq type='set' to='game_0@games.shiva' id='draw'>
     <query xmlns='http://c3sl.ufpr.br/chessd#game#resign/draw/cancel/adjourn'/>
 </iq>
 
 <!--
-     Os jogadores serão avisados.
+    The players will be notified of the offer.
 -->
 <iq type='set' from='game_0@games.shiva' id='draw'>
     <query xmlns='http://c3sl.ufpr.br/chessd#game#draw/cancel/adjourn'/>
 </iq>
 
 <!-- 
-     Os jogadores poderão aceitar mandando a mesma msg de requisição
-     ou recusar mandando a mesma mensagem só que com o sufixo "-decline"
-     no xlmns.
+     The players can accept the offer sending the same message of the offer.
+     Or decline it by sending the same message with a "-decline" sufix
+     in the xmlns.
 -->
 
 <!--
-     Ao final do jogo os jogadores serão notificados
-     do resultado.
+    When the game is over, the players will be notified of the result.
 -->
 <iq from="game_0@games.shiva" type="set" id="2" to="eduari@shiva/Psi" >
     <query xmlns="http://c3sl.ufpr.br/chessd#game#end">
@@ -168,14 +175,14 @@
 </iq>
 
 <!--
-     Os jogadores poderão deixar a sala de jogo ao final
+    After the game is over, the players may leve the room.
      do jogo
 -->
 <presence to='game_0@games.shiva/raphaelhr' type='unavailable'/>
 
 <!--
-      Para saber o informações de um ou mais jogadores
-      a seguinte msg deverá ser enviada
+      To request users info one should send the following message.
+      Only rating and type is supported.
 -->
 <iq type='set' to='rating.shiva' id='get_rating'>
     <query xmlns='http://c3sl.ufpr.br/chessd#info'>
@@ -187,11 +194,13 @@
 </iq>
 
 <!--
-     A resposta será
+    The answer will be like this.
 -->
 <iq from="rating.shiva" type="result" id="get_rating" to="eduari@shiva/Psi" >
     <query xmlns="http://c3sl.ufpr.br/chessd#rating">
         <rating losses="0" category="standard" wins="11" draws="0" rating="1847" jid="raphaelhr@shiva" />
         <rating losses="11" category="standard" wins="0" draws="0" rating="1153" jid="eduari@shiva" />
+        <type jid='eduari@shiva' type='admin'/>
+        <type jid='raphaelhr@shiva' type='robot'/>
     </query>
 </iq>
