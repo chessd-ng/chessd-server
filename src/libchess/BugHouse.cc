@@ -64,6 +64,8 @@ bool BugHouse::verifyAndMakeMove(int player, const std::string& move) {
 	int g=player/2;
 	if(games[g].turn() == player%2) {
 		if(games[g].verifyAndMakeMove(move)) {
+			if(games[g].eatenPiece().type() != ChessPiece::NOTYPE)
+				games[g].putInPieces(ChessPiece(games[g].eatenPiece().type(),(games[g].eatenPiece().color()+1)%2));
 			updateState();
 			return true;
 		}

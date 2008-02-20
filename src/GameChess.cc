@@ -64,7 +64,7 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 		t.addAttribute("state",est.boardFEN());
 		t.addAttribute("turn",est.turn()==Chess::WHITE?"white":"black");
 		t.addAttribute("castle",est.castle);
-		if(est.enpassant.x()!=-1)
+		if(est.enpassant.x!=-1)
 			t.addAttribute("enpassant",est.enpassant.toStringNotation());
 		else
 			t.addAttribute("enpassant","-");
@@ -81,7 +81,7 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 				aux-=current_time-time_of_last_move;
 			
 			//XXX be careful with double from getSeconds
-			t.addAttribute("time", Util::to_string((int)(aux.getSeconds()+0.001)));
+			t.addAttribute("time", Util::to_string((int)(std::max(aux.getSeconds()+0.001,0.0))));
 
 			t.addAttribute("color",it->color==White?"white":"black");
 			t.closeTag();

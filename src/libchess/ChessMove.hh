@@ -27,15 +27,11 @@ class Position {
 		union {
 			int pos[2];
 			struct {
-				int _x,_y;
+				int x,y;
 			};
 		};
 
 	public:
-		int x() const ;
-
-		int y() const ;
-
 		std::string toStringNotation() const ;
 
 		Position(std::string& p);

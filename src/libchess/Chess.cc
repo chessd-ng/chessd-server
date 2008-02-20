@@ -134,8 +134,8 @@ void Chess::updateState(const ChessMove& j,bool comeu) {
 
 	//if the pawn moved 2 squares...
 	if(this->gameboard->getType(j.to()) == ChessPiece::PAWN) {
-		if( abs(j.to().y() - j.from().y()) == 2) {
-			current_state->enpassant = Position(j.to().x(), (int)((j.color() == 0 )? (j.to().y()-1) : (j.to().y()+1) ) );
+		if( abs(j.to().y - j.from().y) == 2) {
+			current_state->enpassant = Position(j.to().x, (int)((j.color() == 0 )? (j.to().y-1) : (j.to().y+1) ) );
 		}
 	}
 
@@ -187,17 +187,17 @@ void Chess::makeMove(const ChessMove &j) const {
 	//verify if the move was Castle
 	if(this->verifyCastle(j) ) {
 		int distx;
-		distx=j.to().x() - j.from().x() ;
+		distx=j.to().x - j.from().x ;
 		Position aux;
 		if(distx < 0)
-			aux = Position(0,j.from().y());
+			aux = Position(0,j.from().y);
 		else
-			aux = Position(7,j.from().y());
-		this->gameboard->makeMove(ChessMove(aux,Position( (j.from().x() + j.to().x())/2,j.from().y()),j.color()));
+			aux = Position(7,j.from().y);
+		this->gameboard->makeMove(ChessMove(aux,Position( (j.from().x + j.to().x)/2,j.from().y),j.color()));
 	}
 	//foi passant?
 	if(this->verifyEnPassant(j))
-		this->gameboard->createPiece(Position(j.to().x(),j.from().y()), new ChessPiece());
+		this->gameboard->createPiece(Position(j.to().x,j.from().y), new ChessPiece());
 
 	this->gameboard->makeMove(j);
 }
@@ -210,7 +210,7 @@ void Chess::updateMove(const ChessMove &j) {
 	//FIXME Default is to transform the pawn to queen
 	if(this->gameboard->getType(j.to()) == ChessPiece::PAWN) {
 		int final = ( (j.color() == 0) ? 7 : 0);
-		if(j.to().y() == final) {
+		if(j.to().y == final) {
 			if(j.move().size()==5)
 				this->gameboard->createPiece(j.to(),new ChessPiece(ChessPiece::chartotype(j.move()[4]),(ChessPiece::PieceColor)(j.color())));
 			else
@@ -250,7 +250,7 @@ bool Chess::verifyMove(const ChessMove &j) const {
 
 bool Chess::verifyCastle(const ChessMove& j) const {
 	if( (this->gameboard->getType(j.from()) == 'K'))
-		if( abs(j.to().x() - j.from().x())==2 )
+		if( abs(j.to().x - j.from().x)==2 )
 			return true;
 	return false;
 }

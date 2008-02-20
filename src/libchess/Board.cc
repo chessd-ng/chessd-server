@@ -36,20 +36,20 @@ const std::vector<Piece*>& Board::operator[](int value) const {
 void Board::createPiece(const Position& pos,Piece *pe) {
 	if(typeid(ChessPiece)!=typeid(*pe))
 		throw "Invalid Piece";
-	delete this->board[pos.y()][pos.x()];
-	this->board[pos.y()][pos.x()]=pe;
+	delete this->board[pos.y][pos.x];
+	this->board[pos.y][pos.x]=pe;
 }
 
 int Board::getType(const Position& p) const {
-	return this->board[p.y()][p.x()]->type();
+	return this->board[p.y][p.x]->type();
 }
 
 int Board::getPieceReal(const Position& p) const {
-	return this->board[p.y()][p.x()]->pieceReal();
+	return this->board[p.y][p.x]->pieceReal();
 }
 
 int Board::color(const Position& p) const {
-	return this->board[p.y()][p.x()]->color();
+	return this->board[p.y][p.x]->color();
 }
 
 ChessBoard::ChessBoard(int n, int m) : Board(n,m) {
@@ -68,8 +68,8 @@ ChessBoard::~ChessBoard() {
 
 void ChessBoard::makeMove(const ChessMove& j)
 {
-	int tox=j.to().x(),toy=j.to().y();
-	int fromx=j.from().x(),fromy=j.from().y();
+	int tox=j.to().x,toy=j.to().y;
+	int fromx=j.from().x,fromy=j.from().y;
 	delete this->board[toy][tox];
 	this->board[toy][tox] = board[fromy][fromx];
 	this->board[fromy][fromx]=new ChessPiece();
