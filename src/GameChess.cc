@@ -42,14 +42,16 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 
 	this->_resign=Chess::UNDEFINED;
 	this->_draw=false;
-	colormap[this->_teams[0][0]]=_players[0].color==White?Chess::WHITE:Chess::BLACK;
-	colormap[this->_teams[1][0]]=_players[1].color==White?Chess::WHITE:Chess::BLACK;
+	this->colormap[this->_teams[0][0]]=_players[0].color==White?Chess::WHITE:Chess::BLACK;
+	this->colormap[this->_teams[1][0]]=_players[1].color==White?Chess::WHITE:Chess::BLACK;
 
 	//FIXME
 	//centralize the history
-	history_saved.openTag("game");
-	history_saved.addAttribute("category",this->category());
-	history_saved.addChild(GameChess::generateStateTag(chess.getState(),Util::Time() ));
+	this->history_saved.openTag("game");
+	this->history_saved.addAttribute("category",this->category());
+	this->history_saved.addChild(GameChess::generateStateTag(chess.getState(),Util::Time()));
+
+	this->_history=0;
 }
 
 XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& current_time) const {
@@ -119,10 +121,14 @@ void GameChess::adjourn() {
 	//TODO
 }
 
-bool GameChess::done(void) const {
+bool GameChess::done(const Util::Time& current_time) {
 	foreach(it,standard_player_map)
-		if(it->second->time <= Util::Time())
+		if(it->second->time+this->time_of_last_move-current_time <= Util::Time()) {
+			it->second->time+=this->time_of_last_move-current_time;
+			if(this->_history==0)
+				this->_history=history_saved.getTag();
 			return true;
+		}
 	if(chess.verifyCheckMate() or this->_resign!=Chess::UNDEFINED)
 		return true;
 	else if(this->_draw==true)
@@ -136,7 +142,7 @@ std::string GameChess::doneEndReason() const {
 	std::string reason;
 	foreach(it,standard_player_map) {
 		if(it->second->time <= Util::Time())
-			return std::string("Time of ")+it->second->jid.full()+std::string(" has ended");
+			return std::string("Time of ")+std::string(it->second->color==White?"white":"black")+std::string(" has ended");
 	}
 	if(chess.verifyCheckMate())
 		return "Checkmate";
@@ -186,11 +192,9 @@ TeamResultList GameChess::doneTeamResultList() const {
 
 void GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
 	if(chess.numberOfTurns() > 2) {
-		if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time()) {
-			this->standard_player_map[player]->time-=time_stamp-time_of_last_move;
+		if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time())
 			return;
-		} else
-			this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
+		this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
 	}
 
 	if(colormap[player]!=chess.turn())
@@ -202,7 +206,7 @@ void GameChess::move(const Player& player, const std::string& movement, const Ut
 	time_of_last_move=time_stamp;
 
 	this->history_saved.addChild(this->generateStateTag(chess.getState(),time_stamp));
-	if(this->done()==true)
+	if(this->done(time_stamp)==true)
 		_history=history_saved.getTag();
 }
 
