@@ -124,7 +124,7 @@ void GameChess::adjourn() {
 }
 
 bool GameChess::done(const Util::Time& current_time) {
-	if(this->chess.numberOfTurns >= 2)
+	if(this->chess.numberOfTurns() >= 2)
 		foreach(it,standard_player_map)
 			if(it->second->time+(this->colormap[it->first]==this->chess.turn()?this->time_of_last_move-current_time:Util::Time()) <= Util::Time()) {
 				this->time_over=it->second->color;
