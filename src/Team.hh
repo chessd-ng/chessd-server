@@ -23,8 +23,8 @@
 #include "XMPP/Jid.hh"
 #include "Util/Timer.hh"
 enum StandardPlayerColor {
-	White,
-	Black
+	White=0,
+	Black=1
 };
 /*! \brief All the info necessary for a player
 */

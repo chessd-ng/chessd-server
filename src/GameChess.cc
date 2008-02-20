@@ -52,6 +52,8 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 	this->history_saved.addChild(GameChess::generateStateTag(chess.getState(),Util::Time()));
 
 	this->_history=0;
+
+	this->time_over=-1;
 }
 
 XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& current_time) const {
@@ -122,13 +124,14 @@ void GameChess::adjourn() {
 }
 
 bool GameChess::done(const Util::Time& current_time) {
-	foreach(it,standard_player_map)
-		if(it->second->time+this->time_of_last_move-current_time <= Util::Time()) {
-			it->second->time+=this->time_of_last_move-current_time;
-			if(this->_history==0)
-				this->_history=history_saved.getTag();
-			return true;
-		}
+	if(this->chess.numberOfTurns >= 2)
+		foreach(it,standard_player_map)
+			if(it->second->time+(this->colormap[it->first]==this->chess.turn()?this->time_of_last_move-current_time:Util::Time()) <= Util::Time()) {
+				this->time_over=it->second->color;
+				if(this->_history==0)
+					this->_history=history_saved.getTag();
+				return true;
+			}
 	if(chess.verifyCheckMate() or this->_resign!=Chess::UNDEFINED)
 		return true;
 	else if(this->_draw==true)
@@ -140,10 +143,8 @@ bool GameChess::done(const Util::Time& current_time) {
 
 std::string GameChess::doneEndReason() const {
 	std::string reason;
-	foreach(it,standard_player_map) {
-		if(it->second->time <= Util::Time())
-			return std::string("Time of ")+std::string(it->second->color==White?"white":"black")+std::string(" has ended");
-	}
+	if(time_over!=-1)
+		return std::string("Time of ")+std::string(time_over==int(White)?"white":"black")+std::string(" has ended");
 	if(chess.verifyCheckMate())
 		return "Checkmate";
 	else if(this->_resign!=Chess::UNDEFINED)

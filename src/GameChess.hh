@@ -80,6 +80,8 @@ class GameChess : public Game {
 		XML::Tag *_history;
 
 	private:
+		int time_over;
+
 		std::string _title;
 
 		std::string _category;
