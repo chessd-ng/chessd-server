@@ -26,36 +26,36 @@ namespace Threads {
 	Task::~Task() { }
 
 	void Task::start() {
-		this->mutex.lock();
+		this->condition.lock();
 		if(this->status != TaskReady)
 			return; /* TODO throw exception */
 		this->status = TaskWaiting;
 		Pool::singleton()->launchTask(*this);
-		this->mutex.unlock();
+		this->condition.unlock();
 	}
 
 	void Task::run() {
-		this->mutex.lock();
+		this->condition.lock();
 		this->status = TaskRunning;
-		this->mutex.unlock();
+		this->condition.unlock();
 		this->function();
-		this->mutex.lock();
+		this->condition.lock();
 		this->status = TaskReady;
 		this->condition.signal();
-		this->mutex.unlock();
+		this->condition.unlock();
 	}
 
 	bool Task::join() {
-		this->mutex.lock();
+		this->condition.lock();
 		if(this->waiting) {
-			this->mutex.unlock();
+			this->condition.unlock();
 			return false;
 		}
 		this->waiting = true;
 		if(this->status != TaskReady)
-			this->condition.wait(this->mutex);
+			this->condition.wait();
 		this->waiting = false;
-		this->mutex.unlock();
+		this->condition.unlock();
 		return true;
 	}
 

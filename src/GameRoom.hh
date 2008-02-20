@@ -25,6 +25,7 @@
 #include "Game.hh"
 #include "Agreement.hh"
 #include "DatabaseManager.hh"
+#include "Threads/Dispatcher.hh"
 
 enum GameStatus {
 	GAME_RUNNING,
@@ -55,7 +56,9 @@ class GameRoom : public XMPP::Muc {
                 Game* game,
                 const XMPP::Jid& room_name,
                 DatabaseManager& database_manager,
-                const GameRoomHandlers& handlers);
+                Threads::Dispatcher& dispatcher,
+                const GameRoomHandlers& handlers
+                );
 
         /*! \brief Destructor. */
 		~GameRoom();
@@ -100,11 +103,11 @@ class GameRoom : public XMPP::Muc {
         /*! \brief Notify a request to the users. */
 		void notifyRequest(GameRequest request, const XMPP::Jid& requester);
 
-        /*! \brief Notify the game result to the users. */
-		void notifyResult(const GameResult& result);
-
         /*! \brief Send the user the current game state. */
 		void notifyState(const XMPP::Jid& jid);
+
+        /*! \brief Send the user the game result. */
+        void notifyResult(const XMPP::Jid& user);
 
         /*! \brief Notify a move to the users. */
 		void notifyMove(const std::string& long_move);
@@ -115,33 +118,40 @@ class GameRoom : public XMPP::Muc {
         /*! \brief Adjourn the game. */
 		void adjournGame();
 
-        /*! \brief Check fi the game has ended. */
-		void checkEndGame();
-
         /*! \brief End the game. */
         void endGame();
 
         /*! \brief Receive a notification of a user in the muc. */
         void notifyUserStatus(const XMPP::Jid& jid, const std::string& nick, bool available);
 
-        /*! \brief Validate iq.
-         *
-         * Checks if the user is alowed to send this iq.
-         * */
-        void checkGameIQ(const XMPP::Jid& from);
+        /*! \brief Handle a game iq. */
+        void handleGameIq(const XMPP::Stanza& from);
+
+        /*! \brief check timeouts */
+        void checkTime();
+
+        Util::Time currentTime();
 
         XML::Tag* gameState();
 
 		std::auto_ptr<Game> game;
 
+        std::auto_ptr<XMPP::Stanza> result_stanza;
+
+        std::auto_ptr<XML::Tag> game_state;
+
 		XMPP::Jid room_jid;
 
         DatabaseManager& database_manager;
 
+        Threads::Dispatcher& dispatcher;
+
 		GameRoomHandlers handlers;
 
 		Agreement draw_agreement;
+
 		Agreement cancel_agreement;
+
 		Agreement adjourn_agreement;
 
 		std::set<XMPP::Jid> all_players;
@@ -149,6 +159,9 @@ class GameRoom : public XMPP::Muc {
 		bool game_active;
 
         Util::Time start_time;
+
+
+        int move_count;
 };
 
 #endif

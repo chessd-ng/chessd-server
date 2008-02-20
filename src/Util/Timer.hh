@@ -20,6 +20,7 @@
 #define UTILTIMER_HH
 
 #include <string>
+#include <time.h>
 
 namespace Util {
 
@@ -29,10 +30,10 @@ namespace Util {
 		public:
 
 			/* returns current time */
-			static Time Now();
+			static Time now();
 
 			/* block the given time */
-			void Block(Time tempo);
+			void block(Time tempo);
 	};
 
 	/* time units */
@@ -58,7 +59,9 @@ namespace Util {
 				_nanoseconds(_nanoseconds) { }
 
 		public:
+
 			Time() : _seconds(0), _nanoseconds(0) { }
+
 			Time(const Time& time) :
 				_seconds(time._seconds),
 				_nanoseconds(time._nanoseconds) { }
@@ -99,6 +102,13 @@ namespace Util {
 			double getSeconds() const;
 			double getMiliseconds() const;
 			double getMicroseconds() const;
+
+            timespec getTimespec() const {
+                timespec ret;
+                ret.tv_sec = this->_seconds;
+                ret.tv_nsec = this->_nanoseconds;
+                return ret;
+            }
 	};
 
 	Time operator* (unsigned int constant, const _Minutes&);

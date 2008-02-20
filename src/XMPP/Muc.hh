@@ -145,7 +145,7 @@ namespace XMPP {
                 return this->users().find_jid(user_jid) != this->users().end();
             }
 
-			void broadcastIq(Stanza* stanza, const ConstStanzaHandler& on_result = ConstStanzaHandler(),
+			void broadcastIq(const Stanza& stanza, const ConstStanzaHandler& on_result = ConstStanzaHandler(),
 					const TimeoutHandler& on_timeout = TimeoutHandler());
 
             virtual void handleStanza(Stanza* stanza) throw();
@@ -160,7 +160,7 @@ namespace XMPP {
 
 		private:
 
-			void handlePresence(const Stanza& stanza) throw();
+			void handlePresence(const Stanza& stanza);
 
 			void handleGroupChat(const Stanza& stanza);
 
