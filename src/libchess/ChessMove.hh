@@ -34,7 +34,7 @@ class Position {
 	public:
 		std::string toStringNotation() const ;
 
-		Position(std::string& p);
+		Position(const std::string& p);
 
 		Position(int __x, int __y);
 
