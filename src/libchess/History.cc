@@ -52,6 +52,6 @@ int History::size() const {
 ChessHistory::ChessHistory() : History() {
 }
 
-const ChessState* ChessHistory::operator[](int p) const {
-	return static_cast<ChessState*>(this->getHistory()[p]);
+const ChessState& ChessHistory::operator[](int p) const {
+	return *static_cast<ChessState*>(this->getHistory()[p]);
 }

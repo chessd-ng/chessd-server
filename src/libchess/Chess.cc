@@ -63,8 +63,8 @@ const ChessState& Chess::getState() const {
 bool Chess::verifyThreefoldRepetition() const {
 	int count=1;
 	ChessHistory *history=static_cast<ChessHistory*>(this->historico);
-	for(int i=historico->size()-1;i>=0;i--)
-		if((*(*history)[i])==(*(*history)[history->size()-1]))
+	for(int i=1;i<=(*history)[history->size()-1].halfmoves;i++)
+		if((*history)[history->size()-1-i]==(*history)[history->size()-1])
 			count++;
 	if(count>=3)
 		return true;
@@ -82,21 +82,21 @@ bool Chess::verifyImpossibilityOfCheckmate() const {
 			}
 		}
 
-	if(aux[0].size()==1 and aux[1].size()==1)
+	if((aux[0].size()==1) and (aux[1].size()==1))
 		return true;
-	else if(aux[0].size()==1 and aux[1].size()==2) {
+	else if((aux[0].size()==1) and (aux[1].size()==2)) {
 		for(int i=0;i<(int)aux[1].size();i++)
 			if(aux[1][i].first.type()==ChessPiece::BISHOP or aux[1][i].first.type()==ChessPiece::KNIGHT)
 				return true;
 	}
 
-	else if(aux[0].size()==2 and aux[1].size()==1) {
+	else if((aux[0].size()==2) and (aux[1].size()==1)) {
 		for(int i=0;i<(int)aux[0].size();i++)
 			if(aux[0][i].first.type()==ChessPiece::BISHOP or aux[0][i].first.type()==ChessPiece::KNIGHT)
 				return true;
 	}
 
-	else if(aux[0].size()==2 and aux[1].size()==2) {
+	else if((aux[0].size()==2) and (aux[1].size()==2)) {
 		for(int i=0;i<(int)aux[0].size();i++)
 			if(aux[0][i].first.type()==ChessPiece::BISHOP)
 				for(int j=0;j<(int)aux[1].size();j++)
@@ -107,14 +107,23 @@ bool Chess::verifyImpossibilityOfCheckmate() const {
 	return false;
 }
 
-bool Chess::verifyDraw() const {
+int Chess::verifyDraw() const {
 	if(verifyThreefoldRepetition()==true)
-		return true;
+		return 1;
 
 	if(verifyImpossibilityOfCheckmate()==true)
-		return true;
+		return 2;
 
-	return verifyDraw(0)==true?true:verifyDraw(1);
+	if(static_cast<ChessState*>(current_state)->halfmoves >= 50)
+		return 3;
+
+	if(verifyStaleMate(0)==true)
+		return 4;
+
+	if(verifyStaleMate(1)==true)
+		return 4;
+
+	return 0;
 }
 
 int Chess::turn() const {
@@ -312,15 +321,15 @@ bool Chess::verifyCastle(const ChessMove& j) const {
 	return false;
 }
 
-bool Chess::verifyCheckMate(int jogador) const {
-	if(verifyCheck(jogador) == false)
+bool Chess::verifyCheckMate(int player) const {
+	if(verifyCheck(player) == false)
 		return false;
 
 	for(int i=0; i<this->nlines;i++) 
 		for(int j=0;j<this->ncolums;j++) 
-			if( this->gameboard->color(Position(j,i)) == jogador ) {
-				Position onde(j,i);
-				std::vector <Position> *p=getPositions(onde);
+			if( this->gameboard->color(Position(j,i)) == player ) {
+				Position pos(j,i);
+				std::vector <Position> *p=getPositions(pos);
 				if(p->size() > 0) {
 					delete p;
 					return false;
@@ -330,16 +339,13 @@ bool Chess::verifyCheckMate(int jogador) const {
 	return true;
 }
 
-bool Chess::verifyDraw(int jogador) const { 
-	if(verifyCheck(jogador) == true)
+bool Chess::verifyStaleMate(int player) const { 
+	if(verifyCheck(player) == true)
 		return false;
-
-	if(static_cast<ChessState*>(current_state)->halfmoves >= 50)
-		return true;
 
 	for(int i=0; i<this->nlines;i++) 
 		for(int j=0;j<this->ncolums;j++) 
-			if( this->gameboard->color(Position(j,i)) == jogador ) {
+			if( this->gameboard->color(Position(j,i)) == player ) {
 				Position onde(j,i);
 				std::vector <Position> *p=getPositions(onde);
 				if(p->size()>0) {

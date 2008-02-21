@@ -40,7 +40,7 @@ class ChessBasedGame : public BoardGame {
 
 		virtual bool verifyCheckMate() const=0;
 
-		virtual bool verifyDraw() const=0;
+		virtual int verifyDraw() const=0;
 
 		virtual const ChessState& getState() const=0;
 

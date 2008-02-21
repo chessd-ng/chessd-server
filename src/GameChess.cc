@@ -143,16 +143,26 @@ bool GameChess::done(const Util::Time& current_time) {
 
 std::string GameChess::doneEndReason() const {
 	std::string reason;
+	int aux;
 	if(time_over!=-1)
 		return std::string("Time of ")+std::string(time_over==int(White)?"white":"black")+std::string(" has ended");
 	if(chess.verifyCheckMate())
-		return std::string(this->chess.turn()==Chess::WHITE?"black":"white")+std::string(" has won by Checkmate");
+		return std::string(this->chess.turn()==Chess::WHITE?"Black":"White")+std::string(" has won by checkmate");
 	else if(this->_resign!=Chess::UNDEFINED)
-		return std::string(this->_resign==Chess::WHITE?"white":"black")+std::string(" has resigned");
+		return std::string(this->_resign==Chess::WHITE?"White":"Black")+std::string(" has resigned");
 	else if(this->_draw==true)
 		return "The players agreed on a draw";
-	else if(chess.verifyDraw()==true)
-		return "Draw";
+	aux=chess.verifyDraw();
+	if(aux!=0) {
+		if(aux==1)
+			return "Draw by three fold repetition rule";
+		if(aux==2)
+			return "Draw by impossibility of checkmate";
+		if(aux==3)
+			return "Draw by fifty move rule";
+		if(aux==4)
+			return "Draw by stalemate";
+	}
 	return "";
 }
 
