@@ -57,11 +57,17 @@ class RatingComponent : public ComponentBase {
 
 		/* several Handlers for the incoming events. */
 
-		/*! \brief Handle an incoming match iq. */
+		/*! \brief Handle an incoming rating iq. */
 		void handleRating(const XMPP::Stanza& stanza);
 
-        /*! \brief This is a transaction that reds users ratings. */
+		/*! \brief Handle an incoming game search iq. */
+		void handleSearch(const XMPP::Stanza& stanza);
+
+        /*! \brief This is a transaction that reads users ratings. */
 		void fetchRating(const XMPP::Stanza& stanza, DatabaseInterface& database);
+
+        /*! \brief This is a transaction that search for games. */
+        void searchGame(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
         XMPP::ErrorHandler error_handler;
 

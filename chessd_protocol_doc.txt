@@ -204,3 +204,31 @@ may my break compatibility with previous versions.
         <type jid='raphaelhr@shiva' type='robot'/>
     </query>
 </iq>
+
+
+<!--
+    Search for previous games.
+--!>
+
+<iq type='get' to='rating.shiva' id='get_rating'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#search_game'>
+        <search results='10' offset='0'>
+            <player jid='robofacilaaa@shiva'/>
+            <player jid='ulyssesb@shiva'/>
+        </search>
+    </query>
+</iq>
+
+<!--
+    Result.
+--!>
+
+<iq from="rating.shiva" type="result" id="get_rating" to="raphaelhr@shiva/guinness" >
+    <query xmlns="http://c3sl.ufpr.br/chessd#search_game">
+        <game time_stamp="1203599132" category="blitz" id="89" >
+            <result>Time of black has ended</result>
+            <player role="black" jid="ulyssesb@shiva" />
+            <player role="white" jid="robofacilaaa@shiva" />
+        </game>
+    </query>
+</iq>
