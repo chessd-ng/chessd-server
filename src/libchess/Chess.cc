@@ -56,13 +56,17 @@ const ChessState& Chess::getState() const {
 	return *(static_cast<ChessState*>(this->current_state));
 }
 
+/* FIXME optimize this
+ * if the castle possibilities are diferent, so no need to verify further
+ * if the number of pieces are diferent then no need to verify further
+*/
 bool Chess::verifyThreefoldRepetition() const {
-	int count=0;
+	int count=1;
 	ChessHistory *history=static_cast<ChessHistory*>(this->historico);
-	for(int i=0;i<historico->size()-1;i++)
+	for(int i=historico->size()-1;i>=0;i--)
 		if((*(*history)[i])==(*(*history)[history->size()-1]))
 			count++;
-	if(count>=2)
+	if(count>=3)
 		return true;
 	return false;
 }
@@ -71,8 +75,11 @@ bool Chess::verifyImpossibilityOfCheckmate() const {
 	std::vector<std::pair<ChessPiece,Position> > aux[2];
 	for(int i=0;i<this->nlines;i++)
 		for(int j=0;j<this->ncolums;j++) {
-			if((*this->gameboard)[i][j]->type() != ChessPiece::NOTYPE)
+			if((*this->gameboard)[i][j]->type() != ChessPiece::NOTYPE) {
 				aux[(*this->gameboard)[i][j]->color()].push_back(std::make_pair(*static_cast<ChessPiece*>((*this->gameboard)[i][j]),Position(j,i)));
+				if(aux[(*this->gameboard)[i][j]->color()].size() > 2)
+					return false;
+			}
 		}
 
 	if(aux[0].size()==1 and aux[1].size()==1)
@@ -166,7 +173,7 @@ void Chess::putPieces() {
 }
 
 //if this function is called, then the move is valid
-void Chess::updateState(const ChessMove& j,bool comeu) {
+void Chess::updateState(const ChessMove& j, bool has_eaten) {
 	ChessState* current_state = static_cast<ChessState*>(this->current_state);
 
 	current_state->enpassant=Position(-1,-1);
@@ -179,7 +186,7 @@ void Chess::updateState(const ChessMove& j,bool comeu) {
 	current_state->halfmoves++;
 
 	//FIXME this code is horrible.
-	if((this->gameboard->getType(j.to()) == ChessPiece::PAWN) or comeu)
+	if((this->gameboard->getType(j.to()) == ChessPiece::PAWN) or has_eaten)
 		current_state->halfmoves=0;
 
 	//if the pawn moved 2 squares...
@@ -253,7 +260,7 @@ void Chess::makeMove(const ChessMove &j) const {
 }
 
 void Chess::updateMove(const ChessMove &j) {
-	bool comeu = verifyEnPassant(j) or (this->gameboard->color(j.to())!=-1);
+	bool has_eaten = verifyEnPassant(j) or (this->gameboard->color(j.to())!=-1);
 	this->makeMove(j);
 
 	//Is the Pawn at the end of the tab? 
@@ -267,7 +274,7 @@ void Chess::updateMove(const ChessMove &j) {
 				this->gameboard->createPiece(j.to(),new ChessPiece(ChessPiece::QUEEN,(ChessPiece::PieceColor)(j.color())));
 		}
 	}
-	this->updateState(j,comeu);
+	this->updateState(j,has_eaten);
 	this->updateHistory();
 	this->updateTurn();
 }
