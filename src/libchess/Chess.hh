@@ -89,6 +89,7 @@ class Chess : public ChessBasedGame {
 		virtual void putPieces();
 
 		int _turn;
+
 };
 
 #endif
