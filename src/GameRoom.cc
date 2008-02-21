@@ -33,6 +33,7 @@
 #define XMLNS_GAME_DRAW_DECLINE     "http://c3sl.ufpr.br/chessd#game#draw-decline"
 #define XMLNS_GAME_CANCEL           "http://c3sl.ufpr.br/chessd#game#cancel"
 #define XMLNS_GAME_CANCEL_DECLINE   "http://c3sl.ufpr.br/chessd#game#cancel-decline"
+#define XMLNS_GAME_CANCELED         "http://c3sl.ufpr.br/chessd#game#canceled"
 #define XMLNS_GAME_ADJOURN          "http://c3sl.ufpr.br/chessd#game#adjourn"
 #define XMLNS_GAME_ADJOURN_DECLINE  "http://c3sl.ufpr.br/chessd#game#adjourn-decline"
 #define XMLNS_GAME_START            "http://c3sl.ufpr.br/chessd#game#start"
@@ -389,10 +390,7 @@ XMPP::Stanza* createCanceledStanza() {
     XMPP::Stanza* stanza = new XMPP::Stanza("iq");
     stanza->subtype() = "set";
     tag_generator.openTag("query");
-    tag_generator.addAttribute("xmlns", XMLNS_GAME_END);
-    tag_generator.openTag("reason");
-    tag_generator.addCData("Canceled");
-    tag_generator.closeTag();
+    tag_generator.addAttribute("xmlns", XMLNS_GAME_CANCELED);
     stanza->children().push_back(tag_generator.getTag());
     return stanza;
 }
