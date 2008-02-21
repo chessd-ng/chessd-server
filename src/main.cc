@@ -24,9 +24,10 @@
 
 using namespace std;
 
-int main(void) {
+int main(int argc, char** argv) {
 	try {
-		std::auto_ptr<XML::Tag> config(XML::loadXmlFile("config.xml"));
+        std::string file_name = (argc>=2) ? argv[1] : "config.xml";
+		std::auto_ptr<XML::Tag> config(XML::loadXmlFile(file_name));
 		Core::init(*config);
 		Core& core = Core::singleton();
         core.start();
