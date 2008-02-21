@@ -263,7 +263,7 @@ void GameRoom::handleAdjournAccept(const XMPP::Stanza& stanza) {
         this->adjournGame();
     }
     if(this->adjourn_agreement.agreed_count() == 1) {
-        this->notifyRequest(REQUEST_CANCEL, stanza.from());
+        this->notifyRequest(REQUEST_ADJOURN, stanza.from());
     }
 }
 
@@ -379,7 +379,8 @@ void GameRoom::endGame() {
 }
 
 void GameRoom::adjournGame() {
-    this->game->adjourn();
+    //this->game->adjourn();
+    this->cancelGame();
     // TODO
 }
 
