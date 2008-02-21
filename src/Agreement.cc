@@ -42,4 +42,5 @@ void Agreement::clear() {
 		it->second = false;
 	}
 	this->_agreed_count = 0;
+    this->_left_count = 0;
 }

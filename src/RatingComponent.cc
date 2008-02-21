@@ -28,6 +28,8 @@ using namespace XML;
 using namespace XMPP;
 
 #define XMLNS_CHESSD_INFO "http://c3sl.ufpr.br/chessd#info"
+#define XMLNS_CHESSD_GAME_SEARCH "http://c3sl.ufpr.br/chessd#search_game"
+#define XMLNS_CHESSD_GAME_FETCH "http://c3sl.ufpr.br/chessd#fetch_game"
 
 
 RatingComponent::RatingComponent(
@@ -42,10 +44,13 @@ RatingComponent::RatingComponent(
     /* Set features */
     this->root_node.disco().features().insert(XMLNS_CHESSD_INFO);
 
-    /* Set rating iqs */
+    /* Set iqs */
     this->root_node.setIqHandler(boost::bind(&RatingComponent::handleRating, this, _1),
-            "http://c3sl.ufpr.br/chessd#info");
-
+            XMLNS_CHESSD_INFO);
+    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleSearch, this, _1),
+            XMLNS_CHESSD_GAME_SEARCH);
+    //this->root_node.setIqHandler(boost::bind(&RatingComponent::handleFetch, this, _1),
+    //        XMLNS_CHESSD_GAME_FETCH);
 }
 
 RatingComponent::~RatingComponent() {
@@ -73,6 +78,81 @@ void RatingComponent::handleRating(const Stanza& stanza) {
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request("Invalid format");
     }
+}
+
+void RatingComponent::handleSearch(const Stanza& stanza) {
+    try {
+        const Tag& query = stanza.query();
+
+        /* check if the format is correct */
+        const Tag& search_tag = query.findChild("search");
+        foreach(child, search_tag.tags()) {
+            if(child->name() == "player") {
+                if(not child->hasAttribute("jid"))
+                    throw XMPP::bad_request("Invalid format");
+            } else {
+                throw XMPP::bad_request("Invalid format");
+            }
+        }
+        /* execute the transaction */
+        this->database.queueTransaction(boost::bind(&RatingComponent::searchGame, this, stanza, _1));
+    } catch (const XML::xml_error& error) {
+        throw XMPP::bad_request("Invalid format");
+    }
+}
+
+void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& database) {
+    GameDatabase& game_database = database.game_database;
+    XML::TagGenerator generator;
+    std::vector<string> players;
+    int max_results = 50;
+    int offset = 0;
+
+    const Tag& query = stanza.findChild("query");
+    generator.openTag("iq");
+    generator.addAttribute("to", stanza.from().full());
+    generator.addAttribute("from", stanza.to().full());
+    generator.addAttribute("id", stanza.id());
+    generator.addAttribute("type", "result");
+    generator.openTag("query");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_SEARCH);
+
+    const Tag& search_tag = query.findChild("search");
+    if(search_tag.hasAttribute("offset")) {
+        offset = Util::parse_string<int>(search_tag.getAttribute("offset"));
+    }
+    if(search_tag.hasAttribute("results")) {
+        max_results = min(50, Util::parse_string<int>(search_tag.getAttribute("results")));
+    }
+    foreach(field, search_tag.tags()) {
+        if(field->name() == "player") {
+            players.push_back(field->getAttribute("jid"));
+        } else {
+
+        }
+    }
+    
+    std::vector<PersistentGame> games = game_database.searchGames(players, offset, max_results);
+
+    foreach(game, games) {
+        int tmp = 0;
+        generator.openTag("game");
+        generator.addAttribute("id", Util::to_string(game->id));
+        generator.addAttribute("category", game->category);
+        generator.addAttribute("time_stamp", Util::to_string(game->time_stamp));
+        generator.openTag("result");
+        generator.addCData(game->result);
+        generator.closeTag();
+        foreach(player, game->players) {
+            generator.openTag("player");
+            generator.addAttribute("jid", *player);
+            /* FIXME */
+            generator.addAttribute("role", (tmp++==0?"black":"white"));
+            generator.closeTag();
+        }
+        generator.closeTag();
+    }
+    this->sendStanza(new XMPP::Stanza(generator.getTag()));
 }
 
 void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& database) {

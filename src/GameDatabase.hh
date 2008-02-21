@@ -27,6 +27,7 @@
 
 struct PersistentGame {
     public:
+        int id;
         std::vector<std::string> players;
         std::string category;
         std::string result;
@@ -45,6 +46,11 @@ class GameDatabase {
 
         /*! \brief Store a game in the database */
         void insertGame(const PersistentGame& game);
+
+        std::vector<PersistentGame> searchGames(
+                const std::vector<std::string> players,
+                int offset,
+                int max_results);
 
     private:
         pqxx::work& work;
