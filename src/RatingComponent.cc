@@ -58,7 +58,7 @@ void RatingComponent::handleRating(const Stanza& stanza) {
         /* check if the format is correct */
         foreach(tag, query.tags()) {
             if(tag->name() == "rating") {
-                if(not tag->hasAttribute("category") or not tag->hasAttribute("jid"))
+                if(not tag->hasAttribute("jid"))
                     throw XMPP::bad_request("Invalid format");
             } else if(tag->name() == "type") {
                 if(not tag->hasAttribute("jid"))
@@ -79,6 +79,8 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
     RatingDatabase& rating_database = database.rating_database;
     XML::TagGenerator generator;
     const Tag& query = stanza.findChild("query");
+    std::string category, jid;
+
     generator.openTag("iq");
     generator.addAttribute("to", stanza.from().full());
     generator.addAttribute("from", stanza.to().full());
@@ -88,16 +90,20 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
     generator.addAttribute("xmlns", XMLNS_CHESSD_INFO);
     foreach(tag, query.tags()) {
         if(tag->name() == "rating") {
-            Rating rating = rating_database.getRating
-                (tag->getAttribute("jid"), tag->getAttribute("category"));
-            generator.openTag("rating");
-            generator.addAttribute("jid", tag->getAttribute("jid"));
-            generator.addAttribute("category", tag->getAttribute("category"));
-            generator.addAttribute("rating", Util::to_string(rating.rating()));
-            generator.addAttribute("wins", Util::to_string(rating.wins()));
-            generator.addAttribute("draws", Util::to_string(rating.draws()));
-            generator.addAttribute("losses", Util::to_string(rating.losses()));
-            generator.closeTag();
+            category = (tag->hasAttribute("category")) ? tag->getAttribute("category"): "";
+            jid = tag->getAttribute("jid");
+            std::vector<std::pair<std::string, Rating> > ratings = rating_database.getRatings(
+                        jid, category);
+            foreach(rating, ratings) {
+                generator.openTag("rating");
+                generator.addAttribute("jid", jid);
+                generator.addAttribute("category", rating->first);
+                generator.addAttribute("rating", Util::to_string(rating->second.rating()));
+                generator.addAttribute("wins", Util::to_string(rating->second.wins()));
+                generator.addAttribute("draws", Util::to_string(rating->second.draws()));
+                generator.addAttribute("losses", Util::to_string(rating->second.losses()));
+                generator.closeTag();
+            }
         } else if(tag->name() == "type") {
             generator.openTag("type");
             generator.addAttribute("jid", tag->getAttribute("jid"));

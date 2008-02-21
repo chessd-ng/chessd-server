@@ -23,6 +23,8 @@
 
 #include <string>
 
+#include <map>
+
 #include "Rating.hh"
 
 
@@ -31,7 +33,9 @@ class RatingDatabase {
 
         RatingDatabase(pqxx::work& w);
 
-        Rating getRating(const std::string& user, const std::string& category);
+        //Rating getRating(const std::string& user, const std::string& category);
+
+        std::vector<std::pair<std::string, Rating> > getRatings(const std::string& user, const std::string& category);
 
         Rating getRatingForUpdate(const std::string& user, const std::string& category);
 

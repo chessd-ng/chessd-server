@@ -182,7 +182,9 @@ may my break compatibility with previous versions.
 
 <!--
       To request users info one should send the following message.
-      Only rating and type is supported.
+      Only rating and type is supported. If someone the category
+      of a rating is omited, the result inlcludes all non-zero ratings
+      of the user.
 -->
 <iq type='set' to='rating.shiva' id='get_rating'>
     <query xmlns='http://c3sl.ufpr.br/chessd#info'>
