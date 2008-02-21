@@ -60,9 +60,9 @@ bool Chess::verifyThreefoldRepetition() const {
 	int count=0;
 	ChessHistory *history=static_cast<ChessHistory*>(this->historico);
 	for(int i=0;i<historico->size()-1;i++)
-		if((*history)[i]==(*history)[history->size()-1])
+		if((*(*history)[i])==(*(*history)[history->size()-1]))
 			count++;
-	if(count>=3)
+	if(count>=2)
 		return true;
 	return false;
 }
@@ -75,7 +75,9 @@ bool Chess::verifyImpossibilityOfCheckmate() const {
 				aux[(*this->gameboard)[i][j]->color()].push_back(std::make_pair(*static_cast<ChessPiece*>((*this->gameboard)[i][j]),Position(j,i)));
 		}
 
-	if(aux[0].size()==1 and aux[1].size()==2) {
+	if(aux[0].size()==1 and aux[1].size()==1)
+		return true;
+	else if(aux[0].size()==1 and aux[1].size()==2) {
 		for(int i=0;i<(int)aux[1].size();i++)
 			if(aux[1][i].first.type()==ChessPiece::BISHOP or aux[1][i].first.type()==ChessPiece::KNIGHT)
 				return true;
