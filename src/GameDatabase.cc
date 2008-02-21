@@ -54,3 +54,48 @@ void GameDatabase::insertGame(const PersistentGame& game)
         work.exec(query);
     }
 }
+
+std::vector<PersistentGame> GameDatabase::searchGames(
+                const std::vector<std::string> players,
+                int offset,
+                int max_results)
+{
+    std::string select =
+            " SELECT games.game_id, category, result_string, time_stamp ";
+    std::string from =
+            " FROM games ";
+    std::string where =
+            " WHERE ";
+
+    for(int i=0;i<int(players.size());++i) {
+        std::string id_str = Util::to_string(i);
+        from += ", game_players g" + id_str + " ";
+        if(i > 0)
+            where += " and ";
+        where += " games.game_id = g" + id_str
+            + ".game_id and g" + id_str + ".username = '"
+            + this->work.esc(players[i]) + "' ";
+    }
+    std::string query = select + from + where + " limit " + Util::to_string(max_results) + " offset " + Util::to_string(offset);
+
+    pqxx::result result = this->work.exec(query);
+
+    std::vector<PersistentGame> games;
+
+    foreach(r, result) {
+        PersistentGame game;
+        r->at("game_id").to(game.id);
+        r->at("time_stamp").to(game.time_stamp);
+        game.category = r->at("category").c_str();
+        game.result = r->at("result_string").c_str();
+        std::string query =
+            "SELECT username FROM game_players WHERE game_id = "
+            + Util::to_string(game.id);
+        pqxx::result result = this->work.exec(query);
+        foreach(r, result) {
+            game.players.push_back(r->at("username").c_str());
+        }
+        games.push_back(game);
+    }
+    return games;
+}
