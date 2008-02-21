@@ -45,7 +45,7 @@ class ChessHistory : public History {
 	public:
 		ChessHistory();
 
-		const ChessState* operator[](int p) const ;
+		const ChessState& operator[](int p) const ;
 
 	private:
 };

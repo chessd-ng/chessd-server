@@ -36,7 +36,7 @@ class Chess : public ChessBasedGame {
 		virtual bool verifyCheckMate() const;
 
 		/*! \brief verify if the game ended on a draw*/
-		virtual bool verifyDraw() const ;
+		virtual int verifyDraw() const ;
 
 		//TODO fazer uma virtual dessa funcao
 		/*! \return return the current state*/
@@ -65,7 +65,7 @@ class Chess : public ChessBasedGame {
 		bool verifyMove(const ChessMove& j) const;
 
 		/*! \brief Verify if the Game is Draw*/
-		bool verifyDraw(int player) const;
+		bool verifyStaleMate(int player) const;
 
 		bool verifyThreefoldRepetition() const;
 

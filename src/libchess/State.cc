@@ -74,7 +74,7 @@ std::string ChessState::FEN() const {
 }
 
 bool ChessState::operator==(const ChessState& s) const {
-	return (this->board_fen == s.board_fen) and (this->castle == s.castle) and (this->enpassant == s.enpassant);
+	return (this->board_fen == s.board_fen) and (this->castle == s.castle) and (this->enpassant == s.enpassant) and (this->_turn == s._turn);
 }
 
 BugHouseState::BugHouseState() {
