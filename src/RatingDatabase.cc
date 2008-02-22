@@ -18,16 +18,18 @@
 
 #include "RatingDatabase.hh"
 
+#include "Util/utils.hh"
+
 RatingDatabase::RatingDatabase(pqxx::work& work) : work(work) { }
 
+#if 0
 Rating RatingDatabase::getRating(const std::string& user, const std::string& category)
 {
     std::string query =
         "SELECT *"
         " FROM player_rating"
         " WHERE username='" + this->work.esc(user) + "'" +
-          " AND category='" + this->work.esc(category) + "'" +
-        " FOR UPDATE";
+          " AND category='" + this->work.esc(category) + "'";
         
     pqxx::result r = work.exec(query);
 
@@ -42,6 +44,41 @@ Rating RatingDatabase::getRating(const std::string& user, const std::string& cat
         r[0]["draws"].to(rating.draws());
         return rating;
     }
+}
+#endif
+
+std::vector<std::pair<std::string, Rating> > RatingDatabase::getRatings(const std::string& user, const std::string& category)
+{
+    std::string query;
+    if(category.empty()) {
+        query =
+            "SELECT *"
+            " FROM player_rating"
+            " WHERE username='" + this->work.esc(user) + "'";
+    } else {
+        query = 
+            "SELECT *"
+            " FROM player_rating"
+            " WHERE username='" + this->work.esc(user) + "'" +
+            " AND category='" + this->work.esc(category) + "'";
+    }
+        
+    pqxx::result result = work.exec(query);
+
+    std::vector<std::pair<std::string, Rating> > ratings;
+    foreach(r, result) {
+        Rating rating;
+        std::string category;
+        r->at("category").to(category);
+        r->at("rating").to(rating.rating());
+        r->at("volatility").to(rating.volatility());
+        r->at("wins").to(rating.wins());
+        r->at("losses").to(rating.losses());
+        r->at("draws").to(rating.draws());
+        ratings.push_back(std::make_pair(category, rating));
+    }
+
+    return ratings;
 }
 
 std::string RatingDatabase::getUserType(const std::string& user)
@@ -67,7 +104,7 @@ Rating RatingDatabase::getRatingForUpdate(const std::string& user, const std::st
         " FROM player_rating"
         " WHERE username='" + this->work.esc(user) + "'" +
           " AND category='" + this->work.esc(category) + "'" +
-        " ";
+        " FOR UPDATE";
         
     pqxx::result r = work.exec(query);
 

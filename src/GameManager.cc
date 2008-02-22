@@ -29,7 +29,8 @@ GameManager::GameManager(
     ComponentBase(config, "Game Manager"),
     node_name(config.getAttribute("node_name")),
     database_manager(database_manager),
-    handle_error(handle_error)
+    handle_error(handle_error),
+    game_ids(0)
 {
 
 }
@@ -50,31 +51,30 @@ void GameManager::createGame(Game* game, const OnGameStart& on_game_start) {
 }
 
 void GameManager::_createGame(Game* game, const OnGameStart& on_game_start) {
-	int room_id = this->room_ids.acquireID();
-	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
+	GameId game_id = game_ids ++;
+	Jid room_jid = Jid(Util::to_string(game_id), this->node_name);
 	/* Create the game room */
 	GameRoom* game_room = new GameRoom(game, room_jid, this->database_manager,
             this->dispatcher,
 			GameRoomHandlers(boost::bind(&ComponentBase::sendStanza, this, _1),
-				boost::bind(&GameManager::closeGameRoom, this, room_id)));
+				boost::bind(&GameManager::closeGameRoom, this, game_id)));
     /* Register the node */
     this->root_node.setNodeHandler(room_jid.node(),
             boost::bind(&GameRoom::handleStanza, game_room, _1));
 	/* Add the new jabber node to the disco */
 	this->root_node.disco().items().insert(new XMPP::DiscoItem(game->title(),
 				room_jid));
-	game_rooms.insert(room_id, game_room);
+	game_rooms.insert(game_id, game_room);
     /* Notify game ceation */
     if(not on_game_start.empty())
         on_game_start(room_jid);
 }
 
-void GameManager::closeGameRoom(int room_id) {
+void GameManager::closeGameRoom(GameId room_id) {
 	this->dispatcher.queue(boost::bind(&GameManager::_closeGameRoom, this, room_id));
 }
 
-void GameManager::_closeGameRoom(int room_id) {
-	this->room_ids.releaseID(room_id);
+void GameManager::_closeGameRoom(GameId room_id) {
 	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
 	this->root_node.removeNodeHandler(room_jid.node());
 	this->root_node.disco().items().erase(room_jid);

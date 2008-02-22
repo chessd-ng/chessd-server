@@ -55,6 +55,19 @@ void GameDatabase::insertGame(const PersistentGame& game)
     }
 }
 
+std::string GameDatabase::getGameHistory(int game_id) {
+    std::string query = 
+        "SELECT history FROM games WHERE game_id = " + Util::to_string(game_id);
+
+    pqxx::result result = this->work.exec(query);
+
+    if(result.empty()) {
+        throw game_not_found("The requested game is not in the database");
+    }
+
+    return result[0][0].c_str();
+}
+
 std::vector<PersistentGame> GameDatabase::searchGames(
                 const std::vector<std::string> players,
                 int offset,
@@ -64,14 +77,15 @@ std::vector<PersistentGame> GameDatabase::searchGames(
             " SELECT games.game_id, category, result_string, time_stamp ";
     std::string from =
             " FROM games ";
-    std::string where =
-            " WHERE ";
+    std::string where;
 
     for(int i=0;i<int(players.size());++i) {
         std::string id_str = Util::to_string(i);
         from += ", game_players g" + id_str + " ";
         if(i > 0)
             where += " and ";
+        else
+            where = " WHERE ";
         where += " games.game_id = g" + id_str
             + ".game_id and g" + id_str + ".username = '"
             + this->work.esc(players[i]) + "' ";

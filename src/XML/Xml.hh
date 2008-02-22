@@ -30,7 +30,10 @@
 namespace XML {
 
 	/* Loads a xml file */
-	Tag* loadXmlFile(const std::string& filename);
+	Tag* parseXmlFile(const std::string& filename);
+
+	/* Loads a xml string */
+	Tag* parseXmlString(const std::string& xml);
 
 }
 

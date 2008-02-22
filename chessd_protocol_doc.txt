@@ -189,7 +189,9 @@ may my break compatibility with previous versions.
 
 <!--
       To request users info one should send the following message.
-      Only rating and type is supported.
+      Only rating and type is supported. If someone the category
+      of a rating is omited, the result inlcludes all non-zero ratings
+      of the user.
 -->
 <iq type='set' to='rating.shiva' id='get_rating'>
     <query xmlns='http://c3sl.ufpr.br/chessd#info'>
@@ -227,10 +229,10 @@ may my break compatibility with previous versions.
 </iq>
 
 <!--
-    Result.
+    Result. A list of the games.
 --!>
 
-<iq from="rating.shiva" type="result" id="get_rating" to="raphaelhr@shiva/guinness" >
+<iq from="rating.shiva" type="result" id="get_rating">
     <query xmlns="http://c3sl.ufpr.br/chessd#search_game">
         <game time_stamp="1203599132" category="blitz" id="89" >
             <result>Time of black has ended</result>
@@ -241,8 +243,23 @@ may my break compatibility with previous versions.
 </iq>
 
 <!--
+    Fetch a game stored in the server.
+--!>
+
+<iq from="rating.shiva" type="result" id="get_rating">
+    <query xmlns="http://c3sl.ufpr.br/chessd#fetch_game">
+        <game id='66'/>
+    </query>
+</iq>
+
+<!--
+    The result is a sequence of game states.
+--!>
+
+<!--
     History.
 --!>
+
 <history category="standard" >
 	<moves movetext="e2e4 900 e7e5 900 d1f3 895 a7a6 889 f1c4 893 a6a5 885 f3f7 890"/>
 	<player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" score="1"/>

@@ -1,7 +1,7 @@
 <server>
 	<rating-manager
 		server_address="localhost"
-		server_port="5513"
+		server_port="5560"
 		server_password="secret"
 		node_name="rating.shiva"
 	/>

@@ -32,7 +32,6 @@ enum GameStatus {
 	GAME_ENDED
 };
 
-
 struct GameRoomHandlers {
 	typedef boost::function<void ()> CloseGame;
 	XMPP::StanzaHandler send_stanza;

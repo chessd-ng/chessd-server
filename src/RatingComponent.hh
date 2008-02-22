@@ -61,13 +61,19 @@ class RatingComponent : public ComponentBase {
 		void handleRating(const XMPP::Stanza& stanza);
 
 		/*! \brief Handle an incoming game search iq. */
-		void handleSearch(const XMPP::Stanza& stanza);
+		void handleSearchGame(const XMPP::Stanza& stanza);
+
+		/*! \brief Handle an incoming game fetch iq. */
+        void handleFetchGame(const XMPP::Stanza& stanza);
 
         /*! \brief This is a transaction that reads users ratings. */
 		void fetchRating(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
         /*! \brief This is a transaction that search for games. */
         void searchGame(const XMPP::Stanza& stanza, DatabaseInterface& database);
+
+        /*! \brief This is a transaction that fetch a requested game. */
+        void fetchGame(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
         XMPP::ErrorHandler error_handler;
 
