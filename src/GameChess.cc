@@ -174,11 +174,11 @@ PlayerResultList GameChess::donePlayerResultList() const {
 		prl[colormap.find(it->jid)->second]=PlayerResult(it->jid,(it->color==White?"white":"black"),(""));
 	}
 	if(this->_done==3 or this->_done>=5)
-		prl[0].result=prl[1].result="1/2";
+		prl[0].score=prl[1].score="1/2";
 	else {
 		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->time_over==Black);
-		prl[0].result=aux==true?"1":"0";
-		prl[1].result=aux==true?"0":"1";
+		prl[0].score=aux==true?"1":"0";
+		prl[1].score=aux==true?"0":"1";
 	}
 	return prl;
 }
@@ -225,7 +225,7 @@ XML::Tag* GameChess::generateHistoryTag() const {
 
 			gen.addAttribute("color",it->role);
 
-			gen.addAttribute("score",it->result);
+			gen.addAttribute("score",it->score);
 
 			gen.closeTag();
 		}
@@ -285,15 +285,15 @@ void ChessGameResult::updateRating(std::map<Player, Rating> &ratings) const {
 		//in seconds
 		//Just need to receive the last time the player has played
 		double w;
-		if(it->result == "1") {
+		if(it->score == "1") {
 			playerrating[i].wins()++;
 			w=1.0;
 		}
-		else if(it->result == "1/2") {
+		else if(it->score == "1/2") {
 			playerrating[i].draws()++;
 			w=0.5;
 		}
-		else { //it->result = LOSER
+		else { //it->score = "0"
 			playerrating[i].losses()++;
 			w=0.0;
 		}

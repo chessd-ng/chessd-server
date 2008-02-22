@@ -53,12 +53,12 @@ struct StandardPlayer {
 };
 
 struct PlayerResult {
-	PlayerResult(const XMPP::Jid& _jid, const std::string& _role, const std::string& _result) : jid(_jid), role(_role), result(_result) {
+	PlayerResult(const XMPP::Jid& _jid, const std::string& _role, const std::string& _score) : jid(_jid), role(_role), score(_score) {
 	}
 	PlayerResult() { }
 	XMPP::Jid jid;
 	std::string role;
-	std::string result;
+	std::string score;
 };
 
 typedef XMPP::Jid Player;
