@@ -41,7 +41,6 @@ void GameDatabase::insertGame(const PersistentGame& game)
             "   ( " + pqxx::to_string(game_id) + "" +
             "   ,'" + this->work.esc(game.category) + "'" +
             "   , " + pqxx::to_string(game.time_stamp) + "" +
-            "   ,'" + this->work.esc(game.result) + "'" +
             "   ,'" + this->work.esc(game.history) + "')";
 
     this->work.exec(query);
@@ -50,7 +49,9 @@ void GameDatabase::insertGame(const PersistentGame& game)
         query =
             " INSERT INTO game_players VALUES"
             "   ( " + pqxx::to_string(game_id) + "" +
-            "   ,'" + this->work.esc(*player) + "')";
+            "   ,'" + this->work.esc(player->jid.partial()) + "'"
+            "   ,'" + this->work.esc(player->score) + "'"
+            "   ,'" + this->work.esc(player->role) + "')";
         work.exec(query);
     }
 }
@@ -74,7 +75,7 @@ std::vector<PersistentGame> GameDatabase::searchGames(
                 int max_results)
 {
     std::string select =
-            " SELECT games.game_id, category, result_string, time_stamp ";
+            " SELECT games.game_id, category, time_stamp ";
     std::string from =
             " FROM games ";
     std::string where;
@@ -101,13 +102,16 @@ std::vector<PersistentGame> GameDatabase::searchGames(
         r->at("game_id").to(game.id);
         r->at("time_stamp").to(game.time_stamp);
         game.category = r->at("category").c_str();
-        game.result = r->at("result_string").c_str();
         std::string query =
-            "SELECT username FROM game_players WHERE game_id = "
+            "SELECT username, role, score FROM game_players WHERE game_id = "
             + Util::to_string(game.id);
         pqxx::result result = this->work.exec(query);
         foreach(r, result) {
-            game.players.push_back(r->at("username").c_str());
+            PlayerResult player;
+            player.jid = XMPP::Jid(r->at("username").c_str());
+            player.role = r->at("role").c_str();
+            player.score = r->at("score").c_str();
+            game.players.push_back(player);
         }
         games.push_back(game);
     }

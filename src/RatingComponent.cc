@@ -143,20 +143,17 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
     generator.openTag("query");
     generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_SEARCH);
 
+    /* FIXME */
     foreach(game, games) {
-        int tmp = 0;
         generator.openTag("game");
         generator.addAttribute("id", Util::to_string(game->id));
         generator.addAttribute("category", game->category);
         generator.addAttribute("time_stamp", Util::to_string(game->time_stamp));
-        generator.openTag("result");
-        generator.addCData(game->result);
-        generator.closeTag();
         foreach(player, game->players) {
             generator.openTag("player");
-            generator.addAttribute("jid", *player);
-            /* FIXME */
-            generator.addAttribute("role", (tmp++==0?"black":"white"));
+            generator.addAttribute("jid", player->jid.partial());
+            generator.addAttribute("role", player->role);
+            generator.addAttribute("score", player->score);
             generator.closeTag();
         }
         generator.closeTag();

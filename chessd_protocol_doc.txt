@@ -169,8 +169,8 @@ may my break compatibility with previous versions.
 <iq from="game_0@games.shiva" type="set" id="2" to="eduari@shiva/Psi" >
     <query xmlns="http://c3sl.ufpr.br/chessd#game#end">
         <reason>Black has resigned</reason>
-        <player result="winner" jid="raphaelhr@shiva/Psi" />
-        <player result="loser" jid="eduari@shiva/Psi" />
+        <player role="white" score="1" jid="raphaelhr@shiva/Psi"/>
+        <player role="black" score="0" jid="eduari@shiva/Psi"/>
     </query>
 </iq>
 
@@ -235,9 +235,8 @@ may my break compatibility with previous versions.
 <iq from="rating.shiva" type="result" id="get_rating">
     <query xmlns="http://c3sl.ufpr.br/chessd#search_game">
         <game time_stamp="1203599132" category="blitz" id="89" >
-            <result>Time of black has ended</result>
-            <player role="black" jid="ulyssesb@shiva" />
-            <player role="white" jid="robofacilaaa@shiva" />
+            <player role="black" score="1" jid="ulyssesb@shiva" />
+            <player role="white" score="0" jid="robofacilaaa@shiva" />
         </game>
     </query>
 </iq>
