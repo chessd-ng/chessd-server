@@ -175,6 +175,14 @@ may my break compatibility with previous versions.
 </iq>
 
 <!--
+    If the game is canceled, a message is sent to all occupants.
+--!>
+
+<iq from="game_0@games.shiva" type="set" id="2" to="eduari@shiva/Psi" >
+    <query xmlns="http://c3sl.ufpr.br/chessd#game#canceled"/>
+</iq>
+
+<!--
     After the game is over, the players may leave the room.
 -->
 <presence to='game_0@games.shiva/raphaelhr' type='unavailable'/>
