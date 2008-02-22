@@ -34,8 +34,9 @@ using namespace XML;
 namespace XMPP {
 
 	MucUser::MucUser(const std::string& nick, const std::string& affiliation,
-			const std::string& role, const Jid& jid) :
-		_nick(nick), _affiliation(affiliation), _role(role), _jid(jid) { }
+			const std::string& role, const Jid& jid, Stanza* presence) :
+		_nick(nick), _affiliation(affiliation), _role(role), _jid(jid),
+        _presence(presence) { }
 
     Muc::Muc(const Jid& jid,
             const std::string& room_title,
@@ -53,37 +54,39 @@ namespace XMPP {
 
 	void Muc::handlePresence(const Stanza& stanza) {
 		if(stanza.subtype().empty()) {
-			this->addUser(stanza.to().resource(), stanza.from());
+			this->addUser(stanza.to().resource(), stanza.from(), stanza);
 		} else if(stanza.subtype() == "unavailable") {
-			this->removeUser(stanza.from(), "");
+			this->removeUser(stanza.from(), "", stanza);
 		} else {
             throw bad_request("Invalid presence type");
 		}
 	}
 
-	void Muc::addUser(const std::string& nick, const Jid& user_jid) {
+	void Muc::addUser(const std::string& nick, const Jid& user_jid, const Stanza& presence) {
 		if(nick.empty()) {
             throw bad_request("Invalid nick");
-		} else  {
+		} else {
 			MucUserSet::iterator itj = this->users().find_jid(user_jid);
 			MucUserSet::iterator itn = this->users().find_nick(nick);
 			if(itj == this->users().end()) {
 				if(itn != this->users().end()) {
                     throw bad_request("This nick is already in use");
-				} else  {
+				} else {
 					this->presentUsers(user_jid);
 					this->users().insert(new MucUser(nick, "member",
-								"participant", user_jid));
+								"participant", user_jid, new Stanza(presence)));
                     this->disco().items().insert(
                             new DiscoItem(nick,
                                 Jid(this->jid().node(),
                                     this->jid().domain(),
                                     nick)));
-                    Stanza* stanza = this->createPresenceStanza(*this->users().find_jid(user_jid));
-                    this->broadcast(stanza);
                     this->notifyUserStatus(user_jid, nick, true);
-				}
-			}
+                }
+			} else {
+                itj->presence() = std::auto_ptr<Stanza>(new Stanza(presence));
+            }
+            Stanza* stanza = this->createPresenceStanza(*this->users().find_jid(user_jid));
+            this->broadcast(stanza);
 		}
 	}
 
@@ -114,7 +117,7 @@ namespace XMPP {
 	}
 
 	Stanza* Muc::createPresenceStanza(const MucUser& user) {
-		Stanza* stanza = new Stanza("presence");
+		Stanza* stanza = new Stanza(*user.presence());
 		stanza->from() = this->jid();
 		stanza->from().resource() = user.nick();
 		TagGenerator generator;
@@ -128,9 +131,10 @@ namespace XMPP {
 		return stanza;
 	}
 
-	void Muc::removeUser(const Jid& user_jid, const std::string& status) {
+	void Muc::removeUser(const Jid& user_jid, const std::string& status, const Stanza& presence) {
 		MucUserSet::iterator it = this->users().find_jid(user_jid);
 		if(it != this->users().end()) {
+            it->presence() = std::auto_ptr<Stanza>(new Stanza(presence));
 			Stanza* stanza = this->createPresenceStanza(*it);
 			stanza->subtype() = "unavailable";
 			this->broadcast(stanza);

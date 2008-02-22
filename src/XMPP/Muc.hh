@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 
 namespace XMPP {
@@ -33,7 +34,7 @@ namespace XMPP {
     struct MucUser {
         public:
             MucUser(const std::string& nick, const std::string& affiliation,
-                    const std::string& role, const Jid& jid);
+                    const std::string& role, const Jid& jid, Stanza* presence);
 
             std::string& nick() { return this->_nick;}
             const std::string& nick() const { return this->_nick;}
@@ -44,15 +45,18 @@ namespace XMPP {
             std::string& role() { return this->_role;}
             const std::string& role() const { return this->_role;}
 
-            XMPP::Jid& jid() { return this->_jid;}
-            const XMPP::Jid& jid() const { return this->_jid;}
+            Jid& jid() { return this->_jid;}
+            const Jid& jid() const { return this->_jid;}
 
+            std::auto_ptr<Stanza>& presence() { return this->_presence;}
+            const std::auto_ptr<Stanza>& presence() const { return this->_presence;}
 
         private:
             std::string _nick, _affiliation, _role;
             Jid _jid;
+            std::auto_ptr<Stanza> _presence;
 
-
+            //MucUser(const MucUser&) { }
     };
 
 	struct MucUserSet {
@@ -61,7 +65,7 @@ namespace XMPP {
 			typedef boost::ptr_map<Jid, MucUser>::iterator iterator_map;
 			typedef boost::ptr_map<Jid, MucUser>::const_iterator const_iterator_map;
 			struct iterator_transformer :
-				public std::unary_function<user_map::value_type, MucUser> {
+				public std::unary_function<user_map::value_type&, MucUser&> {
 				MucUser& operator()(const user_map::value_type& v) const {
 					return *v.second;
 				}
@@ -166,9 +170,9 @@ namespace XMPP {
 
 			void presentUsers(const Jid& jid);
 
-			void addUser(const std::string& nick, const Jid& user_jid);
+			void addUser(const std::string& nick, const Jid& user_jid, const Stanza& presence);
 
-			void removeUser(const Jid& user_jid, const std::string& status);
+			void removeUser(const Jid& user_jid, const std::string& status, const Stanza& presence);
 
 			Stanza* createPresenceStanza(const MucUser& user);
 
