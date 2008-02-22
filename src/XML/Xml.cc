@@ -148,7 +148,7 @@ namespace XML {
 	}
 
 	bool Description::loadFromFile(const std::string& filename) {
-		Tag* xml = loadXmlFile(filename);
+		Tag* xml = parseXmlFile(filename);
 		if(xml == 0)
 			return false;
 		if(xml->name()!="xd") {
@@ -375,7 +375,10 @@ namespace XML {
 		}
 		return true;
 	}
-	Tag* loadXmlFile(const std::string& filename) {
+	Tag* parseXmlFile(const std::string& filename) {
 		return iksReadXMLFile(filename);
+	}
+	Tag* parseXmlString(const std::string& xml) {
+		return iksReadXMLString(xml);
 	}
 }

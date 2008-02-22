@@ -35,6 +35,11 @@ struct PersistentGame {
         std::string history;
 };
 
+class game_not_found : public std::runtime_error {
+    public:
+        explicit game_not_found(const std::string& msg) : std::runtime_error(msg) { }
+};
+
 /*! \brief An interface to the games in the database */
 class GameDatabase {
     public:
@@ -51,6 +56,8 @@ class GameDatabase {
                 const std::vector<std::string> players,
                 int offset,
                 int max_results);
+
+        std::string getGameHistory(int game_id);
 
     private:
         pqxx::work& work;
