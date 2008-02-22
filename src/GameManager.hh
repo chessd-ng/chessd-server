@@ -36,6 +36,10 @@
 
 #include "DatabaseManager.hh"
 
+#include <stdint.h>
+
+typedef uint64_t GameId;
+
 typedef boost::function<void (const XMPP::Jid& gmae_room)> OnGameStart;
 
 /*! \brief Manage all games in the server plus control the game component. */
@@ -73,13 +77,13 @@ class GameManager : public ComponentBase {
          *
          * This is a tunnel.
          * */
-		void closeGameRoom(int room_id);
+		void closeGameRoom(GameId game_id);
 
 		/*! \brief close a game room.
          *
          * This is the real one.
          * */
-		void _closeGameRoom(int room_id);
+		void _closeGameRoom(GameId game_id);
 
         /*! \brief handle an error */
 		void handleError(const std::string& error);
@@ -92,13 +96,13 @@ class GameManager : public ComponentBase {
 
 		std::string node_name;
 
-		boost::ptr_map<int, GameRoom> game_rooms;
+		boost::ptr_map<GameId, GameRoom> game_rooms;
 
         DatabaseManager& database_manager;
 
 		XMPP::ErrorHandler handle_error;
 
-		Util::IDSet room_ids;
+		GameId game_ids;
 
 };
 

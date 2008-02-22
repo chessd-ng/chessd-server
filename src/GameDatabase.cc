@@ -64,14 +64,15 @@ std::vector<PersistentGame> GameDatabase::searchGames(
             " SELECT games.game_id, category, result_string, time_stamp ";
     std::string from =
             " FROM games ";
-    std::string where =
-            " WHERE ";
+    std::string where;
 
     for(int i=0;i<int(players.size());++i) {
         std::string id_str = Util::to_string(i);
         from += ", game_players g" + id_str + " ";
         if(i > 0)
             where += " and ";
+        else
+            where = " WHERE ";
         where += " games.game_id = g" + id_str
             + ".game_id and g" + id_str + ".username = '"
             + this->work.esc(players[i]) + "' ";
