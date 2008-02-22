@@ -143,7 +143,7 @@ may my break compatibility with previous versions.
 </iq>
 
 <!--
-    A player can resign, offer draw/cancel/adjourn using the floowing message.
+    A player can resign, offer draw/cancel/adjourn using the folowing message.
     The diference is just the xmlns.
 -->
 <iq type='set' to='game_0@games.shiva' id='draw'>
@@ -168,15 +168,14 @@ may my break compatibility with previous versions.
 -->
 <iq from="game_0@games.shiva" type="set" id="2" to="eduari@shiva/Psi" >
     <query xmlns="http://c3sl.ufpr.br/chessd#game#end">
-        <reason>The other player resigned</reason>
+        <reason>Black has resigned</reason>
         <player result="winner" jid="raphaelhr@shiva/Psi" />
         <player result="loser" jid="eduari@shiva/Psi" />
     </query>
 </iq>
 
 <!--
-    After the game is over, the players may leve the room.
-     do jogo
+    After the game is over, the players may leave the room.
 -->
 <presence to='game_0@games.shiva/raphaelhr' type='unavailable'/>
 
@@ -232,3 +231,12 @@ may my break compatibility with previous versions.
         </game>
     </query>
 </iq>
+
+<!--
+    History.
+--!>
+<history category="standard" >
+	<moves movetext="e2e4 900 e7e5 900 d1f3 895 a7a6 889 f1c4 893 a6a5 885 f3f7 890"/>
+	<player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" score="1"/>
+	<player inc="1" color="black" time="900" jid="eduari@shiva/Psi" score="0"/>
+</history>

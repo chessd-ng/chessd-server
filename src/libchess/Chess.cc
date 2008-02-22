@@ -41,10 +41,10 @@ Chess::Chess(const std::string& FEN) : ChessBasedGame(8,8) {
 
 int Chess::winner() const {
 	if( verifyCheckMate(0) )
-		return 1;
+		return BLACK;
 	else if( verifyCheckMate(1) )
-		return 0;
-	return -1;
+		return WHITE;
+	return UNDEFINED;
 }
 
 int Chess::turn() const {
@@ -71,7 +71,7 @@ bool Chess::verifyAndMakeMove(const std::string& move) {
 }
 
 bool Chess::verifyCheckMate() const {
-	return verifyCheckMate(0)?true:verifyCheckMate(1);
+	return verifyCheckMate(WHITE)?true:verifyCheckMate(BLACK);
 }
 
 int Chess::verifyDraw() const {
@@ -84,10 +84,10 @@ int Chess::verifyDraw() const {
 	if(static_cast<ChessState*>(current_state)->halfmoves >= 50)
 		return 3;
 
-	if(verifyStaleMate(0)==true)
+	if(verifyStaleMate(WHITE)==true)
 		return 4;
 
-	if(verifyStaleMate(1)==true)
+	if(verifyStaleMate(BLACK)==true)
 		return 4;
 
 	return 0;
@@ -153,7 +153,7 @@ bool Chess::willBeInCheck(const ChessMove& mv) const {
 
 void Chess::makeMove(const ChessMove &mv) const {
 	//FIXME workarrounds
-	//verify if the move was Castle
+	//verify if the move was castle
 	if(this->verifyCastle(mv) ) {
 		int distx;
 		distx=mv.to().x - mv.from().x ;
@@ -164,7 +164,7 @@ void Chess::makeMove(const ChessMove &mv) const {
 			aux = Position(7,mv.from().y);
 		this->gameboard->makeMove(ChessMove(aux,Position( (mv.from().x + mv.to().x)/2,mv.from().y),mv.color()));
 	}
-	//foi passant?
+	//enpassant
 	if(this->verifyEnPassant(mv))
 		this->gameboard->createPiece(Position(mv.to().x,mv.from().y), new ChessPiece());
 
@@ -176,7 +176,8 @@ void Chess::updateMove(const ChessMove &mv) {
 	this->makeMove(mv);
 
 	//Is the Pawn at the end of the tab? 
-	//FIXME Default is to transform the pawn to queen
+	//Default is to transform the pawn to queen
+	//or get the piece at the end of move
 	if(this->gameboard->getType(mv.to()) == ChessPiece::PAWN) {
 		int final = ( (mv.color() == 0) ? 7 : 0);
 		if(mv.to().y == final) {
@@ -279,6 +280,7 @@ bool Chess::verifyStaleMate(int player) const {
 bool Chess::verifyThreefoldRepetition() const {
 	int count=1;
 	ChessHistory *history=static_cast<ChessHistory*>(this->history);
+	//only needs to verify "halfmoves" for equal states
 	for(int i=1;i<=(*history)[history->size()-1].halfmoves;i++)
 		if((*history)[history->size()-1-i]==(*history)[history->size()-1])
 			count++;

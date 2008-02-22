@@ -25,6 +25,10 @@
 #include "XMPP/Jid.hh"
 #include <vector>
 
+enum end_reason{
+	NOREASON=0,RESIGNED=1,CHECKMATE=2,DRAWAGREED=3,TIMEOVER=4,DRAWREPETITION=5,DRAWIMPOSSIBILITYOFCHECKMATE=6,DRAWFIFTYMOVE=7,DRAWSTALEMATE=8
+};
+
 
 //TODO ver negocios do tempo!
 class GameChess : public Game {
@@ -63,8 +67,6 @@ class GameChess : public Game {
 
 		virtual const TeamList& teams() const;
 
-		XML::Tag* generateStateTag(const ChessState &est,const Util::Time& current_time) const ;
-		
 	protected:
 		/*! \brief returns the end reason if the game has ended*/
 		virtual std::string doneEndReason() const;
@@ -72,15 +74,23 @@ class GameChess : public Game {
 		/*! \brief returns the team result list if the game has ended*/
 		virtual TeamResultList doneTeamResultList() const;
 
+		int realDone();
+
+		XML::Tag* generateStateTag(const ChessState &est,const Util::Time& current_time) const ;
+		
+		XML::Tag* generateHistoryTag() const;
+
 		//no problem to stay here.
 		Chess chess;
 
 		Util::Time time_of_last_move;
 
-		XML::Tag *_history;
-
 	private:
 		int time_over;
+
+		end_reason _done;
+
+		Chess::Color _resign;
 
 		std::string _title;
 
@@ -88,19 +98,13 @@ class GameChess : public Game {
 
 		TeamList _teams;
 
-		Chess::Color _resign;
-
-		bool _draw;
-
-		Util::Time whitetime;
-
 		std::map<Player,Chess::Color> colormap;
 
 		std::map<Player,StandardPlayer*> standard_player_map;
 
 		StandardPlayerList _players;
 
-		XML::TagGenerator history_saved;
+		std::string history_moves;
 };
 
 class ChessGameResult : public GameResult {
@@ -114,8 +118,6 @@ class ChessGameResult : public GameResult {
 		virtual const std::string& end_reason() const;
 
 		virtual const PlayerList& players() const;
-
-		virtual const TeamResultList& results() const;
 
 		/*! \brief generates a History tag*/
 		virtual XML::Tag* history() const;
