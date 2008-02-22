@@ -34,7 +34,7 @@ class GameBlitz : public GameChess {
 
 class ChessBlitzGameResult : public ChessGameResult {
 	public:
-		ChessBlitzGameResult(const std::string& endreason, const TeamResultList& l, XML::Tag* _hist);
+		ChessBlitzGameResult(const std::string& endreason, const PlayerResultList& l, XML::Tag* _hist);
 
 	private:
 };

@@ -72,7 +72,7 @@ class GameChess : public Game {
 		virtual std::string doneEndReason() const;
 
 		/*! \brief returns the team result list if the game has ended*/
-		virtual TeamResultList doneTeamResultList() const;
+		virtual PlayerResultList donePlayerResultList() const;
 
 		int realDone();
 
@@ -109,7 +109,7 @@ class GameChess : public Game {
 
 class ChessGameResult : public GameResult {
 	public:
-		ChessGameResult(const std::string& endreason,const TeamResultList &l,const std::string& _category,XML::Tag *hist);
+		ChessGameResult(const std::string& endreason,const PlayerResultList &l,const std::string& _category,XML::Tag *hist);
 
 		virtual ~ChessGameResult(){};
 
@@ -117,7 +117,7 @@ class ChessGameResult : public GameResult {
 
 		virtual const std::string& end_reason() const;
 
-		virtual const PlayerList& players() const;
+		virtual const PlayerResultList& players() const;
 
 		/*! \brief generates a History tag*/
 		virtual XML::Tag* history() const;
@@ -125,12 +125,10 @@ class ChessGameResult : public GameResult {
 		virtual void updateRating(std::map<Player, Rating>& ratings) const;
 
 	protected:
-		TeamResultList teamresultlist;
+		PlayerResultList player_result_list;
 
 	private:
 		std::string _end_reason;
-
-		PlayerList playerlist;
 
 		std::string _category;
 

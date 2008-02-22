@@ -24,10 +24,10 @@ GameBlitz::GameBlitz(const StandardPlayerList& _players) :
 }
 
 GameResult* GameBlitz::result() const {
-	return new ChessBlitzGameResult(this->doneEndReason(),this->doneTeamResultList(),this->generateHistoryTag());
+	return new ChessBlitzGameResult(this->doneEndReason(),this->donePlayerResultList(),this->generateHistoryTag());
 }
 
-ChessBlitzGameResult::ChessBlitzGameResult(const std::string &endreason, const TeamResultList &l, XML::Tag* _hist) :
+ChessBlitzGameResult::ChessBlitzGameResult(const std::string &endreason, const PlayerResultList &l, XML::Tag* _hist) :
 	ChessGameResult(endreason,l,"blitz",_hist)
 {
 }

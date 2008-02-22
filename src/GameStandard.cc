@@ -30,10 +30,10 @@ GameStandard::GameStandard(const StandardPlayerList& _players) :
 }
 
 GameResult* GameStandard::result() const {
-	return new ChessStandardGameResult(this->doneEndReason(),this->doneTeamResultList(),this->generateHistoryTag());
+	return new ChessStandardGameResult(this->doneEndReason(),this->donePlayerResultList(),this->generateHistoryTag());
 }
 
-ChessStandardGameResult::ChessStandardGameResult(const std::string &endreason,const TeamResultList &l,XML::Tag* _hist) :
+ChessStandardGameResult::ChessStandardGameResult(const std::string &endreason,const PlayerResultList &l,XML::Tag* _hist) :
 	ChessGameResult(endreason,l,"standard",_hist)
 {
 }

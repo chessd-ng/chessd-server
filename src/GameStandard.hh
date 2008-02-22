@@ -34,7 +34,7 @@ class GameStandard : public GameChess {
 
 class ChessStandardGameResult : public ChessGameResult {
 	public:
-		ChessStandardGameResult(const std::string &endreason,const TeamResultList &l,XML::Tag* _hist);
+		ChessStandardGameResult(const std::string &endreason,const PlayerResultList &l,XML::Tag* _hist);
 
 //		virtual void updateRating(std::map<Player, Rating> &ratings) const;
 	private:

@@ -34,7 +34,7 @@ class GameLightning : public GameChess {
 
 class ChessLightningGameResult : public ChessGameResult {
 	public:
-		ChessLightningGameResult(const std::string& endreason, const TeamResultList& l, XML::Tag* _hist);
+		ChessLightningGameResult(const std::string& endreason, const PlayerResultList& l, XML::Tag* _hist);
 
 	private:
 };

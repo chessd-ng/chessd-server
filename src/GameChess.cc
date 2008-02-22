@@ -165,22 +165,22 @@ std::string GameChess::doneEndReason() const {
 	return "";
 }
 
-TeamResultList GameChess::doneTeamResultList() const {
-	/* trl is indexed for
+PlayerResultList GameChess::donePlayerResultList() const {
+	/* prl is indexed for
 	 * 0 is white
 	 * 1 is black*/
-	TeamResultList trl(2);
-	for(int i=0;i<(int)_teams.size();i++)
-		trl[colormap.find(_teams[i][0])->second]=(make_pair(_teams[i],UNDEFINED));
-
+	PlayerResultList prl(2);
+	foreach(it,_players) {
+		prl[colormap.find(it->jid)->second]=PlayerResult(it->jid,(it->color==White?"white":"black"),(""));
+	}
 	if(this->_done==3 or this->_done>=5)
-		trl[0].second=trl[1].second=DRAWER;
+		prl[0].result=prl[1].result="1/2";
 	else {
 		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->time_over==Black);
-		trl[0].second=aux==true?WINNER:LOSER;
-		trl[1].second=aux==true?LOSER:WINNER;
+		prl[0].result=aux==true?"1":"0";
+		prl[1].result=aux==true?"0":"1";
 	}
-	return trl;
+	return prl;
 }
 
 void GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
@@ -217,18 +217,15 @@ XML::Tag* GameChess::generateHistoryTag() const {
 			gen.addAttribute("movetext",std::string(this->history_moves.begin(),this->history_moves.end()-1));
 			gen.closeTag();
 		}
-		foreach(it,this->_players) {
+		PlayerResultList prl=this->donePlayerResultList();
+		foreach(it,prl) {
 			gen.openTag("player");
+
 			gen.addAttribute("jid",it->jid.full());
 
-			gen.addAttribute("color",it->color==White?"white":"black");
+			gen.addAttribute("color",it->role);
 
-			if(this->_done==3 or this->_done>=5)
-				gen.addAttribute("score","0.5");
-			else {
-				bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (time_over==Black);
-				gen.addAttribute("score",Util::to_string<int>((aux==true and it->color==White) or (aux==false and it->color==Black)));
-			}
+			gen.addAttribute("score",it->result);
 
 			gen.closeTag();
 		}
@@ -241,27 +238,25 @@ const TeamList& GameChess::teams() const {
 	return this->_teams;
 }
 //--------------------------------------
-//CHESS GAME RESULT Things
+//CHESS GAME RESULT Stuff
 //--------------------------------------
 
-ChessGameResult::ChessGameResult(const std::string &endreason,const TeamResultList &l, const std::string& _category, XML::Tag* hist) : _history(hist) {
+ChessGameResult::ChessGameResult(const std::string &endreason,const PlayerResultList &prl, const std::string& __category, XML::Tag* hist) : _history(hist) {
 	this->_end_reason=endreason;
-	this->teamresultlist=l;
-	this->_category=_category;
-
-    /* Raphael: playerslist was empty */
-    foreach(team, l)
-        foreach(player, team->first)
-            this->playerlist.push_back(*player);
+	this->player_result_list=prl;
+	this->_category=__category;
 }
+
 const std::string& ChessGameResult::category() const {
 	return this->_category;
 }
+
 const std::string& ChessGameResult::end_reason() const {
 	return this->_end_reason;
 }
-const PlayerList& ChessGameResult::players() const {
-	return this->playerlist;
+
+const PlayerResultList& ChessGameResult::players() const {
+	return this->player_result_list;
 }
 
 XML::Tag* ChessGameResult::history() const {
@@ -277,28 +272,28 @@ void ChessGameResult::updateRating(std::map<Player, Rating> &ratings) const {
 	}
 	std::vector<Player> playerlist;
 	std::vector<Rating> playerrating;
-	foreach(it,teamresultlist) {
-		playerlist.push_back(it->first[0]);
-		playerrating.push_back(ratings[it->first[0]]);
+	foreach(it,this->player_result_list) {
+		playerlist.push_back(it->jid);
+		playerrating.push_back(ratings[it->jid]);
 	}
 
 	int i=0,j=1;
-	foreach(it,teamresultlist) {
+	foreach(it,player_result_list) {
 		//TODO
 		//Do Step 1 of glicko System that it determines the new RD(Rating deviation)
 		//that is based on the difference between now and the date since the last competition
 		//in seconds
 		//Just need to receive the last time the player has played
 		double w;
-		if(it->second == WINNER) {
+		if(it->result == "1") {
 			playerrating[i].wins()++;
 			w=1.0;
 		}
-		else if(it->second == DRAWER) {
+		else if(it->result == "1/2") {
 			playerrating[i].draws()++;
 			w=0.5;
 		}
-		else { //it->second = LOSER
+		else { //it->result = LOSER
 			playerrating[i].losses()++;
 			w=0.0;
 		}

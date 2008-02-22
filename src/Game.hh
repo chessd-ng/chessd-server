@@ -47,7 +47,7 @@ class GameResult {
 		virtual const std::string& end_reason() const = 0;
 
 		/*! \brief List of all players in the game */
-		virtual const PlayerList& players() const = 0;
+		virtual const PlayerResultList& players() const = 0;
 
 		/*! \brief The game history */
 		virtual XML::Tag* history() const = 0;

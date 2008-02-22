@@ -24,10 +24,10 @@ GameLightning::GameLightning(const StandardPlayerList& _players) :
 }
 
 GameResult* GameLightning::result() const {
-	return new ChessLightningGameResult(this->doneEndReason(),this->doneTeamResultList(),this->generateHistoryTag());
+	return new ChessLightningGameResult(this->doneEndReason(),this->donePlayerResultList(),this->generateHistoryTag());
 }
 
-ChessLightningGameResult::ChessLightningGameResult(const std::string &endreason, const TeamResultList &l, XML::Tag* _hist) :
+ChessLightningGameResult::ChessLightningGameResult(const std::string &endreason, const PlayerResultList &l, XML::Tag* _hist) :
 	ChessGameResult(endreason,l,"lightning",_hist)
 {
 }

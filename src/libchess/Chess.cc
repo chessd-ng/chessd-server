@@ -60,8 +60,12 @@ bool Chess::verifyAndMakeMove(const std::string& move) {
 		return false;
 	if(move[2]<'a' or move[2]>'h')
 		return false;
-	if(move[1]<'1' or move[1]>'8')
+	if(move[3]<'1' or move[3]>'8')
 		return false;
+	if(move.size()==5)
+		if(toupper(move[5])!='Q' and toupper(move[5])!='N' and toupper(move[5])!='B' and toupper(move[5])!='R')
+			return false;
+
 	ChessMove cm(_turn,move);
 	if(verifyMove(cm) == true) {
 		updateMove(cm);

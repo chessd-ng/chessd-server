@@ -52,10 +52,20 @@ struct StandardPlayer {
 	}
 };
 
+struct PlayerResult {
+	PlayerResult(const XMPP::Jid& _jid, const std::string& _role, const std::string& _result) : jid(_jid), role(_role), result(_result) {
+	}
+	PlayerResult() { }
+	XMPP::Jid jid;
+	std::string role;
+	std::string result;
+};
+
 typedef XMPP::Jid Player;
 typedef std::vector<Player> PlayerList; 
 typedef std::vector<Player> Team;
 typedef std::vector<Team> TeamList;
 typedef std::vector<StandardPlayer> StandardPlayerList; 
+typedef std::vector<PlayerResult> PlayerResultList;
 
 #endif
