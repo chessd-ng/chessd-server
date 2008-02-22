@@ -22,38 +22,26 @@
 #include "Util/utils.hh"
 #include "GameException.hh"
 #include "GlickoSystem.hh"
-//TODO
-//tempo
-//testar XML
 
 GameChess::GameChess(const StandardPlayerList& _players, const std::string &_category) : time_of_last_move() {
 	this->_category=_category;
-	foreach(it,_players) {
-		Team a;
-		a.push_back(it->jid);
-		this->_teams.push_back(a);
-	}
 	this->_players=_players;
-	foreach(it,this->_players) {
+
+	foreach(it,_players)
+		this->_teams.push_back(Team(1,it->jid));
+
+	foreach(it,this->_players)
 		standard_player_map[it->jid]=&(*it);
-	}
 
-	this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
-
-	this->_resign=Chess::UNDEFINED;
-	this->_draw=false;
 	this->colormap[this->_teams[0][0]]=_players[0].color==White?Chess::WHITE:Chess::BLACK;
 	this->colormap[this->_teams[1][0]]=_players[1].color==White?Chess::WHITE:Chess::BLACK;
 
-	//FIXME
-	//centralize the history
-	this->history_saved.openTag("game");
-	this->history_saved.addAttribute("category",this->category());
-	this->history_saved.addChild(GameChess::generateStateTag(chess.getState(),Util::Time()));
+	this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
 
-	this->_history=0;
-
+	//These three are set only for ending reasons
+	this->_resign=Chess::UNDEFINED;
 	this->time_over=-1;
+	this->_done=NOREASON;
 }
 
 XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& current_time) const {
@@ -107,16 +95,14 @@ const std::string& GameChess::title() const {
 
 void GameChess::resign(const Player& player) {
 	this->_resign=colormap[player];
-	_history=history_saved.getTag();
+	this->_done=RESIGNED;
 }
 
 void GameChess::call_flag(const Player& player) {
-	//TODO the time will come =D
 }
 
 void GameChess::draw() {
-	this->_draw=true;
-	_history=history_saved.getTag();
+	this->_done=DRAWAGREED;
 }
 
 void GameChess::adjourn() {
@@ -124,84 +110,83 @@ void GameChess::adjourn() {
 }
 
 bool GameChess::done(const Util::Time& current_time) {
-	if(chess.verifyCheckMate() or this->_resign!=Chess::UNDEFINED)
-		return true;
-	else if(this->_draw==true)
-		return true;
-	else if(chess.verifyDraw()==true)
-		return true;
-	if(this->chess.numberOfTurns() >= 2)
-		foreach(it,standard_player_map)
-			if(it->second->time+(this->colormap[it->first]==this->chess.turn()?this->time_of_last_move-current_time:Util::Time()) <= Util::Time()) {
-				this->time_over=it->second->color;
-				if(this->_history==0)
-					this->_history=history_saved.getTag();
-				return true;
-			}
-	return false;
+	if(this->_done==NOREASON) {
+		if(this->chess.numberOfTurns() >= 2)
+			foreach(it,standard_player_map)
+				if(it->second->time+(this->colormap[it->first]==this->chess.turn()?this->time_of_last_move-current_time:Util::Time()) <= Util::Time()) {
+					this->time_over=it->second->color;
+					this->_done=TIMEOVER;
+				}
+	}
+	return this->_done!=0;
+}
+
+int GameChess::realDone() {
+	int aux=0;
+	if(this->_done!=0)
+		return this->_done;
+	else if(chess.verifyCheckMate())
+		return CHECKMATE;
+	else if((aux=chess.verifyDraw())!=0)
+		return aux+4;
+	return 0;
 }
 
 std::string GameChess::doneEndReason() const {
 	std::string reason;
-	int aux;
-	if(time_over!=-1)
-		return std::string("Time of ")+std::string(time_over==int(White)?"white":"black")+std::string(" has ended");
-	if(chess.verifyCheckMate())
-		return std::string(this->chess.turn()==Chess::WHITE?"Black":"White")+std::string(" has won by checkmate");
-	else if(this->_resign!=Chess::UNDEFINED)
-		return std::string(this->_resign==Chess::WHITE?"White":"Black")+std::string(" has resigned");
-	else if(this->_draw==true)
-		return "The players agreed on a draw";
-	aux=chess.verifyDraw();
-	if(aux!=0) {
-		if(aux==1)
+	switch(this->_done) {
+		case RESIGNED:
+			return std::string(this->_resign==Chess::WHITE?"White":"Black")+std::string(" has resigned");
+			break;
+		case CHECKMATE:
+			return std::string(this->chess.turn()==Chess::WHITE?"Black":"White")+std::string(" has won by checkmate");
+			break;
+		case DRAWAGREED:
+			return "The players agreed on a draw";
+			break;
+		case TIMEOVER:
+			return std::string("Time of ")+std::string(time_over==int(White)?"white":"black")+std::string(" has ended");
+			break;
+		case DRAWREPETITION:
 			return "Draw by three fold repetition rule";
-		if(aux==2)
+			break;
+		case DRAWIMPOSSIBILITYOFCHECKMATE:
 			return "Draw by impossibility of checkmate";
-		if(aux==3)
+			break;
+		case DRAWFIFTYMOVE:
 			return "Draw by fifty move rule";
-		if(aux==4)
+			break;
+		case DRAWSTALEMATE:
 			return "Draw by stalemate";
+			break;
+		default:
+			break;
 	}
 	return "";
 }
 
 TeamResultList GameChess::doneTeamResultList() const {
-	TeamResultList trl;
+	/* trl is indexed for
+	 * 0 is white
+	 * 1 is black*/
+	TeamResultList trl(2);
 	for(int i=0;i<(int)_teams.size();i++)
-		trl.push_back(make_pair(_teams[i],UNDEFINED));
-	foreach(it,standard_player_map) {
-		if(it->second->time <= Util::Time()) {
-			if(it->second->color==White) {
-				trl[0].second=LOSER;
-				trl[1].second=WINNER;
-			} else {
-				trl[0].second=WINNER;
-				trl[1].second=LOSER;
-			}
-		}
-	}
-	if(trl[0].second==UNDEFINED) {
-		if(chess.verifyCheckMate() or (this->_resign!=Chess::UNDEFINED)) {
-			if(this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE)) {
-				trl[0].second=WINNER;
-				trl[1].second=LOSER;
-			}
-			else {
-				trl[0].second=LOSER;
-				trl[1].second=WINNER;
-			}
-		}
-		else if(this->_draw==true)
-			trl[0].second=trl[1].second=DRAWER;
-		else if(chess.verifyDraw()==true)
-			trl[0].second=trl[1].second=DRAWER;
-	}
+		trl[colormap.find(_teams[i][0])->second]=(make_pair(_teams[i],UNDEFINED));
 
+	if(this->_done==3 or this->_done>=5)
+		trl[0].second=trl[1].second=DRAWER;
+	else {
+		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->time_over==Black);
+		trl[0].second=aux==true?WINNER:LOSER;
+		trl[1].second=aux==true?LOSER:WINNER;
+	}
 	return trl;
 }
 
 void GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
+	if(this->_done!=0)
+		return;
+
 	if(chess.numberOfTurns() >= 2) {
 		if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time())
 			return;
@@ -216,9 +201,40 @@ void GameChess::move(const Player& player, const std::string& movement, const Ut
 
 	time_of_last_move=time_stamp;
 
-	this->history_saved.addChild(this->generateStateTag(chess.getState(),time_stamp));
-	if(this->done(time_stamp)==true)
-		_history=history_saved.getTag();
+	this->_done=(end_reason)realDone();
+
+	history_moves+=movement+" "+Util::to_string(int(this->standard_player_map[player]->time.getSeconds()+0.001))+" ";
+}
+
+XML::Tag* GameChess::generateHistoryTag() const {
+	XML::TagGenerator gen;
+
+	gen.openTag("history");
+	gen.addAttribute("category",this->category());
+	{
+		gen.openTag("moves");
+		{
+			gen.addAttribute("movetext",std::string(this->history_moves.begin(),this->history_moves.end()-1));
+			gen.closeTag();
+		}
+		foreach(it,this->_players) {
+			gen.openTag("player");
+			gen.addAttribute("jid",it->jid.full());
+
+			gen.addAttribute("color",it->color==White?"white":"black");
+
+			if(this->_done==3 or this->_done>=5)
+				gen.addAttribute("score","0.5");
+			else {
+				bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (time_over==Black);
+				gen.addAttribute("score",Util::to_string<int>((aux==true and it->color==White) or (aux==false and it->color==Black)));
+			}
+
+			gen.closeTag();
+		}
+		gen.closeTag();
+	}
+	return gen.getTag();
 }
 
 const TeamList& GameChess::teams() const {
@@ -246,9 +262,6 @@ const std::string& ChessGameResult::end_reason() const {
 }
 const PlayerList& ChessGameResult::players() const {
 	return this->playerlist;
-}
-const TeamResultList& ChessGameResult::results() const {
-	return this->teamresultlist;
 }
 
 XML::Tag* ChessGameResult::history() const {

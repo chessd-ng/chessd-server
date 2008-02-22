@@ -36,22 +36,44 @@ int State::turn() const {
 	return this->_turn;
 }
 
+/*The initial State of Chess*/
 ChessState::ChessState() {
 	this->castle=std::string("KQkq");
 	this->enpassant=Position(-1,-1);
 	this->halfmoves=0;
 	this->fullmoves=1;
 	this->_turn=ChessPiece::WHITE;
-	//XXX be careful with this
 	this->board_fen=std::string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 }
 
-ChessState::ChessState(const std::string& _board_fen) : State(_board_fen) {
-	this->castle=std::string("KQkq");
-	this->enpassant=Position(-1,-1);
-	this->halfmoves=0;
-	this->fullmoves=1;
-	this->_turn=ChessPiece::WHITE;
+ChessState::ChessState(const std::string& FEN) : State(FEN.substr(0,FEN.find(' '))) {
+	/*Interprets a FEN*/
+	unsigned int begin=FEN.find(' ') + 1;
+
+	if(FEN[begin]=='w')
+		this->_turn = ChessPiece::WHITE;
+	else if(FEN[begin]=='b')
+		this->_turn = ChessPiece::BLACK;
+
+	begin=FEN.find(' ',begin) + 1;
+
+	this->castle=FEN.substr(begin,FEN.find(' ',begin));
+
+	begin=FEN.find(' ',begin) + 1;
+
+	if(FEN[begin]=='-')
+		this->enpassant=Position(-1,-1);
+	else
+		this->enpassant=Position(FEN.substr(begin,FEN.find(' ',begin)));
+
+	begin=FEN.find(' ',begin) + 1;
+
+	this->halfmoves=Util::parse_string<int>(FEN.substr(begin,FEN.find(' ',begin)));
+
+	begin=FEN.find(' ',begin) + 1;
+
+	this->fullmoves=Util::parse_string<int>(FEN.substr(begin,FEN.size()));
+
 }
 
 std::string ChessState::FEN() const {

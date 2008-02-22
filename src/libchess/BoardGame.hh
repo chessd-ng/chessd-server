@@ -46,7 +46,7 @@ class BoardGame {
 
 		State* current_state;
 
-		History* historico;
+		History* history;
 
 	private:
 };
