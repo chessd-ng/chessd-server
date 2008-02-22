@@ -30,7 +30,7 @@ GameStandard::GameStandard(const StandardPlayerList& _players) :
 }
 
 GameResult* GameStandard::result() const {
-	return new ChessStandardGameResult(this->doneEndReason(),this->doneTeamResultList(),this->_history);
+	return new ChessStandardGameResult(this->doneEndReason(),this->doneTeamResultList(),this->generateHistoryTag());
 }
 
 ChessStandardGameResult::ChessStandardGameResult(const std::string &endreason,const TeamResultList &l,XML::Tag* _hist) :

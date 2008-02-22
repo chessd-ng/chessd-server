@@ -23,14 +23,23 @@
 
 class Chess : public ChessBasedGame {
 	public:
-		/*! \brief Constructor function that iniciates a board given its dimensions and the rest...*/
+		/*! \brief Constructor function that iniciates an Internation Chess game */
 		Chess();
+
+		/*! \brief Constructor function that iniciates an Internation Chess game, given the FEN*/
+		Chess(const std::string& FEN);
 
 		/*! \return the winner player*/
 		virtual int winner() const ;
 
 		/*! \brief return whose turn it is*/
 		virtual int turn() const;
+
+		/*! \brief A high-level function that make a move if the given move is correct
+		 * \return true if the move is valid
+		 * \return false if the move isn't valid
+		 * */
+		virtual bool verifyAndMakeMove(const std::string &jogada);
 
 		/*! \brief verify if a player has won*/
 		virtual bool verifyCheckMate() const;
@@ -41,12 +50,6 @@ class Chess : public ChessBasedGame {
 		//TODO fazer uma virtual dessa funcao
 		/*! \return return the current state*/
 		const ChessState& getState() const;
-
-		/*! \brief A high-level function that make a move if the given move is correct
-		 * \return true if the move is valid
-		 * \return false if the move isn't valid
-		 * */
-		virtual bool verifyAndMakeMove(const std::string &jogada);
 	protected:
 		/*! \brief puts the new State on history*/
 		void updateHistory();
@@ -57,19 +60,10 @@ class Chess : public ChessBasedGame {
 		bool verifyCheckMate(int player) const;
 
 	private:
-		bool verifyCastle(const ChessMove& j) const;
-
-		bool willBeInCheck(const ChessMove& mv) const;
-
 		/*! \brief Verify is a given move is valid. This is a high level function*/
 		bool verifyMove(const ChessMove& j) const;
 
-		/*! \brief Verify if the Game is Draw*/
-		bool verifyStaleMate(int player) const;
-
-		bool verifyThreefoldRepetition() const;
-
-		bool verifyImpossibilityOfCheckmate() const;
+		bool willBeInCheck(const ChessMove& mv) const;
 
 		/*! \brief make a given move and does not verify anything, just makes the move*/
 		void makeMove(const ChessMove &j) const; //FIXME this const is not good
@@ -79,8 +73,19 @@ class Chess : public ChessBasedGame {
 		void updateMove(const ChessMove &j);
 
 		/*! \brief update The State, considering one move was made*/
-		//FIXME sera que tah bom esse comeu??
-		void updateState(const ChessMove& j,bool comeu);
+		//FIXME captured shouldn't be here
+		void updateState(const ChessMove& j,bool capatured);
+
+		bool verifyCastle(const ChessMove& j) const;
+
+		/*! \brief Verify if the Game is Draw by stalemate*/
+		bool verifyStaleMate(int player) const;
+
+		/*! \brief Verify if the Game is Draw by three fold repetirion rule*/
+		bool verifyThreefoldRepetition() const;
+
+		/*! \brief Verify if the Game is Draw by impossibility of checkmate*/
+		bool verifyImpossibilityOfCheckmate() const;
 
 		//TODO
 		//ChessMove PGNtoChessMove(std::string);

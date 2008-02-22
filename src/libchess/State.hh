@@ -62,10 +62,10 @@ class ChessState : public State {
 		int halfmoves;
 
 //	public:
-
+		/*! \brief Initializes whith the Internatinal Chess begining state*/
 		ChessState();
 
-		ChessState(const std::string& _board_fen);
+		ChessState(const std::string& FEN);
 
 		virtual std::string FEN() const;
 

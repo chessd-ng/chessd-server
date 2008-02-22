@@ -25,9 +25,6 @@
 
 namespace XML {
 
-	/* Loads a xml file */
-	Tag* loadXmlFile(const std::string& filename);
-
 	class Description {
 		public:
 			Description();

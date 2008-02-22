@@ -47,10 +47,10 @@ RatingComponent::RatingComponent(
     /* Set iqs */
     this->root_node.setIqHandler(boost::bind(&RatingComponent::handleRating, this, _1),
             XMLNS_CHESSD_INFO);
-    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleSearch, this, _1),
+    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleSearchGame, this, _1),
             XMLNS_CHESSD_GAME_SEARCH);
-    //this->root_node.setIqHandler(boost::bind(&RatingComponent::handleFetch, this, _1),
-    //        XMLNS_CHESSD_GAME_FETCH);
+    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleFetchGame, this, _1),
+            XMLNS_CHESSD_GAME_FETCH);
 }
 
 RatingComponent::~RatingComponent() {
@@ -80,7 +80,7 @@ void RatingComponent::handleRating(const Stanza& stanza) {
     }
 }
 
-void RatingComponent::handleSearch(const Stanza& stanza) {
+void RatingComponent::handleSearchGame(const Stanza& stanza) {
     try {
         const Tag& query = stanza.query();
 
@@ -101,6 +101,15 @@ void RatingComponent::handleSearch(const Stanza& stanza) {
     }
 }
 
+void RatingComponent::handleFetchGame(const Stanza& stanza) {
+    try {
+        /* execute the transaction */
+        this->database.queueTransaction(boost::bind(&RatingComponent::fetchGame, this, stanza, _1));
+    } catch (const XML::xml_error& error) {
+        throw XMPP::bad_request("Invalid format");
+    }
+}
+
 void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& database) {
     GameDatabase& game_database = database.game_database;
     XML::TagGenerator generator;
@@ -109,14 +118,6 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
     int offset = 0;
 
     const Tag& query = stanza.findChild("query");
-    generator.openTag("iq");
-    generator.addAttribute("to", stanza.from().full());
-    generator.addAttribute("from", stanza.to().full());
-    generator.addAttribute("id", stanza.id());
-    generator.addAttribute("type", "result");
-    generator.openTag("query");
-    generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_SEARCH);
-
     const Tag& search_tag = query.findChild("search");
     if(search_tag.hasAttribute("offset")) {
         offset = Util::parse_string<int>(search_tag.getAttribute("offset"));
@@ -133,6 +134,14 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
     }
     
     std::vector<PersistentGame> games = game_database.searchGames(players, offset, max_results);
+
+    generator.openTag("iq");
+    generator.addAttribute("to", stanza.from().full());
+    generator.addAttribute("from", stanza.to().full());
+    generator.addAttribute("id", stanza.id());
+    generator.addAttribute("type", "result");
+    generator.openTag("query");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_SEARCH);
 
     foreach(game, games) {
         int tmp = 0;
@@ -153,6 +162,36 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
         generator.closeTag();
     }
     this->sendStanza(new XMPP::Stanza(generator.getTag()));
+}
+
+void RatingComponent::fetchGame(const Stanza& stanza, DatabaseInterface& database) {
+    try {
+        try {
+            GameDatabase& game_database = database.game_database;
+            XML::TagGenerator generator;
+
+            const Tag& query = stanza.findChild("query");
+            const Tag& game_tag = query.findChild("game");
+            int game_id = Util::parse_string<int>(game_tag.getAttribute("id"));
+            std::string game_history = game_database.getGameHistory(game_id);
+
+            generator.openTag("iq");
+            generator.addAttribute("to", stanza.from().full());
+            generator.addAttribute("from", stanza.to().full());
+            generator.addAttribute("id", stanza.id());
+            generator.addAttribute("type", "result");
+            generator.openTag("query");
+            generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_FETCH);
+            generator.addChild(XML::parseXmlString(game_history));
+            this->sendStanza(new XMPP::Stanza(generator.getTag()));
+        } catch(const XML::xml_error& error) {
+            throw XMPP::bad_request("Invalid format");
+        } catch(const game_not_found&) {
+            throw XMPP::bad_request("Game not found");
+        }
+    } catch (const XMPP::xmpp_exception& error) {
+        this->sendStanza(error.getErrorStanza(new Stanza(stanza)));
+    }
 }
 
 void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& database) {

@@ -28,7 +28,7 @@ std::string Position::toStringNotation() const {
 	return aux;
 }
 
-Position::Position(string& p) {
+Position::Position(const string& p) {
 	if(p.size() == 3)
 	{
 		this->pos[0]=(int)(p[0]-'0');

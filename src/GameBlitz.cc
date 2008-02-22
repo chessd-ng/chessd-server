@@ -24,7 +24,7 @@ GameBlitz::GameBlitz(const StandardPlayerList& _players) :
 }
 
 GameResult* GameBlitz::result() const {
-	return new ChessBlitzGameResult(this->doneEndReason(),this->doneTeamResultList(),this->_history);
+	return new ChessBlitzGameResult(this->doneEndReason(),this->doneTeamResultList(),this->generateHistoryTag());
 }
 
 ChessBlitzGameResult::ChessBlitzGameResult(const std::string &endreason, const TeamResultList &l, XML::Tag* _hist) :
