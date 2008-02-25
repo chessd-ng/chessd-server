@@ -14,7 +14,9 @@ CREATE SEQUENCE game_id_seq
 
 CREATE TABLE game_players (
     game_id integer,
-    username character varying
+    username character varying,
+    score character varying,
+    role character varying
 );
 
 --
@@ -25,7 +27,6 @@ CREATE TABLE games (
     game_id integer,
     category character varying,
     time_stamp integer,
-    result_string character varying,
     history character varying
 );
 
@@ -78,6 +79,8 @@ CREATE UNIQUE INDEX games_game_id ON games USING btree (game_id);
 --
 
 CREATE UNIQUE INDEX player_rating_key ON player_rating USING btree (username, category);
+
+CREATE INDEX player_rating_username ON player_rating USING btree (username);
 
 
 --

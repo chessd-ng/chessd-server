@@ -25,12 +25,13 @@
 
 #include <pqxx/pqxx>
 
+#include "Team.hh"
+
 struct PersistentGame {
     public:
         int id;
-        std::vector<std::string> players;
+        PlayerResultList players;
         std::string category;
-        std::string result;
         int time_stamp;
         std::string history;
 };

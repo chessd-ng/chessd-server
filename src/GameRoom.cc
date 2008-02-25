@@ -297,13 +297,12 @@ XMPP::Stanza* createResultStanza(const GameResult& result) {
     tag_generator.openTag("reason");
     tag_generator.addCData(result.end_reason());
     tag_generator.closeTag();
-    foreach(team_result, result.results()) {
-        foreach(player, team_result->first) {
-            tag_generator.openTag("player");
-            tag_generator.addAttribute("jid", player->full());
-            tag_generator.addAttribute("result", result_table[team_result->second]);
-            tag_generator.closeTag();
-        }
+    foreach(player, result.players()) {
+        tag_generator.openTag("player");
+        tag_generator.addAttribute("jid", player->jid.full());
+        tag_generator.addAttribute("score", player->score);
+        tag_generator.addAttribute("role", player->role);
+        tag_generator.closeTag();
     }
     stanza->children().push_back(tag_generator.getTag());
     return stanza;
@@ -344,18 +343,17 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
 
     std::map<Player, Rating> tmp;
     foreach(player, result->players()) {
-        std::string name = player->partial();
+        std::string name = player->jid.partial();
         Rating rating = rating_database.getRatingForUpdate(name, category);
-        tmp.insert(std::make_pair(*player, rating));
-        game.players.push_back(name);
+        tmp.insert(std::make_pair(player->jid, rating));
     }
     result->updateRating(tmp);
     foreach(it, tmp) {
         rating_database.setRating(it->first.partial(), category, it->second);
     }
 
+    game.players = result->players();
     game.category = category;
-    game.result = result->end_reason();
     game.time_stamp = time(NULL);
 
     XML::Tag* history = result->history();
