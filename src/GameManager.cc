@@ -52,7 +52,7 @@ void GameManager::createGame(Game* game, const OnGameStart& on_game_start) {
 
 void GameManager::_createGame(Game* game, const OnGameStart& on_game_start) {
 	GameId game_id = game_ids ++;
-	Jid room_jid = Jid(Util::to_string(game_id), this->node_name);
+	Jid room_jid = Jid("game_" + Util::to_string(game_id), this->node_name);
 	/* Create the game room */
 	GameRoom* game_room = new GameRoom(game, room_jid, this->database_manager,
             this->dispatcher,
