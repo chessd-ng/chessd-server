@@ -71,7 +71,7 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 		{   
 			t.addAttribute("jid",it->jid.full());
 			Util::Time aux=it->time;
-			if( ( chess.turn()==(colormap.find(it->jid)->second) ) and (chess.numberOfTurns() >= 2))
+			if( ( chess.turn()==(colormap.find(it->jid)->second) ) and (chess.numberOfTurns() >= 2) and (this->_done==NOREASON))
 				aux-=current_time-time_of_last_move;
 			
 			//XXX be careful with double from getSeconds
