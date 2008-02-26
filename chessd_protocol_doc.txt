@@ -261,6 +261,6 @@ may my break compatibility with previous versions.
 
 <history category="standard" >
 	<moves movetext="e2e4 900 e7e5 900 d1f3 895 a7a6 889 f1c4 893 a6a5 885 f3f7 890"/>
-	<player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" score="1"/>
-	<player inc="1" color="black" time="900" jid="eduari@shiva/Psi" score="0"/>
+	<player color="white" time="900" jid="raphaelhr@shiva/Psi" score="1"/>
+	<player color="black" time="900" jid="eduari@shiva/Psi" score="0"/>
 </history>

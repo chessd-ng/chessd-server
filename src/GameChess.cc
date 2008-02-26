@@ -36,7 +36,11 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 	this->colormap[this->_teams[0][0]]=_players[0].color==White?Chess::WHITE:Chess::BLACK;
 	this->colormap[this->_teams[1][0]]=_players[1].color==White?Chess::WHITE:Chess::BLACK;
 
-	this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
+	if(_players[0].color==White)
+		this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
+	else
+		this->_title=this->_players[1].jid.partial()+" x "+this->_players[0].jid.partial();
+
 
 	//These three are set only for ending reasons
 	this->_resign=Chess::UNDEFINED;
