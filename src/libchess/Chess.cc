@@ -63,7 +63,7 @@ bool Chess::verifyAndMakeMove(const std::string& move) {
 	if(move[3]<'1' or move[3]>'8')
 		return false;
 	if(move.size()==5)
-		if(toupper(move[5])!='4' and toupper(move[4])!='N' and toupper(move[4])!='B' and toupper(move[4])!='R')
+		if(toupper(move[4])!='Q' and toupper(move[4])!='N' and toupper(move[4])!='B' and toupper(move[4])!='R')
 			return false;
 
 	ChessMove cm(_turn,move);

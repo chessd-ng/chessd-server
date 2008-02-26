@@ -18,10 +18,11 @@
 
 #include "HistoryProcess.hh"
 #include "XML/TagGenerator.hh"
+#include "XML/Exception.hh"
 #include "Util/utils.hh"
 #include <sstream>
 XML::Tag* ChessHistoryProcess::generate(const XML::Tag& history_tag) {
-	Chess chess;	
+	Chess chess;
 	XML::TagGenerator new_history;
 	std::string category=history_tag.getAttribute("category");
 
@@ -42,7 +43,6 @@ XML::Tag* ChessHistoryProcess::generate(const XML::Tag& history_tag) {
 		}
 	}
 
-
 	new_history.openTag("game");
 	new_history.addAttribute("category",category);
 	{
@@ -52,12 +52,11 @@ XML::Tag* ChessHistoryProcess::generate(const XML::Tag& history_tag) {
 		std::string move;
 		for(int i=0;s >> move;i++) {
 			if(!chess.verifyAndMakeMove(move))
-				throw "Tag to change history is invalid";
+				throw XML::xml_error("move of history's tag is invalid");
 
 			s >> last_time[i%2];
 
 			new_history.addChild(generateStateTag(chess.getState(),players,last_time,category));
-
 		}
 		new_history.closeTag();
 	}
