@@ -137,13 +137,13 @@ bool Chess::willBeInCheck(const ChessMove& mv) const {
 	//TODO a better way to take out mutable from Board
 	char a=this->gameboard->getPieceReal(mv.from());
 	char b=this->gameboard->getPieceReal(mv.to());
-	bool mvogesp=this->verifyCastle(mv) or this->verifyEnPassant(mv);
+	bool specialmv=this->verifyCastle(mv) or this->verifyEnPassant(mv);
 
 	this->makeMove(mv);
 	bool ans=true;
 	if(this->verifyCheck(mv.color()) == true)
 		ans=false;
-	if(mvogesp)
+	if(specialmv)
 		this->setState(current_state->boardFEN());
 	else {
 		this->gameboard->createPiece(mv.from(),new ChessPiece(a));
@@ -254,7 +254,7 @@ void Chess::updateState(const ChessMove& j, bool has_eaten) {
 }
 
 bool Chess::verifyCastle(const ChessMove& mv) const {
-	if( (this->gameboard->getType(mv.from()) == 'K'))
+	if( (this->gameboard->getType(mv.from()) == ChessPiece::KING))
 		if( abs(mv.to().x - mv.from().x)==2 )
 			return true;
 	return false;
