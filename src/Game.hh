@@ -72,6 +72,9 @@ class Game {
          */
 		virtual XML::Tag* state(const Util::Time& current_time) const = 0;
 
+		/*! \brief Current history of the game*/
+		virtual XML::Tag* history() const = 0;
+
 		/*! \brief The game category. */
 		virtual const std::string& category() const = 0;
 

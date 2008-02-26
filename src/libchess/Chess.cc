@@ -88,10 +88,7 @@ int Chess::verifyDraw() const {
 	if(static_cast<ChessState*>(current_state)->halfmoves >= 50)
 		return 3;
 
-	if(verifyStaleMate(WHITE)==true)
-		return 4;
-
-	if(verifyStaleMate(BLACK)==true)
+	if(verifyStaleMate(this->_turn)==true)
 		return 4;
 
 	return 0;

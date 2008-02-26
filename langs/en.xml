@@ -1,19 +1,47 @@
 <locale lang='en'>
     <text>
-        <name>Black was mated</name>
-        <text>Black was mated</text>
+        <name>White has won by checkmate</name>
+        <text>White has won by checkmate</text>
     </text>
     <text>
-        <name>White was mated</name>
-        <text>White was mated</text>
-    </text>
-    <text>
-        <name>Black has resigned</name>
-        <text>Black has resigned</text>
+        <name>Black has won by checkmate</name>
+        <text>Black has won by checkmate</text>
     </text>
     <text>
         <name>White has resigned</name>
         <text>White has resigned</text>
     </text>
+    <text>
+        <name>Black has resigned</name>
+        <text>Black has resigned</text>
+	</text>
+	<text>
+		<name>The players agreed on a draw</name>
+		<text>The players agreed on a draw</text>
+	</text>
+	<text>
+		<name>Time of white has ended</name>
+		<text>Time of white has ended</text>
+	</text>
+	<text>
+		<name>Time of black has ended</name>
+		<text>Time of black has ended</text>
+	</text>
+	<text>
+		<name>Draw by three fold repetition rule</name>
+		<text>Draw by three fold repetition rule</text>
+	</text>
+	<text>
+		<name>Draw by impossibility of checkmate</name>
+		<text>Draw by impossibility of checkmate</text>
+	</text>
+	<text>
+		<name>Draw by fifty move rule</name>
+		<text>Draw by fifty move rule</text>
+	</text>
+	<text>
+		<name>Draw by stalemate</name>
+		<text>Draw by stalemate</text>
+	</text>
 </locale>
 

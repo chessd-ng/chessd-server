@@ -21,10 +21,10 @@
 #include "XML/Exception.hh"
 #include "Util/utils.hh"
 #include <sstream>
-XML::Tag* ChessHistoryProcess::generate(const XML::Tag& history_tag) {
+XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 	Chess chess;
 	XML::TagGenerator new_history;
-	std::string category=history_tag.getAttribute("category");
+	std::string category=history_tag->getAttribute("category");
 
 	/*
 	 * position 0 is white
@@ -33,7 +33,7 @@ XML::Tag* ChessHistoryProcess::generate(const XML::Tag& history_tag) {
 	std::vector<XML::Tag*> players(2);
 	std::vector<int> last_time(2);
 
-	foreach(it,history_tag.tags()) {
+	foreach(it,history_tag->tags()) {
 		if(it->name()=="player") {
 			int p=((it->getAttribute("color")==std::string("white"))?0:1);
 			players[p]=new XML::Tag(*it);
@@ -48,7 +48,7 @@ XML::Tag* ChessHistoryProcess::generate(const XML::Tag& history_tag) {
 	{
 		new_history.addChild(generateStateTag(chess.getState(),players,last_time,category));
 
-		std::stringstream s(history_tag.findChild("moves").getAttribute("movetext"));
+		std::stringstream s(history_tag->findChild("moves").getAttribute("movetext"));
 		std::string move;
 		for(int i=0;s >> move;i++) {
 			if(!chess.verifyAndMakeMove(move))
@@ -62,6 +62,7 @@ XML::Tag* ChessHistoryProcess::generate(const XML::Tag& history_tag) {
 	}
 	foreach(it,players)
 		delete *it;
+	delete history_tag;
 	return new_history.getTag();
 }
 

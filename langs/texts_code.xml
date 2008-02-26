@@ -1,6 +1,13 @@
 <text_code>
-    <text code='1'>White was mated</text>
-    <text code='2'>Black was mated</text>
-    <text code='3'>Black has resigned</text>
-    <text code='4'>White has resigned</text>
+    <text code='1'>White has won by checkmate</text>
+    <text code='2'>Black has won by checkmate</text>
+    <text code='3'>White has resigned</text>
+    <text code='4'>Black has resigned</text>
+    <text code='5'>The players agreed on a draw</text>
+    <text code='6'>Time of white has ended</text>
+    <text code='7'>Time of black has ended</text>
+    <text code='8'>Draw by three fold repetition rule</text>
+    <text code='9'>Draw by impossibility of checkmate</text>
+    <text code='10'>Draw by fifty move rule</text>
+    <text code='11'>Draw by stalemate</text>
 </text_code>

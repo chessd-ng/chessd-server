@@ -22,6 +22,7 @@
 #include "Util/utils.hh"
 #include "GameException.hh"
 #include "GlickoSystem.hh"
+#include "HistoryProcess.hh"
 
 GameChess::GameChess(const StandardPlayerList& _players, const std::string &_category) : time_of_last_move() {
 	this->_category=_category;
@@ -41,6 +42,7 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 	else
 		this->_title=this->_players[1].jid.partial()+" x "+this->_players[0].jid.partial();
 
+	this->initial_time=_players[0].time.getSeconds()+0.001;
 
 	//These three are set only for ending reasons
 	this->_resign=Chess::UNDEFINED;
@@ -87,6 +89,12 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 
 XML::Tag* GameChess::state(const Util::Time& current_time) const {
 	return (generateStateTag(chess.getState(),current_time));
+}
+
+XML::Tag* GameChess::history() const {
+	XML::Tag* h=generateHistoryTag();
+	ChessHistoryProcess chp;
+	return chp.generate(h);
 }
 
 const std::string& GameChess::category() const {
@@ -179,7 +187,7 @@ PlayerResultList GameChess::donePlayerResultList() const {
 	}
 	if(this->_done==3 or this->_done>=5)
 		prl[0].score=prl[1].score="1/2";
-	else {
+	else if (this->_done!=NOREASON) {
 		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->time_over==Black);
 		prl[0].score=aux==true?"1":"0";
 		prl[1].score=aux==true?"0":"1";
@@ -218,7 +226,7 @@ XML::Tag* GameChess::generateHistoryTag() const {
 	{
 		gen.openTag("moves");
 		{
-			gen.addAttribute("movetext",this->history_moves.substr(0, this->history_moves.size()-1));
+			gen.addAttribute("movetext",std::string(this->history_moves.begin(),this->history_moves.end()-1));
 			gen.closeTag();
 		}
 		PlayerResultList prl=this->donePlayerResultList();
@@ -230,6 +238,8 @@ XML::Tag* GameChess::generateHistoryTag() const {
 			gen.addAttribute("color",it->role);
 
 			gen.addAttribute("score",it->score);
+
+			gen.addAttribute("time",Util::to_string(this->initial_time));
 
 			gen.closeTag();
 		}

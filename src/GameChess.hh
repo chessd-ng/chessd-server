@@ -39,6 +39,8 @@ class GameChess : public Game {
 
 		virtual XML::Tag* state(const Util::Time& current_time) const;
 
+		virtual XML::Tag* history() const;
+
 		virtual const std::string& category() const;
 		
 		/*! \brief function to return the title of the game
@@ -87,6 +89,8 @@ class GameChess : public Game {
 
 	private:
 		int time_over;
+
+		int initial_time;
 
 		end_reason _done;
 

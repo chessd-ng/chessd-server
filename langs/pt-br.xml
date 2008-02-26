@@ -1,19 +1,47 @@
-<locale lang='pt-br'>
+<locale lang='en'>
     <text>
-        <name>Black was mated</name>
-        <text>Pretas levaram mate</text>
+        <name>White has won by checkmate</name>
+        <text>As brancas ganharam por cheque-mate</text>
     </text>
     <text>
-        <name>White was mated</name>
-        <text>Brancas levaram mate</text>
-    </text>
-    <text>
-        <name>Black has resigned</name>
-        <text>As pretas desistiram</text>
+        <name>Black has won by checkmate</name>
+        <text>As pretas ganharam por cheque-mate</text>
     </text>
     <text>
         <name>White has resigned</name>
-        <text>As brancas desistiram</text>
+        <text>As brancas desistiram do jogo</text>
     </text>
+    <text>
+        <name>Black has resigned</name>
+        <text>As pretas desistiram do jogo</text>
+	</text>
+	<text>
+		<name>The players agreed on a draw</name>
+		<text>Os jogadores concordaram em um empate</text>
+	</text>
+	<text>
+		<name>Time of white has ended</name>
+		<text>O tempo das brancas acabou</text>
+	</text>
+	<text>
+		<name>Time of black has ended</name>
+		<text>O tempo das pretas acabou</text>
+	</text>
+	<text>
+		<name>Draw by three fold repetition rule</name>
+		<text>Empate por repetição de posição</text>
+	</text>
+	<text>
+		<name>Draw by impossibility of checkmate</name>
+		<text>Empate por insuficiência de material</text>
+	</text>
+	<text>
+		<name>Draw by fifty move rule</name>
+		<text>Empate pela regra dos 50 lances</text>
+	</text>
+	<text>
+		<name>Draw by stalemate</name>
+		<text>Empate por cheque perpétuo</text>
+	</text>
 </locale>
 
