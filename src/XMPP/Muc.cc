@@ -34,8 +34,8 @@ using namespace XML;
 namespace XMPP {
 
 	MucUser::MucUser(const std::string& nick, const std::string& affiliation,
-			const std::string& role, const Jid& jid, Stanza* presence) :
-		_nick(nick), _affiliation(affiliation), _role(role), _jid(jid),
+			const std::string& role, const std::string& lang, const Jid& jid, Stanza* presence) :
+		_nick(nick), _affiliation(affiliation), _role(role), _lang(lang), _jid(jid),
         _presence(presence) { }
 
     Muc::Muc(const Jid& jid,
@@ -74,7 +74,7 @@ namespace XMPP {
 				} else {
 					this->presentUsers(user_jid);
 					this->users().insert(new MucUser(nick, "member",
-								"participant", user_jid, new Stanza(presence)));
+								"participant", presence.lang(), user_jid, new Stanza(presence)));
                     this->disco().items().insert(
                             new DiscoItem(nick,
                                 Jid(this->jid().node(),
@@ -84,6 +84,7 @@ namespace XMPP {
                 }
 			} else {
                 itj->presence() = std::auto_ptr<Stanza>(new Stanza(presence));
+                itj->lang() = presence.lang();
             }
             Stanza* stanza = this->createPresenceStanza(*this->users().find_jid(user_jid));
             this->broadcast(stanza);

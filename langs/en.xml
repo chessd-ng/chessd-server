@@ -1,0 +1,19 @@
+<locale lang='en'>
+    <text>
+        <name>Black was mated</name>
+        <text>Black was mated</text>
+    </text>
+    <text>
+        <name>White was mated</name>
+        <text>White was mated</text>
+    </text>
+    <text>
+        <name>Black has resigned</name>
+        <text>Black has resigned</text>
+    </text>
+    <text>
+        <name>White has resigned</name>
+        <text>White has resigned</text>
+    </text>
+</locale>
+

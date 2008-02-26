@@ -50,7 +50,8 @@ SOURCES = \
 		  src/XMPP/Stream.cc \
 		  src/GlickoSystem.cc \
 		  src/DatabaseInterface.cc \
-		  src/GameDatabase.cc
+		  src/GameDatabase.cc \
+		  src/I18n.cc
 
 
 SRCDIR = src

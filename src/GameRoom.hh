@@ -132,15 +132,23 @@ class GameRoom : public XMPP::Muc {
         /*! \brief check timeouts */
         void checkTime();
 
-        Util::Time currentTime();
+        void setResult(const GameResult& result);
 
-        XML::Tag* gameState();
+        XMPP::Stanza* createStateStanza();
+
+        XMPP::Stanza* createResultStanza(const std::string& lang);
+
+        XMPP::Stanza* createMoveStanza(const std::string& long_move);
+
+        void broadcastResultStanza();
+
+        Util::Time currentTime();
 
 		std::auto_ptr<Game> game;
 
-        std::auto_ptr<XMPP::Stanza> result_stanza;
+        std::string result_reason;
 
-        std::auto_ptr<XML::Tag> game_state;
+        PlayerResultList players_result;
 
 		XMPP::Jid room_jid;
 
@@ -162,8 +170,9 @@ class GameRoom : public XMPP::Muc {
 
         Util::Time start_time;
 
-
         int move_count;
+
+        bool canceled;
 };
 
 #endif

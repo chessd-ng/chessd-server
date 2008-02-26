@@ -1,0 +1,19 @@
+<locale lang='pt-br'>
+    <text>
+        <name>Black was mated</name>
+        <text>Pretas levaram mate</text>
+    </text>
+    <text>
+        <name>White was mated</name>
+        <text>Brancas levaram mate</text>
+    </text>
+    <text>
+        <name>Black has resigned</name>
+        <text>As pretas desistiram</text>
+    </text>
+    <text>
+        <name>White has resigned</name>
+        <text>As brancas desistiram</text>
+    </text>
+</locale>
+
