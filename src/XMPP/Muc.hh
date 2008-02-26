@@ -34,7 +34,8 @@ namespace XMPP {
     struct MucUser {
         public:
             MucUser(const std::string& nick, const std::string& affiliation,
-                    const std::string& role, const Jid& jid, Stanza* presence);
+                    const std::string& role, const std::string& lang,
+                    const Jid& jid, Stanza* presence);
 
             std::string& nick() { return this->_nick;}
             const std::string& nick() const { return this->_nick;}
@@ -45,6 +46,9 @@ namespace XMPP {
             std::string& role() { return this->_role;}
             const std::string& role() const { return this->_role;}
 
+            std::string& lang() { return this->_lang;}
+            const std::string& lang() const { return this->_lang;}
+
             Jid& jid() { return this->_jid;}
             const Jid& jid() const { return this->_jid;}
 
@@ -52,7 +56,7 @@ namespace XMPP {
             const std::auto_ptr<Stanza>& presence() const { return this->_presence;}
 
         private:
-            std::string _nick, _affiliation, _role;
+            std::string _nick, _affiliation, _role, _lang;
             Jid _jid;
             std::auto_ptr<Stanza> _presence;
 
@@ -64,18 +68,18 @@ namespace XMPP {
 			typedef boost::ptr_map<Jid, MucUser> user_map;
 			typedef boost::ptr_map<Jid, MucUser>::iterator iterator_map;
 			typedef boost::ptr_map<Jid, MucUser>::const_iterator const_iterator_map;
-			struct iterator_transformer :
-				public std::unary_function<user_map::value_type&, MucUser&> {
-				MucUser& operator()(const user_map::value_type& v) const {
-					return *v.second;
-				}
-			};
+            struct iterator_transformer :
+                public std::unary_function<user_map::reference, MucUser&> {
+                    MucUser& operator()(const user_map::reference& v) const {
+                        return *v.second;
+                    }
+            };
 			struct const_iterator_transformer :
-				public std::unary_function<user_map::value_type, MucUser> {
-				const MucUser& operator()(const user_map::value_type& v) {
-					return *v.second;
-				}
-			};
+				public std::unary_function<user_map::const_reference, const MucUser&> {
+                    const MucUser& operator()(const user_map::const_reference& v) const {
+                        return *v.second;
+                    }
+            };
 		public:
 			MucUserSet() { }
 			~MucUserSet() { }

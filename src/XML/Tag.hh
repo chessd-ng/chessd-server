@@ -100,7 +100,7 @@ namespace XML {
                     if(tag->name() == name)
                         return *tag;
                 }
-                throw (child_not_found("Child not found"));
+                throw (child_not_found("Tag not found"));
             }
 
 			const Tag& findChild(const std::string& name) const {
@@ -108,7 +108,23 @@ namespace XML {
                     if(tag->name() == name)
                         return *tag;
                 }
-                throw (child_not_found("Child not found"));
+                throw (child_not_found("Tag not found"));
+            }
+
+			CData& findCData() {
+                foreach(child, this->children()) {
+                    if(typeid(*child) == typeid(CData))
+                        return static_cast<CData&>(*child);
+                }
+                throw (child_not_found("CData not found"));
+            }
+
+			const CData& findChild() const {
+                foreach(child, this->children()) {
+                    if(typeid(*child) == typeid(CData))
+                        return static_cast<const CData&>(*child);
+                }
+                throw (child_not_found("CData not found"));
             }
 
 			/* generate xml string */

@@ -218,7 +218,7 @@ XML::Tag* GameChess::generateHistoryTag() const {
 	{
 		gen.openTag("moves");
 		{
-			gen.addAttribute("movetext",std::string(this->history_moves.begin(),this->history_moves.end()-1));
+			gen.addAttribute("movetext",this->history_moves.substr(0, this->history_moves.size()-1));
 			gen.closeTag();
 		}
 		PlayerResultList prl=this->donePlayerResultList();
