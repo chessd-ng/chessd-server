@@ -350,16 +350,35 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
     GameDatabase& game_database = database.game_database;
     std::string category = result->category();
     PersistentGame game;
+    Rating tmp;
+    PersistentRating rating;
 
-    std::map<Player, Rating> tmp;
+    std::map<Player, Rating> ratings;
+    std::map<Player, PersistentRating> pratings;
     foreach(player, result->players()) {
         std::string name = player->jid.partial();
-        Rating rating = rating_database.getRatingForUpdate(name, category);
-        tmp.insert(std::make_pair(player->jid, rating));
+        rating = rating_database.getRatingForUpdate(name, category);
+        pratings.insert(std::make_pair(player->jid, rating));
+        tmp.rating() = rating.rating;
+        tmp.volatility() = rating.volatility;
+        tmp.wins() = rating.wins;
+        tmp.draws() = rating.draws;
+        tmp.losses() = rating.defeats;
+        ratings.insert(std::make_pair(player->jid, Rating()));
     }
-    result->updateRating(tmp);
-    foreach(it, tmp) {
-        rating_database.setRating(it->first.partial(), category, it->second);
+    result->updateRating(ratings);
+    foreach(it, ratings) {
+        rating.rating = it->second.rating();
+        rating.wins = it->second.wins();
+        rating.draws = it->second.draws();
+        rating.defeats = it->second.losses();
+        rating.max_rating = pratings[it->first].max_rating;
+        rating.max_timestamp = pratings[it->first].max_timestamp;
+        if(rating.rating > rating.max_rating) {
+            rating.max_rating = rating.rating;
+            rating.max_timestamp = time(NULL);
+        }
+        rating_database.setRating(it->first.partial(), category, rating);
     }
 
     game.players = result->players();

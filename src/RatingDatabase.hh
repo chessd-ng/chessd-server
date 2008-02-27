@@ -28,12 +28,14 @@
 #include "Rating.hh"
 
 struct PersistentRating {
+    PersistentRating() : rating(0), volatility(0), wins(0), defeats(0), draws(0), max_rating(0), max_timestamp(0) { }
     int rating;
+    double volatility;
     int wins;
     int defeats;
     int draws;
-    int higher_rating;
-    int higher_timestamp;
+    int max_rating;
+    int max_timestamp;
 };
 
 class RatingDatabase {
@@ -41,11 +43,11 @@ class RatingDatabase {
 
         RatingDatabase(pqxx::work& w);
 
-        std::vector<std::pair<std::string, Rating> > getRatings(const std::string& user, const std::string& category);
+        std::vector<std::pair<std::string, PersistentRating> > getRatings(const std::string& user, const std::string& category);
 
-        Rating getRatingForUpdate(const std::string& user, const std::string& category);
+        PersistentRating getRatingForUpdate(const std::string& user, const std::string& category);
 
-        void setRating(const std::string& user, const std::string& category, const Rating& rating);
+        void setRating(const std::string& user, const std::string& category, const PersistentRating& rating);
 
         std::string getUserType(const std::string& user);
 

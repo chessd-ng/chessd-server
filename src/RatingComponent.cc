@@ -208,16 +208,18 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
         if(tag->name() == "rating") {
             category = (tag->hasAttribute("category")) ? tag->getAttribute("category"): "";
             jid = tag->getAttribute("jid");
-            std::vector<std::pair<std::string, Rating> > ratings = rating_database.getRatings(
+            std::vector<std::pair<std::string, PersistentRating> > ratings = rating_database.getRatings(
                         jid, category);
             foreach(rating, ratings) {
                 generator.openTag("rating");
                 generator.addAttribute("jid", jid);
                 generator.addAttribute("category", rating->first);
-                generator.addAttribute("rating", Util::to_string(rating->second.rating()));
-                generator.addAttribute("wins", Util::to_string(rating->second.wins()));
-                generator.addAttribute("draws", Util::to_string(rating->second.draws()));
-                generator.addAttribute("losses", Util::to_string(rating->second.losses()));
+                generator.addAttribute("rating", Util::to_string(rating->second.rating));
+                generator.addAttribute("wins", Util::to_string(rating->second.wins));
+                generator.addAttribute("draws", Util::to_string(rating->second.draws));
+                generator.addAttribute("losses", Util::to_string(rating->second.defeats));
+                generator.addAttribute("max_rating", Util::to_string(rating->second.max_rating));
+                generator.addAttribute("max_timestamp", Util::to_string(rating->second.max_timestamp));
                 generator.closeTag();
             }
         } else if(tag->name() == "type") {
