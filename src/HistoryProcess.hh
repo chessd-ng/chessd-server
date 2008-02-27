@@ -25,7 +25,9 @@
 
 class HistoryProcess {
 	public:
-		HistoryProcess() {};
+		HistoryProcess() {}
+
+		virtual ~HistoryProcess() {}
 
 		virtual XML::Tag* generate(XML::Tag* history)=0;
 	private:
