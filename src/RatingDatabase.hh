@@ -27,13 +27,19 @@
 
 #include "Rating.hh"
 
+struct PersistentRating {
+    int rating;
+    int wins;
+    int defeats;
+    int draws;
+    int higher_rating;
+    int higher_timestamp;
+};
 
 class RatingDatabase {
     public:
 
         RatingDatabase(pqxx::work& w);
-
-        //Rating getRating(const std::string& user, const std::string& category);
 
         std::vector<std::pair<std::string, Rating> > getRatings(const std::string& user, const std::string& category);
 

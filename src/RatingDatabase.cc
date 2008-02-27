@@ -22,31 +22,6 @@
 
 RatingDatabase::RatingDatabase(pqxx::work& work) : work(work) { }
 
-#if 0
-Rating RatingDatabase::getRating(const std::string& user, const std::string& category)
-{
-    std::string query =
-        "SELECT *"
-        " FROM player_rating"
-        " WHERE username='" + this->work.esc(user) + "'" +
-          " AND category='" + this->work.esc(category) + "'";
-        
-    pqxx::result r = work.exec(query);
-
-    if(r.size() == 0) {
-        return Rating();
-    } else {
-        Rating rating;
-        r[0]["rating"].to(rating.rating());
-        r[0]["volatility"].to(rating.volatility());
-        r[0]["wins"].to(rating.wins());
-        r[0]["losses"].to(rating.losses());
-        r[0]["draws"].to(rating.draws());
-        return rating;
-    }
-}
-#endif
-
 std::vector<std::pair<std::string, Rating> > RatingDatabase::getRatings(const std::string& user, const std::string& category)
 {
     std::string query;

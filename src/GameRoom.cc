@@ -149,6 +149,7 @@ XMPP::Stanza* GameRoom::createStateStanza() {
     generator.openTag("query");
     generator.addAttribute("xmlns", XMLNS_GAME_STATE);
     generator.addChild(this->game->state(this->currentTime()));
+    generator.addChild(this->game->history());
     stanza->children().push_back(generator.getTag());
     return stanza.release();
 }
