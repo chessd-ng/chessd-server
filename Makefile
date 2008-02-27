@@ -51,7 +51,8 @@ SOURCES = \
 		  src/GlickoSystem.cc \
 		  src/DatabaseInterface.cc \
 		  src/GameDatabase.cc \
-		  src/I18n.cc
+		  src/I18n.cc \
+		  src/HistoryProcess.cc
 
 
 SRCDIR = src
