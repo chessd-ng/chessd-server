@@ -21,6 +21,14 @@
 #include "XML/Exception.hh"
 #include "Util/utils.hh"
 #include <sstream>
+
+XML::Tag* HistoryProcess::generate(XML::Tag* history_tag) {
+	std::string category=history_tag->getAttribute("category");
+	if(category=="standard" or category=="blitz" or category=="lightning")
+		return ChessHistoryProcess::generate(history_tag);
+	return 0;
+}
+
 XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 	Chess chess;
 	XML::TagGenerator new_history;

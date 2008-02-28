@@ -27,9 +27,7 @@ class HistoryProcess {
 	public:
 		HistoryProcess() { }
 
-		virtual ~HistoryProcess() { }
-
-		virtual XML::Tag* generate(XML::Tag* history)=0;
+		static XML::Tag* generate(XML::Tag* history);
 	private:
 };
 
@@ -37,7 +35,7 @@ class ChessHistoryProcess : public HistoryProcess {
 	public:
 		ChessHistoryProcess() { }
 
-		virtual XML::Tag* generate(XML::Tag* history);
+		static XML::Tag* generate(XML::Tag* history);
 
 	private:
 		static XML::Tag* generateStateTag(const ChessState& state,int time, const std::string& mv);
