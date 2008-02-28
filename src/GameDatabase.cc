@@ -40,7 +40,7 @@ void GameDatabase::insertGame(const PersistentGame& game)
             " INSERT INTO games VALUES"
             "   ( " + pqxx::to_string(game_id) + "" +
             "   ,'" + this->work.esc(game.category) + "'" +
-            "   , " + pqxx::to_string(game.time_stamp) + "" +
+            "   , " + pqxx::to_string(Util::ptime_to_time_t(game.time_stamp)) + "" +
             "   ,'" + this->work.esc(game.history) + "')";
 
     this->work.exec(query);
@@ -99,8 +99,10 @@ std::vector<PersistentGame> GameDatabase::searchGames(
 
     foreach(r, result) {
         PersistentGame game;
+        time_t t;
         r->at("game_id").to(game.id);
-        r->at("time_stamp").to(game.time_stamp);
+        r->at("time_stamp").to(t);
+        game.time_stamp = boost::posix_time::from_time_t(t);
         game.category = r->at("category").c_str();
         std::string query =
             "SELECT username, role, score FROM game_players WHERE game_id = "

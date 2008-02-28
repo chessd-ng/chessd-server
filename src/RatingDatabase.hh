@@ -25,17 +25,19 @@
 
 #include <map>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #include "Rating.hh"
 
 struct PersistentRating {
-    PersistentRating() : rating(0), volatility(0), wins(0), defeats(0), draws(0), max_rating(0), max_timestamp(0) { }
+    PersistentRating() : rating(0), volatility(0), wins(0), defeats(0), draws(0), max_rating(0) { }
     int rating;
     double volatility;
     int wins;
     int defeats;
     int draws;
     int max_rating;
-    int max_timestamp;
+    boost::posix_time::ptime max_timestamp;
 };
 
 class RatingDatabase {

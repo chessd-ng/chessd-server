@@ -19,6 +19,7 @@
 #include <memory>
 #include "RatingComponent.hh"
 #include "Util/utils.hh"
+#include "Util/Date.hh"
 
 #include "Exception.hh"
 #include "XMPP/Exception.hh"
@@ -219,7 +220,7 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
                 generator.addAttribute("draws", Util::to_string(rating->second.draws));
                 generator.addAttribute("losses", Util::to_string(rating->second.defeats));
                 generator.addAttribute("max_rating", Util::to_string(rating->second.max_rating));
-                generator.addAttribute("max_timestamp", Util::to_string(rating->second.max_timestamp));
+                generator.addAttribute("max_timestamp", Util::ptime_to_xmpp_date_time(rating->second.max_timestamp));
                 generator.closeTag();
             }
         } else if(tag->name() == "type") {
