@@ -22,37 +22,12 @@
 
 RatingDatabase::RatingDatabase(pqxx::work& work) : work(work) { }
 
-#if 0
-Rating RatingDatabase::getRating(const std::string& user, const std::string& category)
-{
-    std::string query =
-        "SELECT *"
-        " FROM player_rating"
-        " WHERE username='" + this->work.esc(user) + "'" +
-          " AND category='" + this->work.esc(category) + "'";
-        
-    pqxx::result r = work.exec(query);
-
-    if(r.size() == 0) {
-        return Rating();
-    } else {
-        Rating rating;
-        r[0]["rating"].to(rating.rating());
-        r[0]["volatility"].to(rating.volatility());
-        r[0]["wins"].to(rating.wins());
-        r[0]["losses"].to(rating.losses());
-        r[0]["draws"].to(rating.draws());
-        return rating;
-    }
-}
-#endif
-
-std::vector<std::pair<std::string, Rating> > RatingDatabase::getRatings(const std::string& user, const std::string& category)
+std::vector<std::pair<std::string, PersistentRating> > RatingDatabase::getRatings(const std::string& user, const std::string& category)
 {
     std::string query;
     if(category.empty()) {
         query =
-            "SELECT *"
+            "SELECT * "
             " FROM player_rating"
             " WHERE username='" + this->work.esc(user) + "'";
     } else {
@@ -65,16 +40,18 @@ std::vector<std::pair<std::string, Rating> > RatingDatabase::getRatings(const st
         
     pqxx::result result = work.exec(query);
 
-    std::vector<std::pair<std::string, Rating> > ratings;
+    std::vector<std::pair<std::string, PersistentRating> > ratings;
     foreach(r, result) {
-        Rating rating;
+        PersistentRating rating;
         std::string category;
         r->at("category").to(category);
-        r->at("rating").to(rating.rating());
-        r->at("volatility").to(rating.volatility());
-        r->at("wins").to(rating.wins());
-        r->at("losses").to(rating.losses());
-        r->at("draws").to(rating.draws());
+        r->at("rating").to(rating.rating);
+        r->at("volatility").to(rating.volatility);
+        r->at("wins").to(rating.wins);
+        r->at("losses").to(rating.defeats);
+        r->at("draws").to(rating.draws);
+        r->at("max_rating").to(rating.max_rating);
+        r->at("max_timestamp").to(rating.max_timestamp);
         ratings.push_back(std::make_pair(category, rating));
     }
 
@@ -97,7 +74,7 @@ std::string RatingDatabase::getUserType(const std::string& user)
     }
 }
 
-Rating RatingDatabase::getRatingForUpdate(const std::string& user, const std::string& category)
+PersistentRating RatingDatabase::getRatingForUpdate(const std::string& user, const std::string& category)
 {
     std::string query =
         "SELECT *"
@@ -109,27 +86,31 @@ Rating RatingDatabase::getRatingForUpdate(const std::string& user, const std::st
     pqxx::result r = work.exec(query);
 
     if(r.size() == 0) {
-        return Rating();
+        return PersistentRating();
     } else {
-        Rating rating;
-        r[0]["rating"].to(rating.rating());
-        r[0]["volatility"].to(rating.volatility());
-        r[0]["wins"].to(rating.wins());
-        r[0]["losses"].to(rating.losses());
-        r[0]["draws"].to(rating.draws());
+        PersistentRating rating;
+        r[0]["rating"].to(rating.rating);
+        r[0]["volatility"].to(rating.volatility);
+        r[0]["wins"].to(rating.wins);
+        r[0]["losses"].to(rating.defeats);
+        r[0]["draws"].to(rating.draws);
+        r[0]["max_rating"].to(rating.max_rating);
+        r[0]["max_timestamp"].to(rating.max_timestamp);
         return rating;
     }
 }
 
-void RatingDatabase::setRating(const std::string& user, const std::string& category, const Rating& rating)
+void RatingDatabase::setRating(const std::string& user, const std::string& category, const PersistentRating& rating)
 {
     std::string query =
         " UPDATE player_rating"
-        " SET rating=" + pqxx::to_string(rating.rating()) +
-            ",volatility=" + pqxx::to_string(rating.volatility()) +
-            ",wins=" + pqxx::to_string(rating.wins()) +
-            ",losses=" + pqxx::to_string(rating.losses()) +
-            ",draws=" + pqxx::to_string(rating.draws()) +
+        " SET rating=" + pqxx::to_string(rating.rating) +
+            ",volatility=" + pqxx::to_string(rating.volatility) +
+            ",wins=" + pqxx::to_string(rating.wins) +
+            ",losses=" + pqxx::to_string(rating.defeats) +
+            ",draws=" + pqxx::to_string(rating.draws) +
+            ",max_rating=" + pqxx::to_string(rating.max_rating) +
+            ",max_timestamp=" + pqxx::to_string(rating.max_timestamp) +
         " WHERE username='" + this->work.esc(user) + "'" +
           " AND category='" + this->work.esc(category) + "'";
         
@@ -143,11 +124,13 @@ void RatingDatabase::setRating(const std::string& user, const std::string& categ
             " INSERT INTO player_rating VALUES"
             "('" + this->work.esc(user) + "'" +
             ",'" + this->work.esc(category) + "'" +
-            ", "+ pqxx::to_string(rating.rating()) +
-            ", " + pqxx::to_string(rating.volatility()) +
-            ", " + pqxx::to_string(rating.wins()) +
-            ", " + pqxx::to_string(rating.draws()) +
-            ", " + pqxx::to_string(rating.losses()) + ")";
+            ", "+ pqxx::to_string(rating.rating) +
+            ", " + pqxx::to_string(rating.volatility) +
+            ", " + pqxx::to_string(rating.wins) +
+            ", " + pqxx::to_string(rating.draws) +
+            ", " + pqxx::to_string(rating.defeats) +
+            ", " + pqxx::to_string(rating.max_rating) +
+            ", " + pqxx::to_string(rating.max_timestamp) + ")";
         
         work.exec(query);
     }
