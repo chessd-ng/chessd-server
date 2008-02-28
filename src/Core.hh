@@ -53,6 +53,9 @@ class Core {
 		/*! \brief Connects all components.  */
 		void start();
 
+        /*! \brief Joins the core thread */
+        void join();
+
 		/*! \brief Singleton.  */
 		static Core& singleton() { return *Core::_singleton; }
 

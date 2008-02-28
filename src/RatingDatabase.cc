@@ -19,6 +19,9 @@
 #include "RatingDatabase.hh"
 
 #include "Util/utils.hh"
+#include "Util/Date.hh"
+
+using namespace boost::posix_time;
 
 RatingDatabase::RatingDatabase(pqxx::work& work) : work(work) { }
 
@@ -44,6 +47,7 @@ std::vector<std::pair<std::string, PersistentRating> > RatingDatabase::getRating
     foreach(r, result) {
         PersistentRating rating;
         std::string category;
+        time_t t;
         r->at("category").to(category);
         r->at("rating").to(rating.rating);
         r->at("volatility").to(rating.volatility);
@@ -51,10 +55,10 @@ std::vector<std::pair<std::string, PersistentRating> > RatingDatabase::getRating
         r->at("losses").to(rating.defeats);
         r->at("draws").to(rating.draws);
         r->at("max_rating").to(rating.max_rating);
-        r->at("max_timestamp").to(rating.max_timestamp);
+        r->at("max_timestamp").to(t);
+        rating.max_timestamp = from_time_t(t);
         ratings.push_back(std::make_pair(category, rating));
     }
-
     return ratings;
 }
 
@@ -89,13 +93,15 @@ PersistentRating RatingDatabase::getRatingForUpdate(const std::string& user, con
         return PersistentRating();
     } else {
         PersistentRating rating;
+        time_t t;
         r[0]["rating"].to(rating.rating);
         r[0]["volatility"].to(rating.volatility);
         r[0]["wins"].to(rating.wins);
         r[0]["losses"].to(rating.defeats);
         r[0]["draws"].to(rating.draws);
         r[0]["max_rating"].to(rating.max_rating);
-        r[0]["max_timestamp"].to(rating.max_timestamp);
+        r[0]["max_timestamp"].to(t);
+        rating.max_timestamp = from_time_t(t);
         return rating;
     }
 }
@@ -110,7 +116,7 @@ void RatingDatabase::setRating(const std::string& user, const std::string& categ
             ",losses=" + pqxx::to_string(rating.defeats) +
             ",draws=" + pqxx::to_string(rating.draws) +
             ",max_rating=" + pqxx::to_string(rating.max_rating) +
-            ",max_timestamp=" + pqxx::to_string(rating.max_timestamp) +
+            ",max_timestamp=" + pqxx::to_string(Util::ptime_to_time_t(rating.max_timestamp)) +
         " WHERE username='" + this->work.esc(user) + "'" +
           " AND category='" + this->work.esc(category) + "'";
         
@@ -130,7 +136,7 @@ void RatingDatabase::setRating(const std::string& user, const std::string& categ
             ", " + pqxx::to_string(rating.draws) +
             ", " + pqxx::to_string(rating.defeats) +
             ", " + pqxx::to_string(rating.max_rating) +
-            ", " + pqxx::to_string(rating.max_timestamp) + ")";
+            ", " + pqxx::to_string(Util::ptime_to_time_t(rating.max_timestamp)) + ")";
         
         work.exec(query);
     }

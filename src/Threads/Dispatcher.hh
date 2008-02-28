@@ -44,6 +44,8 @@ namespace Threads {
 
 			void stop();
 
+            void join();
+
 			void queue(const Message& message) {
 				this->_queue.push(message);
 			}

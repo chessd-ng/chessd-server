@@ -376,14 +376,14 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
         rating.max_timestamp = pratings[it->first].max_timestamp;
         if(rating.rating > rating.max_rating) {
             rating.max_rating = rating.rating;
-            rating.max_timestamp = time(NULL);
+            rating.max_timestamp = boost::posix_time::second_clock::local_time();
         }
         rating_database.setRating(it->first.partial(), category, rating);
     }
 
     game.players = result->players();
     game.category = category;
-    game.time_stamp = time(NULL);
+    game.time_stamp = boost::posix_time::second_clock::local_time();
 
     XML::Tag* history = result->history();
     game.history = history->xml();

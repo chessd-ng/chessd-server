@@ -27,12 +27,14 @@
 
 #include "Team.hh"
 
+#include "Util/Date.hh"
+
 struct PersistentGame {
     public:
         int id;
         PlayerResultList players;
         std::string category;
-        int time_stamp;
+        boost::posix_time::ptime time_stamp;
         std::string history;
 };
 
