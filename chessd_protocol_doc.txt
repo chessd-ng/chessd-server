@@ -101,7 +101,7 @@ may my break compatibility with previous versions.
 <iq from="game_0@games.shiva" type="set" id="0" to="raphaelhr@shiva/Psi" >
     <query xmlns="http://c3sl.ufpr.br/chessd#game#state">
         <state category="standard" >
-            <board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" turn="w" />
+            <board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" turn="white" />
             <player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" />
             <player inc="1" color="black" time="900" jid="eduari@shiva/Psi" />
         </state>
@@ -134,8 +134,8 @@ may my break compatibility with previous versions.
 <iq from="game_0@games.shiva" type="set" id="0" to="raphaelhr@shiva/Psi" >
     <query xmlns="http://c3sl.ufpr.br/chessd#game#state">
         <state category="standard" >
-        <move long='e2e4'>
-            <board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR" turn="w" />
+            <move long='e2e4'>
+            <board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR" turn="white" />
             <player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" />
             <player inc="1" color="black" time="900" jid="eduari@shiva/Psi" />
         </state>
@@ -263,4 +263,20 @@ may my break compatibility with previous versions.
 	<moves movetext="e2e4 900 e7e5 900 d1f3 895 a7a6 889 f1c4 893 a6a5 885 f3f7 890"/>
 	<player color="white" time="900" jid="raphaelhr@shiva/Psi" score="1"/>
 	<player color="black" time="900" jid="eduari@shiva/Psi" score="0"/>
+</history>
+
+<!--
+other history
+--!>
+
+<history category='standard'>
+	<player color='white' jid='Link@Hyrule/psi' time='660'/>
+	<player color='black' jid='Sonic@ChaosEmeralds/psi' time='660'/>
+	<state board='rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR' move='e2e4' time='660' turn='black'/>
+	<state board='rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR' move='e7e5' time='660' turn='white'/>
+	<state board='rnbqkbnr/pppp1ppp/8/4p3/4P3/5Q2/PPPP1PPP/RNB1KBNR' move='d1f3' time='661' turn='black'/>
+	<state board='rnbqkbnr/1ppp1ppp/p7/4p3/4P3/5Q2/PPPP1PPP/RNB1KBNR' move='a7a6' time='661' turn='white'/>
+	<state board='rnbqkbnr/1ppp1ppp/p7/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR' move='f1c4' time='662' turn='black'/>
+	<state board='rnbqkbnr/1ppp1ppp/8/p3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR' move='a6a5' time='662' turn='white'/>
+	<state board='rnbqkbnr/1ppp1Qpp/8/p3p3/2B1P3/8/PPPP1PPP/RNB1K1NR' move='f3f7' time='663' turn='black'/>
 </history>
