@@ -17,28 +17,48 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <exception>
 
 #include "Core.hh"
 #include "I18n.hh"
+#include "Util/Log.hh"
 
 using namespace std;
 
 int main(int argc, char** argv) {
+    fstream log_file;
+    
 	try {
+        /* Load config file */
         std::string file_name = (argc>=2) ? argv[1] : "config.xml";
 		std::auto_ptr<XML::Tag> config(XML::parseXmlFile(file_name));
 
+        /* Load translations */
         i18n.loadLangs("langs");
 
+        /* Set log output */
+        try {
+            log_file.open(config->findChild("log").getAttribute("filename").c_str(), iostream::out);
+            if(not log_file.fail()) {
+                Util::log.setOutput(log_file);
+            } else {
+                cerr << "Failed to open log file" << endl;
+            }
+        } catch (XML::xml_error) {
+            /* Log file is not set in the config */
+        }
+
+        /* Start the server */
 		Core::init(*config);
 		Core& core = Core::singleton();
         core.start();
 
-        /* Run until any input is given */
-		string cmd;
-		cin >> cmd;
+        /* Run until the server shutdown on its own */
+        core.join();
+
+        /* Close the server */
 		Core::close();
 	} catch (const char* msg) {
 		cout << "Error: " << msg << endl;

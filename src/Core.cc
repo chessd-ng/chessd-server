@@ -46,6 +46,10 @@ void Core::start() {
 	this->rating_component.connect();
 }
 
+void Core::join() {
+    this->dispatcher.join();
+}
+
 Core::~Core() {
 	this->rating_component.close();
 	this->game_manager.close();

@@ -24,4 +24,7 @@
         user="raphael"
         password="raphael"
     />
+    <log
+        filename="log/chessd.log"
+    />
 </server>

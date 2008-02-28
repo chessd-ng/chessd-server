@@ -57,9 +57,13 @@ namespace Threads {
 		 * will stop. */
 		if(this->running == true) {
 			this->queue(boost::bind(&Dispatcher::_stop, this));
-			this->task.join();
+			this->join();
 		}
 	}
+
+    void Dispatcher::join() {
+        this->task.join();
+    }
 
 	void Dispatcher::_stop() {
 		this->running = false;
