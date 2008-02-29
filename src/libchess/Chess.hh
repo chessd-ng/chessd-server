@@ -39,7 +39,13 @@ class Chess : public ChessBasedGame {
 		 * \return true if the move is valid
 		 * \return false if the move isn't valid
 		 * */
-		virtual bool verifyAndMakeMove(const std::string &jogada);
+		virtual bool verifyAndMakeMove(const std::string &mv);
+
+		/*! \brief This functions consider the move is valid,
+		 * does not check anything, just make the move specified
+		 * by "mv"
+		*/
+		void makeMove(const std::string& mv);
 
 		/*! \brief verify if a player has won*/
 		virtual bool verifyCheckMate() const;
