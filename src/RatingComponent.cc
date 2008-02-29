@@ -24,6 +24,8 @@
 #include "Exception.hh"
 #include "XMPP/Exception.hh"
 
+#include "HistoryProcess.hh"
+
 using namespace std;
 using namespace XML;
 using namespace XMPP;
@@ -118,6 +120,7 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
     int max_results = 50;
     int offset = 0;
 
+    /* Parse request */
     const Tag& query = stanza.findChild("query");
     const Tag& search_tag = query.findChild("search");
     if(search_tag.hasAttribute("offset")) {
@@ -130,12 +133,14 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
         if(field->name() == "player") {
             players.push_back(field->getAttribute("jid"));
         } else {
-
+            /* for later use */
         }
     }
     
+    /* Search in the database */
     std::vector<PersistentGame> games = game_database.searchGames(players, offset, max_results);
 
+    /* Create result */
     generator.openTag("iq");
     generator.addAttribute("to", stanza.from().full());
     generator.addAttribute("from", stanza.to().full());
@@ -144,12 +149,11 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
     generator.openTag("query");
     generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_SEARCH);
 
-    /* FIXME */
     foreach(game, games) {
         generator.openTag("game");
         generator.addAttribute("id", Util::to_string(game->id));
         generator.addAttribute("category", game->category);
-        generator.addAttribute("time_stamp", Util::to_string(game->time_stamp));
+        generator.addAttribute("time_stamp", Util::ptime_to_xmpp_date_time(game->time_stamp));
         foreach(player, game->players) {
             generator.openTag("player");
             generator.addAttribute("jid", player->jid.partial());
@@ -159,6 +163,8 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
         }
         generator.closeTag();
     }
+
+    /* Send result */
     this->sendStanza(new XMPP::Stanza(generator.getTag()));
 }
 
@@ -168,11 +174,13 @@ void RatingComponent::fetchGame(const Stanza& stanza, DatabaseInterface& databas
             GameDatabase& game_database = database.game_database;
             XML::TagGenerator generator;
 
+            /* Parse request */
             const Tag& query = stanza.findChild("query");
             const Tag& game_tag = query.findChild("game");
             int game_id = Util::parse_string<int>(game_tag.getAttribute("id"));
             std::string game_history = game_database.getGameHistory(game_id);
 
+            /* Create result */
             generator.openTag("iq");
             generator.addAttribute("to", stanza.from().full());
             generator.addAttribute("from", stanza.to().full());
@@ -180,7 +188,7 @@ void RatingComponent::fetchGame(const Stanza& stanza, DatabaseInterface& databas
             generator.addAttribute("type", "result");
             generator.openTag("query");
             generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_FETCH);
-            generator.addChild(XML::parseXmlString(game_history));
+            generator.addChild(HistoryProcess::generate(XML::parseXmlString(game_history)));
             this->sendStanza(new XMPP::Stanza(generator.getTag()));
         } catch(const XML::xml_error& error) {
             throw XMPP::bad_request("Invalid format");
