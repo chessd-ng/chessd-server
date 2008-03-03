@@ -63,7 +63,7 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 
 			s >> new_time;
 
-			new_history.addChild(generateStateTag(chess.getState(),new_time,move));
+			new_history.addChild(generateStateTag(chess.getChessState(),new_time,move));
 		}
 		new_history.closeTag();
 	}

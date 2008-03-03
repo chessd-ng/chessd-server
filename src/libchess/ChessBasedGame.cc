@@ -21,13 +21,13 @@
 
 ChessBasedGame::ChessBasedGame(int n, int m) : BoardGame(n,m) {
 	this->gameboard=new ChessBoard(n,m);
-	this->current_state = new ChessState();
+
 	this->history = new ChessHistory();
 }
 
 ChessBasedGame::~ChessBasedGame() {
 	delete this->gameboard;
-	delete this->current_state;
+
 	delete this->history;
 }
 
@@ -246,9 +246,9 @@ bool ChessBasedGame::verifyPawnMove(const ChessMove& mv) const {
 	}
 	//enpassant or capturing in diagonal
 	else if( (disty == 1) and (distx == 1) ) {
-		if( (static_cast<ChessState*>(this->current_state))->enpassant == to)
+		if(this->gameboard->color(to) != ChessPiece::NOCOLOR)
 			return true;
-		else if(this->gameboard->color(to) != ChessPiece::NOCOLOR)
+		else if( this->getChessState().enpassant == to)
 			return true;
 		return false;
 	}
@@ -322,7 +322,7 @@ bool ChessBasedGame::verifyKingMove(const ChessMove& mv) const {
 				queen='Q';	king='K';
 			}
 			//castle
-			std::string castle=(static_cast<ChessState*>(this->current_state))->castle;
+			std::string castle=(this->getChessState().castle);
 			if((distx > 0 and (castle.find(queen,0) < castle.size())) or ((distx<0)and(castle.find(king,0) < castle.size()))) {
 				//verify if there's someone between the rook and the king
 				if(verifyRookMove(ChessMove(distx>0?Position(0,mv.to().y):Position(7,mv.to().y),Position(mv.from().x-distx/abs(distx),mv.to().y),mv.color()))==false)

@@ -29,6 +29,8 @@ class Chess : public ChessBasedGame {
 		/*! \brief Constructor function that iniciates an Internation Chess game, given the FEN*/
 		Chess(const std::string& FEN);
 
+		~Chess();
+
 		/*! \return the winner player*/
 		virtual int winner() const ;
 
@@ -43,7 +45,8 @@ class Chess : public ChessBasedGame {
 
 		/*! \brief This functions consider the move is valid,
 		 * does not check anything, just make the move specified
-		 * by "mv"
+		 * by "mv". Don't use this method unless you know
+		 * for sure the move is correct
 		*/
 		void makeMove(const std::string& mv);
 
@@ -53,9 +56,8 @@ class Chess : public ChessBasedGame {
 		/*! \brief verify if the game ended on a draw*/
 		virtual int verifyDraw() const ;
 
-		//TODO fazer uma virtual dessa funcao
 		/*! \return return the current state*/
-		const ChessState& getState() const;
+		virtual const ChessState& getChessState() const;
 	protected:
 		/*! \brief puts the new State on history*/
 		void updateHistory();
@@ -67,22 +69,22 @@ class Chess : public ChessBasedGame {
 
 	private:
 		/*! \brief Verify is a given move is valid. This is a high level function*/
-		bool verifyMove(const ChessMove& j) const;
+		bool verifyMove(const ChessMove& mv) const;
 
 		bool willBeInCheck(const ChessMove& mv) const;
 
 		/*! \brief make a given move and does not verify anything, just makes the move*/
-		void makeMove(const ChessMove &j) const; //FIXME this const is not good
+		void makeMove(const ChessMove &mv) const; //FIXME this const is not good
 
 		/*! \brief Considering the given move is valid, this function
 		 * updates the state, history, board and turn */
-		void updateMove(const ChessMove &j);
+		void updateMove(const ChessMove &mv);
 
 		/*! \brief update The State, considering one move was made*/
 		//FIXME captured shouldn't be here
-		void updateState(const ChessMove& j,bool capatured);
+		void updateState(const ChessMove& mv,bool capatured);
 
-		bool verifyCastle(const ChessMove& j) const;
+		bool verifyCastle(const ChessMove& mv) const;
 
 		/*! \brief Verify if the Game is Draw by stalemate*/
 		bool verifyStaleMate(int player) const;

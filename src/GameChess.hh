@@ -35,6 +35,8 @@ class GameChess : public Game {
 	public:
 		GameChess(const StandardPlayerList& _players, const std::string &category);
 
+		GameChess(XML::Tag* adjourned_game);
+
 		virtual ~GameChess() {};
 
 		virtual XML::Tag* state(const Util::Time& current_time) const;
@@ -42,7 +44,7 @@ class GameChess : public Game {
 		virtual XML::Tag* history() const;
 
 		virtual const std::string& category() const;
-		
+
 		/*! \brief function to return the title of the game
 		 * \return returns the full jids of the player separated by an "x" */
 		virtual const std::string& title() const;
@@ -56,7 +58,7 @@ class GameChess : public Game {
 		/*! \brief The players agreed on a draw */
 		virtual void draw();
 
-		virtual void adjourn(); //TODO
+		virtual AdjournedGame* adjourn(); //TODO
 
 		/*! \brief Has the game ended?
 		 * \return Returns the game result if the game is over, NULL otherwise.
@@ -66,8 +68,6 @@ class GameChess : public Game {
 		virtual GameResult* result() const = 0;
 
 		virtual void move(const Player& player, const std::string& movement, const Util::Time& time_stamp);
-
-		virtual const TeamList& teams() const;
 
 	protected:
 		/*! \brief returns the end reason if the game has ended*/
@@ -92,6 +92,8 @@ class GameChess : public Game {
 
 		int initial_time;
 
+		int turns_restart;
+
 		end_reason _done;
 
 		Chess::Color _resign;
@@ -115,7 +117,7 @@ class ChessGameResult : public GameResult {
 	public:
 		ChessGameResult(const std::string& endreason,const PlayerResultList &l,const std::string& _category,XML::Tag *hist);
 
-		virtual ~ChessGameResult(){};
+		virtual ~ChessGameResult();
 
 		virtual const std::string& category() const;
 
@@ -137,6 +139,21 @@ class ChessGameResult : public GameResult {
 		std::string _category;
 
 		XML::Tag *_history;
+};
+
+class ChessAdjournedGame : public AdjournedGame {
+	public:
+		ChessAdjournedGame(XML::Tag* history, const PlayerList& list);
+
+		~ChessAdjournedGame();
+
+		virtual XML::Tag* history() const;
+
+		virtual const PlayerList& players() const;
+	private:
+		XML::Tag* _history;
+
+		PlayerList _players;
 };
 
 #endif
