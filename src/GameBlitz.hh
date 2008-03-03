@@ -25,6 +25,8 @@ class GameBlitz : public GameChess {
 	public:
 		GameBlitz(const StandardPlayerList& _players);
 
+		GameBlitz(XML::Tag* adjourned_game) : GameChess(adjourned_game) { };
+
 		virtual ~GameBlitz() {};
 
 		virtual GameResult* result() const;

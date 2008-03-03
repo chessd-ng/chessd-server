@@ -25,6 +25,8 @@ class GameLightning : public GameChess {
 	public:
 		GameLightning(const StandardPlayerList& _players);
 
+		GameLightning(XML::Tag* adjourned_game) : GameChess(adjourned_game) { };
+
 		virtual ~GameLightning() {};
 
 		virtual GameResult* result() const;

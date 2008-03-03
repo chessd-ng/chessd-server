@@ -23,9 +23,14 @@
 #include <stdlib.h>
 
 Chess::Chess() : ChessBasedGame(8,8) {
-	this->putPieces();
-	this->history->putInHistory(this->current_state);
 	this->current_state=new ChessState();
+
+	this->putPieces();
+
+	this->history->putInHistory(this->current_state);
+
+	this->current_state=new ChessState();
+
 	this->_turn=WHITE;
 }
 
@@ -37,6 +42,10 @@ Chess::Chess(const std::string& FEN) : ChessBasedGame(8,8) {
 	this->history->putInHistory(new ChessState(FEN));
 
 	this->setState(FEN.substr(0,FEN.find(' ')));
+}
+
+Chess::~Chess() {
+	delete this->current_state;
 }
 
 int Chess::winner() const {
@@ -66,7 +75,7 @@ bool Chess::verifyAndMakeMove(const std::string& move) {
 		if(toupper(move[4])!='Q' and toupper(move[4])!='N' and toupper(move[4])!='B' and toupper(move[4])!='R')
 			return false;
 
-	ChessMove cm(_turn,move);
+	ChessMove cm(this->_turn,move);
 	if(verifyMove(cm) == true) {
 		updateMove(cm);
 		return true;
@@ -74,8 +83,12 @@ bool Chess::verifyAndMakeMove(const std::string& move) {
 	return false;
 }
 
+void Chess::makeMove(const std::string& mv) {
+	updateMove(ChessMove(this->_turn,mv));
+}
+
 bool Chess::verifyCheckMate() const {
-	return verifyCheckMate(WHITE)?true:verifyCheckMate(BLACK);
+	return verifyCheckMate(this->_turn);
 }
 
 int Chess::verifyDraw() const {
@@ -85,7 +98,7 @@ int Chess::verifyDraw() const {
 	if(verifyImpossibilityOfCheckmate()==true)
 		return 2;
 
-	if(static_cast<ChessState*>(current_state)->halfmoves >= 50)
+	if(this->getChessState().halfmoves >= 50)
 		return 3;
 
 	if(verifyStaleMate(this->_turn)==true)
@@ -94,7 +107,7 @@ int Chess::verifyDraw() const {
 	return 0;
 }
 
-const ChessState& Chess::getState() const {
+const ChessState& Chess::getChessState() const {
 	return *(static_cast<ChessState*>(this->current_state));
 }
 
@@ -173,7 +186,7 @@ void Chess::makeMove(const ChessMove &mv) const {
 }
 
 void Chess::updateMove(const ChessMove &mv) {
-	bool has_eaten = verifyEnPassant(mv) or (this->gameboard->color(mv.to())!=-1);
+	bool captured = verifyEnPassant(mv) or (this->gameboard->color(mv.to())!=-1);
 	this->makeMove(mv);
 
 	//Is the Pawn at the end of the tab? 
@@ -188,18 +201,18 @@ void Chess::updateMove(const ChessMove &mv) {
 				this->gameboard->createPiece(mv.to(),new ChessPiece(ChessPiece::QUEEN,(ChessPiece::PieceColor)(mv.color())));
 		}
 	}
-	this->updateState(mv,has_eaten);
+	this->updateState(mv,captured);
 	this->updateHistory();
 	this->updateTurn();
 }
 
 //if this function is called, then the move is valid
-void Chess::updateState(const ChessMove& j, bool has_eaten) {
+void Chess::updateState(const ChessMove& mv, bool captured) {
 	ChessState* current_state = static_cast<ChessState*>(this->current_state);
 
 	current_state->enpassant=Position(-1,-1);
 
-	if(j.color() == BLACK)
+	if(mv.color() == BLACK)
 		current_state->fullmoves++;
 
 	current_state->board_fen = this->getPosForFEN();
@@ -207,21 +220,21 @@ void Chess::updateState(const ChessMove& j, bool has_eaten) {
 	current_state->halfmoves++;
 
 	//FIXME this code is horrible.
-	if((this->gameboard->getType(j.to()) == ChessPiece::PAWN) or has_eaten)
+	if((this->gameboard->getType(mv.to()) == ChessPiece::PAWN) or captured)
 		current_state->halfmoves=0;
 
 	//if the pawn moved 2 squares...
-	if(this->gameboard->getType(j.to()) == ChessPiece::PAWN) {
-		if( abs(j.to().y - j.from().y) == 2) {
-			current_state->enpassant = Position(j.to().x, (int)((j.color() == 0 )? (j.to().y-1) : (j.to().y+1) ) );
+	if(this->gameboard->getType(mv.to()) == ChessPiece::PAWN) {
+		if( abs(mv.to().y - mv.from().y) == 2) {
+			current_state->enpassant = Position(mv.to().x, (int)((mv.color() == 0 )? (mv.to().y-1) : (mv.to().y+1) ) );
 		}
 	}
 
 	//Has the king moved?
-	if(this->gameboard->getType(j.to()) == ChessPiece::KING) {
+	if(this->gameboard->getType(mv.to()) == ChessPiece::KING) {
 		char king, queen;
-		king = ((j.color() == 0)? 'K' : 'k');
-		queen = ((j.color() == 0) ? 'Q' : 'q');
+		king = ((mv.color() == 0)? 'K' : 'k');
+		queen = ((mv.color() == 0) ? 'Q' : 'q');
 		if(current_state->castle.find(king) < current_state->castle.size())
 			current_state->castle.erase(current_state->castle.find(king),1);
 		if(current_state->castle.find(queen) < current_state->castle.size())
@@ -231,23 +244,19 @@ void Chess::updateState(const ChessMove& j, bool has_eaten) {
 	}
 	//Are the Rooks at their initial places?
 	{
-		Position p[2];
-		char king = ((j.color() == 0) ? 'K' : 'k');
-		char queen = ((j.color() == 0) ? 'Q' : 'q');
-		if(j.color() == 0) {
-			p[0]=Position(0,0);p[1]=Position(7,0);
-		}
-		else {
-			p[0]=Position(0,7);p[1]=Position(7,7);
-		}
-		if ( this->gameboard->getType(p[0]) != ChessPiece::ROOK ){
-			if(current_state->castle.find(queen) < current_state->castle.size())
-				current_state->castle.erase(current_state->castle.find(queen),1);
-		}
-		if ( this->gameboard->getType(p[1]) != ChessPiece::ROOK ){
-			if(current_state->castle.find(king) < current_state->castle.size())
-				current_state->castle.erase(current_state->castle.find(king),1);
-		}
+		std::pair<Position,char> p[4];
+		char rooks[4];
+		rooks[0]=rooks[1]='R';
+		rooks[2]=rooks[3]='r';
+		p[0]=std::make_pair(Position(0,0),'Q');
+		p[1]=std::make_pair(Position(7,0),'K');
+		p[2]=std::make_pair(Position(0,7),'q');
+		p[3]=std::make_pair(Position(7,7),'k');
+		for(int i=0;i<4;i++)
+			if ( this->gameboard->getPieceReal(p[i].first) != rooks[i] )
+				if(current_state->castle.find(p[i].second) < current_state->castle.size())
+					current_state->castle.erase(current_state->castle.find(p[i].second),1);
+
 		if(current_state->castle.size() == 0)
 			current_state->castle="-";
 	}
@@ -267,8 +276,8 @@ bool Chess::verifyStaleMate(int player) const {
 	for(int i=0; i<this->nlines;i++) 
 		for(int j=0;j<this->ncolums;j++) 
 			if( this->gameboard->color(Position(j,i)) == player ) {
-				Position onde(j,i);
-				std::vector <Position> *p=getPositions(onde);
+				Position pos(j,i);
+				std::vector <Position> *p=getPositions(pos);
 				if(p->size()>0) {
 					delete p;
 					return false;
@@ -280,10 +289,10 @@ bool Chess::verifyStaleMate(int player) const {
 
 bool Chess::verifyThreefoldRepetition() const {
 	int count=1;
-	ChessHistory *history=static_cast<ChessHistory*>(this->history);
+	ChessHistory &history=*static_cast<ChessHistory*>(this->history);
 	//only needs to verify "halfmoves" for equal states
-	for(int i=1;i<=(*history)[history->size()-1].halfmoves;i++)
-		if((*history)[history->size()-1-i]==(*history)[history->size()-1])
+	for(int i=1;i<=history[history.size()-1].halfmoves;i++)
+		if(history[history.size()-1-i]==history[history.size()-1])
 			count++;
 	if(count>=3)
 		return true;
@@ -328,39 +337,39 @@ bool Chess::verifyImpossibilityOfCheckmate() const {
 
 void Chess::putPieces() {
 	Position p(0,0);
-	ChessPiece::PieceColor j=ChessPiece::WHITE;
+	ChessPiece::PieceColor player=ChessPiece::WHITE;
 	//maybe just set state is fine
-	this->gameboard->createPiece(Position(1,0),new ChessPiece(ChessPiece::KNIGHT,j));
-	this->gameboard->createPiece(Position(6,0),new ChessPiece(ChessPiece::KNIGHT,j));
-	this->gameboard->createPiece(Position(0,1),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(1,1),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(2,1),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(3,1),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(4,1),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(5,1),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(6,1),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(7,1),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(0,0),new ChessPiece(ChessPiece::ROOK,j));
-	this->gameboard->createPiece(Position(7,0),new ChessPiece(ChessPiece::ROOK,j));
-	this->gameboard->createPiece(Position(2,0),new ChessPiece(ChessPiece::BISHOP,j));
-	this->gameboard->createPiece(Position(5,0),new ChessPiece(ChessPiece::BISHOP,j));
-	this->gameboard->createPiece(Position(3,0),new ChessPiece(ChessPiece::QUEEN,j));
-	this->gameboard->createPiece(Position(4,0),new ChessPiece(ChessPiece::KING,j));
-	j=ChessPiece::BLACK;
-	this->gameboard->createPiece(Position(1,7),new ChessPiece(ChessPiece::KNIGHT,j));
-	this->gameboard->createPiece(Position(6,7),new ChessPiece(ChessPiece::KNIGHT,j));
-	this->gameboard->createPiece(Position(0,6),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(1,6),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(2,6),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(3,6),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(4,6),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(5,6),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(6,6),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(7,6),new ChessPiece(ChessPiece::PAWN,j));
-	this->gameboard->createPiece(Position(0,7),new ChessPiece(ChessPiece::ROOK,j));
-	this->gameboard->createPiece(Position(7,7),new ChessPiece(ChessPiece::ROOK,j));
-	this->gameboard->createPiece(Position(2,7),new ChessPiece(ChessPiece::BISHOP,j));
-	this->gameboard->createPiece(Position(5,7),new ChessPiece(ChessPiece::BISHOP,j));
-	this->gameboard->createPiece(Position(3,7),new ChessPiece(ChessPiece::QUEEN,j));
-	this->gameboard->createPiece(Position(4,7),new ChessPiece(ChessPiece::KING,j));
+	this->gameboard->createPiece(Position(1,0),new ChessPiece(ChessPiece::KNIGHT,player));
+	this->gameboard->createPiece(Position(6,0),new ChessPiece(ChessPiece::KNIGHT,player));
+	this->gameboard->createPiece(Position(0,1),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(1,1),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(2,1),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(3,1),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(4,1),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(5,1),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(6,1),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(7,1),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(0,0),new ChessPiece(ChessPiece::ROOK,player));
+	this->gameboard->createPiece(Position(7,0),new ChessPiece(ChessPiece::ROOK,player));
+	this->gameboard->createPiece(Position(2,0),new ChessPiece(ChessPiece::BISHOP,player));
+	this->gameboard->createPiece(Position(5,0),new ChessPiece(ChessPiece::BISHOP,player));
+	this->gameboard->createPiece(Position(3,0),new ChessPiece(ChessPiece::QUEEN,player));
+	this->gameboard->createPiece(Position(4,0),new ChessPiece(ChessPiece::KING,player));
+	player=ChessPiece::BLACK;
+	this->gameboard->createPiece(Position(1,7),new ChessPiece(ChessPiece::KNIGHT,player));
+	this->gameboard->createPiece(Position(6,7),new ChessPiece(ChessPiece::KNIGHT,player));
+	this->gameboard->createPiece(Position(0,6),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(1,6),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(2,6),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(3,6),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(4,6),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(5,6),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(6,6),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(7,6),new ChessPiece(ChessPiece::PAWN,player));
+	this->gameboard->createPiece(Position(0,7),new ChessPiece(ChessPiece::ROOK,player));
+	this->gameboard->createPiece(Position(7,7),new ChessPiece(ChessPiece::ROOK,player));
+	this->gameboard->createPiece(Position(2,7),new ChessPiece(ChessPiece::BISHOP,player));
+	this->gameboard->createPiece(Position(5,7),new ChessPiece(ChessPiece::BISHOP,player));
+	this->gameboard->createPiece(Position(3,7),new ChessPiece(ChessPiece::QUEEN,player));
+	this->gameboard->createPiece(Position(4,7),new ChessPiece(ChessPiece::KING,player));
 }

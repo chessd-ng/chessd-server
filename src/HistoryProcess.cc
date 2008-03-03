@@ -59,12 +59,11 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 		std::stringstream s(history_tag->findChild("moves").getAttribute("movetext"));
 		std::string move;
 		for(int i=0;s >> move;i++) {
-			if(!chess.verifyAndMakeMove(move))
-				throw XML::xml_error("move of history's tag is invalid");
+			chess.makeMove(move);
 
 			s >> new_time;
 
-			new_history.addChild(generateStateTag(chess.getState(),new_time,move));
+			new_history.addChild(generateStateTag(chess.getChessState(),new_time,move));
 		}
 		new_history.closeTag();
 	}

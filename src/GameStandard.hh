@@ -25,6 +25,8 @@ class GameStandard : public GameChess {
 	public:
 		GameStandard(const StandardPlayerList& _players);
 
+		GameStandard(XML::Tag* adjourned_game) : GameChess(adjourned_game) { };
+
 		virtual ~GameStandard() {};
 
 		virtual GameResult* result() const;

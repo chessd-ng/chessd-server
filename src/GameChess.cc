@@ -28,26 +28,73 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 	this->_category=_category;
 	this->_players=_players;
 
-	foreach(it,_players)
-		this->_teams.push_back(Team(1,it->jid));
+	/*
+	 * 0 is white
+	 * 1 is black
+	*/
+	if(this->_players[0].color==Black)
+		std::swap(this->_players[0],this->_players[1]);
 
 	foreach(it,this->_players)
 		standard_player_map[it->jid]=&(*it);
 
-	this->colormap[this->_teams[0][0]]=_players[0].color==White?Chess::WHITE:Chess::BLACK;
-	this->colormap[this->_teams[1][0]]=_players[1].color==White?Chess::WHITE:Chess::BLACK;
+	this->colormap[this->_players[0].jid]=this->_players[0].color==White?Chess::WHITE:Chess::BLACK;
+	this->colormap[this->_players[1].jid]=this->_players[1].color==White?Chess::WHITE:Chess::BLACK;
 
-	if(_players[0].color==White)
-		this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
-	else
-		this->_title=this->_players[1].jid.partial()+" x "+this->_players[0].jid.partial();
+	this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
 
-	this->initial_time=_players[0].time.getSeconds()+0.001;
+	this->initial_time=this->_players[0].time.getSeconds()+0.001;
 
 	//These three are set only for ending reasons
 	this->_resign=Chess::UNDEFINED;
 	this->time_over=-1;
 	this->_done=NOREASON;
+	this->turns_restart=0;
+}
+
+GameChess::GameChess(XML::Tag* adjourned_game) {
+	this->_category=adjourned_game->getAttribute("category");
+
+	foreach(it,adjourned_game->tags()) {
+		if(it->name()=="player") {
+			this->_players.push_back(StandardPlayer(XMPP::Jid(it->getAttribute("jid")),
+						Util::Time(it->getAttribute("time"),Util::Seconds),
+						Util::Time(it->getAttribute("inc"),Util::Seconds),
+						StandardPlayerColor(it->getAttribute("color")=="white"?White:Black)));
+			this->colormap[this->_players.rbegin()->jid]=this->_players.rbegin()->color==White?Chess::WHITE:Chess::BLACK;
+			this->initial_time=Util::parse_string<int>(it->getAttribute("time"));
+		}
+		else {
+			this->history_moves=it->getAttribute("movetext")+" ";
+		}
+	}
+	/*
+	 * 0 is white
+	 * 1 is black
+	 */
+	if(this->_players[0].color==Black)
+		std::swap(this->_players[0],this->_players[1]);
+
+	foreach(it,this->_players)
+		standard_player_map[it->jid]=&(*it);
+
+	std::stringstream ss(this->history_moves);
+	std::string mv;
+	for(int i=0 ; ss >> mv ; i=(i+1)%2) {
+		this->chess.makeMove(mv);
+		int time;
+		ss >> time;
+		this->_players[i].time=time * Util::Seconds;
+	}
+
+	this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
+
+	this->time_of_last_move=Util::Time();
+	this->initial_time=this->_players[0].time.getSeconds()+0.001;
+	this->_resign=Chess::UNDEFINED;
+	this->time_over=-1;
+	this->turns_restart=0;
+	this->_done=(end_reason)realDone();
 }
 
 XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& current_time) const {
@@ -73,7 +120,7 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 		{   
 			t.addAttribute("jid",it->jid.full());
 			Util::Time aux=it->time;
-			if( ( chess.turn()==(colormap.find(it->jid)->second) ) and (chess.numberOfTurns() >= 2) and (this->_done==NOREASON or this->_done==TIMEOVER))
+			if( ( chess.turn()==(colormap.find(it->jid)->second) ) and (this->turns_restart >= 2) and (this->_done==NOREASON or this->_done==TIMEOVER))
 				aux-=current_time-time_of_last_move;
 			
 			//XXX be careful with double from getSeconds
@@ -88,7 +135,7 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 }
 
 XML::Tag* GameChess::state(const Util::Time& current_time) const {
-	return (generateStateTag(chess.getState(),current_time));
+	return (generateStateTag(chess.getChessState(),current_time));
 }
 
 XML::Tag* GameChess::history() const {
@@ -117,13 +164,22 @@ void GameChess::draw() {
 	this->_done=DRAWAGREED;
 }
 
-void GameChess::adjourn() {
-	//TODO
+AdjournedGame* GameChess::adjourn() {
+	PlayerList p;
+	foreach(it,this->_players)
+		p.push_back(it->jid);
+
+	XML::Tag* hist=this->generateHistoryTag();
+	foreach(it,hist->tags())
+		if(it->name()=="player")
+			it->attributes().erase("score");
+
+	return new ChessAdjournedGame(hist,p);
 }
 
 bool GameChess::done(const Util::Time& current_time) {
 	if(this->_done==NOREASON) {
-		if(this->chess.numberOfTurns() >= 2)
+		if(this->turns_restart >= 2)
 			foreach(it,standard_player_map)
 				if(it->second->time+(this->colormap[it->first]==this->chess.turn()?this->time_of_last_move-current_time:Util::Time()) <= Util::Time()) {
 					this->time_over=it->second->color;
@@ -199,7 +255,7 @@ void GameChess::move(const Player& player, const std::string& movement, const Ut
 	if(this->_done!=0)
 		return;
 
-	if(chess.numberOfTurns() >= 2) {
+	if(this->turns_restart >= 2) {
 		if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time())
 			return;
 		this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
@@ -212,6 +268,8 @@ void GameChess::move(const Player& player, const std::string& movement, const Ut
 		throw invalid_move("Invalid Move");
 
 	time_of_last_move=time_stamp;
+
+	this->turns_restart++;
 
 	this->_done=(end_reason)realDone();
 
@@ -241,6 +299,8 @@ XML::Tag* GameChess::generateHistoryTag() const {
 
 			gen.addAttribute("time",Util::to_string(this->initial_time));
 
+			gen.addAttribute("inc",Util::to_string<int>(this->_players[0].inc.getSeconds()+0.001));
+
 			gen.closeTag();
 		}
 		gen.closeTag();
@@ -248,9 +308,6 @@ XML::Tag* GameChess::generateHistoryTag() const {
 	return gen.getTag();
 }
 
-const TeamList& GameChess::teams() const {
-	return this->_teams;
-}
 //--------------------------------------
 //CHESS GAME RESULT Stuff
 //--------------------------------------
@@ -259,6 +316,10 @@ ChessGameResult::ChessGameResult(const std::string &endreason,const PlayerResult
 	this->_end_reason=endreason;
 	this->player_result_list=prl;
 	this->_category=__category;
+}
+
+ChessGameResult::~ChessGameResult() {
+	delete this->_history;
 }
 
 const std::string& ChessGameResult::category() const {
@@ -274,7 +335,7 @@ const PlayerResultList& ChessGameResult::players() const {
 }
 
 XML::Tag* ChessGameResult::history() const {
-	return this->_history;
+	return new XML::Tag(*this->_history);
 }
 
 void ChessGameResult::updateRating(std::map<Player, Rating> &ratings) const {
@@ -330,4 +391,23 @@ void ChessGameResult::updateRating(std::map<Player, Rating> &ratings) const {
 	for(i=0;i<(int)playerrating.size();i++) {
 		ratings[playerlist[i]]=playerrating[i];
 	}
+}
+
+//--------------------------------------
+//CHESS ADJOURNED GAME Stuff
+//--------------------------------------
+
+ChessAdjournedGame::ChessAdjournedGame(XML::Tag* __history, const PlayerList& __players) : _history(__history), _players(__players) {
+}
+
+ChessAdjournedGame::~ChessAdjournedGame() {
+	delete this->_history;
+}
+
+XML::Tag* ChessAdjournedGame::history() const {
+	return new XML::Tag(*this->_history);
+}
+
+const PlayerList& ChessAdjournedGame::players() const {
+	return this->_players;
 }

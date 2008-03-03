@@ -62,6 +62,15 @@ class GameResult {
 
 //typedef XML::Tag GameState;
 
+class AdjournedGame {
+	public:
+		virtual ~AdjournedGame() { }
+
+		virtual XML::Tag* history() const=0;
+
+		virtual const PlayerList& players() const=0;
+};
+
 class Game {
 	public:
 		virtual ~Game() { }
@@ -91,7 +100,7 @@ class Game {
 		virtual void draw() = 0;
 
 		/*! \brief The players agreed on a draw. */
-		virtual void adjourn() = 0;
+		virtual AdjournedGame* adjourn() = 0;
 
 		/*! \brief Has the game ended?  */
 		virtual bool done(const Util::Time& current_time) = 0;
@@ -108,8 +117,6 @@ class Game {
          */
 		virtual XML::Tag* move(const Player& player, const std::string& movement, const Util::Time& time_stamp) = 0;
 
-		/*! \brief The list of teams playing the game. */
-		virtual const TeamList& teams() const = 0;
 };
 
 
