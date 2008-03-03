@@ -112,7 +112,7 @@ class GameRoom : public XMPP::Muc {
         void notifyResult(const XMPP::Jid& user);
 
         /*! \brief Notify a move to the users. */
-		void notifyMove(const std::string& long_move);
+		void notifyMove(XML::Tag* long_tag);
 
         /*! \brief Cancel the game. */
 		void cancelGame();
@@ -138,7 +138,7 @@ class GameRoom : public XMPP::Muc {
 
         XMPP::Stanza* createResultStanza(const std::string& lang);
 
-        XMPP::Stanza* createMoveStanza(const std::string& long_move);
+        XMPP::Stanza* createMoveStanza(XML::Tag* move_tag);
 
         void broadcastResultStanza();
 

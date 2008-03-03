@@ -215,9 +215,9 @@ void GameRoom::handleMove(const XMPP::Stanza& stanza) {
         const XML::Tag& move = stanza.query().findChild("move");
         std::string move_string = move.getAttribute("long");
 
-        this->game->move(stanza.from(), move_string, this->currentTime());
+        std::auto_ptr<XML::Tag> move_notification(this->game->move(stanza.from(), move_string, this->currentTime()));
         this->sendStanza(stanza.createIQResult());
-        this->notifyMove(move_string);
+        this->notifyMove(move_notification.release());
         this->move_count ++;
     } catch (const game_exception& error) {
         throw xmpp_invalid_move(error.what());
@@ -326,22 +326,19 @@ XMPP::Stanza* GameRoom::createResultStanza(const std::string& lang) {
     }
 }
 
-XMPP::Stanza* GameRoom::createMoveStanza(const std::string& long_move) {
+XMPP::Stanza* GameRoom::createMoveStanza(XML::Tag* move_tag) {
     XML::TagGenerator tag_generator;
     XMPP::Stanza* stanza = new XMPP::Stanza("iq");
     stanza->subtype() = "set";
     tag_generator.openTag("query");
     tag_generator.addAttribute("xmlns", XMLNS_GAME_MOVE);
-    tag_generator.openTag("move");
-    tag_generator.addAttribute("long", long_move);
-    tag_generator.closeTag();
-    tag_generator.addChild(this->game->state(this->currentTime()));
+    tag_generator.addChild(move_tag);
     stanza->children().push_back(tag_generator.getTag());
     return stanza;
 }
 
-void GameRoom::notifyMove(const std::string& long_move) {
-    std::auto_ptr<XMPP::Stanza> stanza(createMoveStanza(long_move));
+void GameRoom::notifyMove(XML::Tag* move_tag) {
+    std::auto_ptr<XMPP::Stanza> stanza(createMoveStanza(move_tag));
     this->broadcastIq(*stanza);
 }
 

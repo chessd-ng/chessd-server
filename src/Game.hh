@@ -104,8 +104,9 @@ class Game {
          * \param player us the player who made the move.
 		 * \param movement is the description of the movement.
          * \param time_stamp is the time of the move since the begining of the game.
+         * \return A description of the move, it can be just like in the history.
          */
-		virtual void move(const Player& player, const std::string& movement, const Util::Time& time_stamp) = 0;
+		virtual XML::Tag* move(const Player& player, const std::string& movement, const Util::Time& time_stamp) = 0;
 
 		/*! \brief The list of teams playing the game. */
 		virtual const TeamList& teams() const = 0;
