@@ -109,12 +109,10 @@ GameRoom::GameRoom(
     this->setIqHandler(boost::bind(&GameRoom::handleState, this, _1),
             XMLNS_GAME_STATE);
 
-    foreach(team, game->teams()) {
-        foreach(player, *team) {
-            this->draw_agreement.insert(*player);
-            this->cancel_agreement.insert(*player);
-            this->all_players.insert(*player);
-        }
+    foreach(team, game->players()) {
+        this->draw_agreement.insert(player->jid);
+        this->cancel_agreement.insert(player->jid);
+        this->all_players.insert(player->jid);
     }
 
     /* set time check */
@@ -361,7 +359,7 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
         tmp.wins() = rating.wins;
         tmp.draws() = rating.draws;
         tmp.losses() = rating.defeats;
-        ratings.insert(std::make_pair(player->jid, Rating()));
+        ratings.insert(std::make_pair(player->jid, tmp));
     }
     result->updateRating(ratings);
     foreach(it, ratings) {
