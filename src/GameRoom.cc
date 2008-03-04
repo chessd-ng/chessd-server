@@ -331,6 +331,7 @@ XMPP::Stanza* GameRoom::createMoveStanza(XML::Tag* move_tag) {
     tag_generator.openTag("query");
     tag_generator.addAttribute("xmlns", XMLNS_GAME_MOVE);
     tag_generator.addChild(move_tag);
+    tag_generator.addChild(this->game->state());
     stanza->children().push_back(tag_generator.getTag());
     return stanza;
 }

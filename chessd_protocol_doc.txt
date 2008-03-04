@@ -125,18 +125,19 @@ Any date and time is in the format specified by the XEP-082.
     </query>
 </iq>
 
+
 <!-- 
     If the move is invalid the player will receive an iq error.
 -->
 
 <!--
     For each move in the game, the players in the room will receive
-    a notification of the move
+    a notification of the move and the state of the board.
 -->
 <iq from="game_0@games.shiva" type="set" id="0" to="raphaelhr@shiva/Psi" >
-    <query xmlns="http://c3sl.ufpr.br/chessd#game#state">
+    <query xmlns="http://c3sl.ufpr.br/chessd#game#move">
+        <move long='e2e4'/>
         <state category="standard" >
-            <move long='e2e4'>
             <board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR" turn="white" />
             <player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" />
             <player inc="1" color="black" time="900" jid="eduari@shiva/Psi" />
