@@ -81,6 +81,10 @@ class Game {
          */
 		virtual XML::Tag* state(const Util::Time& current_time) const = 0;
 
+
+        /*! \brief The list of players in the game */
+        virtual const std::vector<XMPP::Jid>& players() const;
+
 		/*! \brief Current history of the game*/
 		virtual XML::Tag* history() const = 0;
 

@@ -109,10 +109,10 @@ GameRoom::GameRoom(
     this->setIqHandler(boost::bind(&GameRoom::handleState, this, _1),
             XMLNS_GAME_STATE);
 
-    foreach(team, game->players()) {
-        this->draw_agreement.insert(player->jid);
-        this->cancel_agreement.insert(player->jid);
-        this->all_players.insert(player->jid);
+    foreach(player, game->players()) {
+        this->draw_agreement.insert(*player);
+        this->cancel_agreement.insert(*player);
+        this->all_players.insert(*player);
     }
 
     /* set time check */

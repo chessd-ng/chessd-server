@@ -43,6 +43,8 @@ class GameChess : public Game {
 
 		virtual XML::Tag* history() const;
 
+        virtual const std::vector<XMPP::Jid>& players() const;
+
 		virtual const std::string& category() const;
 
 		/*! \brief function to return the title of the game
@@ -111,6 +113,8 @@ class GameChess : public Game {
 		StandardPlayerList _players;
 
 		std::string history_moves;
+
+        std::vector<XMPP::Jid> _simple_players;
 };
 
 class ChessGameResult : public GameResult {

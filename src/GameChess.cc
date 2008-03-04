@@ -35,8 +35,10 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 	if(this->_players[0].color==Black)
 		std::swap(this->_players[0],this->_players[1]);
 
-	foreach(it,this->_players)
+	foreach(it,this->_players) {
 		standard_player_map[it->jid]=&(*it);
+        _simple_players.push_back(it->jid);
+    }
 
 	this->colormap[this->_players[0].jid]=this->_players[0].color==White?Chess::WHITE:Chess::BLACK;
 	this->colormap[this->_players[1].jid]=this->_players[1].color==White?Chess::WHITE:Chess::BLACK;
@@ -50,6 +52,10 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 	this->time_over=-1;
 	this->_done=NOREASON;
 	this->turns_restart=0;
+}
+
+const std::vector<XMPP::Jid>& GameChess::players() const {
+    return this->_simple_players;
 }
 
 GameChess::GameChess(XML::Tag* adjourned_game) {
