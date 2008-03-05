@@ -83,7 +83,7 @@ class Game {
 
 
         /*! \brief The list of players in the game */
-        virtual const std::vector<XMPP::Jid>& players() const;
+        virtual const std::vector<XMPP::Jid>& players() const = 0;
 
 		/*! \brief Current history of the game*/
 		virtual XML::Tag* history() const = 0;
