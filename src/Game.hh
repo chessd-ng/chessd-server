@@ -104,7 +104,7 @@ class Game {
 		virtual void draw() = 0;
 
 		/*! \brief The players agreed on a draw. */
-		virtual AdjournedGame* adjourn() = 0;
+		virtual AdjournedGame* adjourn(const Util::Time& current_time) = 0;
 
 		/*! \brief Has the game ended?  */
 		virtual bool done(const Util::Time& current_time) = 0;
