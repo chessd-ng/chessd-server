@@ -111,6 +111,18 @@ const ChessState& Chess::getChessState() const {
 	return *(static_cast<ChessState*>(this->current_state));
 }
 
+int Chess::countPieces(const std::string& fen) {
+	int count=0;
+	for(unsigned int i=0;i<fen.size();i++)
+		if(fen[i]>='0' and fen[i]<='9')
+			count+=fen[i]-'0';
+	return count;
+}
+
+bool Chess::hasThePawnPromoted() const {
+	return this->pawn_promoted;
+}
+
 void Chess::updateHistory() {
 	this->history->putInHistory(this->current_state);
 	this->current_state = new ChessState();
@@ -181,14 +193,9 @@ void Chess::makeMove(const ChessMove &mv) const {
 	//enpassant
 	if(this->verifyEnPassant(mv))
 		this->gameboard->createPiece(Position(mv.to().x,mv.from().y), new ChessPiece());
-
 	this->gameboard->makeMove(mv);
-}
 
-void Chess::updateMove(const ChessMove &mv) {
-	bool captured = verifyEnPassant(mv) or (this->gameboard->color(mv.to())!=-1);
-	this->makeMove(mv);
-
+	//Pawn promotion
 	//Is the Pawn at the end of the tab? 
 	//Default is to transform the pawn to queen
 	//or get the piece at the end of move
@@ -201,13 +208,22 @@ void Chess::updateMove(const ChessMove &mv) {
 				this->gameboard->createPiece(mv.to(),new ChessPiece(ChessPiece::QUEEN,(ChessPiece::PieceColor)(mv.color())));
 		}
 	}
-	this->updateState(mv,captured);
+}
+
+void Chess::updateMove(const ChessMove &mv) {
+	this->pawn_promoted=false;
+	if(this->gameboard->getType(mv.from()) == ChessPiece::PAWN)
+		if(mv.to().y == ( (mv.color() == 0) ? 7 : 0))
+			this->pawn_promoted=true;
+
+	this->makeMove(mv);
+	this->updateState(mv);
 	this->updateHistory();
 	this->updateTurn();
 }
 
 //if this function is called, then the move is valid
-void Chess::updateState(const ChessMove& mv, bool captured) {
+void Chess::updateState(const ChessMove& mv) {
 	ChessState* current_state = static_cast<ChessState*>(this->current_state);
 
 	current_state->enpassant=Position(-1,-1);
@@ -215,6 +231,7 @@ void Chess::updateState(const ChessMove& mv, bool captured) {
 	if(mv.color() == BLACK)
 		current_state->fullmoves++;
 
+	bool captured=this->countPieces(current_state->board_fen)!=this->countPieces(this->getPosForFEN());
 	current_state->board_fen = this->getPosForFEN();
 	current_state->_turn = (this->current_state->_turn == WHITE ? BLACK : WHITE );
 	current_state->halfmoves++;
@@ -239,8 +256,6 @@ void Chess::updateState(const ChessMove& mv, bool captured) {
 			current_state->castle.erase(current_state->castle.find(king),1);
 		if(current_state->castle.find(queen) < current_state->castle.size())
 			current_state->castle.erase(current_state->castle.find(queen),1);
-		if(current_state->castle.size() == 0)
-			current_state->castle+='-';
 	}
 	//Are the Rooks at their initial places?
 	{
@@ -291,7 +306,7 @@ bool Chess::verifyThreefoldRepetition() const {
 	int count=1;
 	ChessHistory &history=*static_cast<ChessHistory*>(this->history);
 	//only needs to verify "halfmoves" for equal states
-	for(int i=1;i<=history[history.size()-1].halfmoves;i++)
+	for(int i=2;i<=history[history.size()-1].halfmoves;i+=2)
 		if(history[history.size()-1-i]==history[history.size()-1])
 			count++;
 	if(count>=3)

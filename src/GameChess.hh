@@ -67,7 +67,7 @@ class GameChess : public Game {
 
 		virtual GameResult* result() const = 0;
 
-		virtual void move(const Player& player, const std::string& movement, const Util::Time& time_stamp);
+		virtual XML::Tag* move(const Player& player, const std::string& movement, const Util::Time& time_stamp);
 
 	protected:
 		/*! \brief returns the end reason if the game has ended*/

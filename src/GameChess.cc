@@ -239,7 +239,7 @@ PlayerResultList GameChess::donePlayerResultList() const {
 	 * 1 is black*/
 	PlayerResultList prl(2);
 	foreach(it,_players) {
-		prl[colormap.find(it->jid)->second]=PlayerResult(it->jid,(it->color==White?"white":"black"),(""));
+		prl[colormap.find(it->jid)->second==Chess::WHITE?0:1]=PlayerResult(it->jid,(it->color==White?"white":"black"),(""));
 	}
 	if(this->_done==3 or this->_done>=5)
 		prl[0].score=prl[1].score="1/2";
@@ -251,15 +251,13 @@ PlayerResultList GameChess::donePlayerResultList() const {
 	return prl;
 }
 
-void GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
+XML::Tag* GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
 	if(this->_done!=0)
-		return;
+		throw game_over("The game is already over");
 
-	if(this->turns_restart >= 2) {
+	if(this->turns_restart >= 2)
 		if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time())
-			return;
-		this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
-	}
+			throw time_over::time_over(std::string("Time of")+std::string(this->standard_player_map[player]->color==White?"white":"black")+std::string("is over"));
 
 	if(colormap[player]!=chess.turn())
 		throw wrong_turn(std::string("It's not ")+std::string(colormap[player]==Chess::WHITE?"white":"black")+std::string("'s turn"));
@@ -267,13 +265,27 @@ void GameChess::move(const Player& player, const std::string& movement, const Ut
 	if(chess.verifyAndMakeMove(movement)==false)
 		throw invalid_move("Invalid Move");
 
+	if(this->turns_restart >= 2)
+		this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
+
 	time_of_last_move=time_stamp;
 
 	this->turns_restart++;
 
 	this->_done=(end_reason)realDone();
 
-	history_moves+=movement+" "+Util::to_string(int(this->standard_player_map[player]->time.getSeconds()+0.001))+" ";
+	int last_time=(this->standard_player_map[player]->time.getSeconds()+0.001);
+
+	history_moves+=movement+" "+Util::to_string(last_time)+" ";
+
+	XML::TagGenerator move_tag;
+	move_tag.openTag("move");
+	if(chess.hasThePawnPromoted() and movement.size()<5)
+		move_tag.addAttribute("long",movement+"q");
+	else
+		move_tag.addAttribute("long",movement);
+
+	return move_tag.getTag();
 }
 
 XML::Tag* GameChess::generateHistoryTag() const {

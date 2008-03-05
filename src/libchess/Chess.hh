@@ -58,6 +58,10 @@ class Chess : public ChessBasedGame {
 
 		/*! \return return the current state*/
 		virtual const ChessState& getChessState() const;
+
+		static int countPieces(const std::string& fen);
+
+		bool hasThePawnPromoted() const;
 	protected:
 		/*! \brief puts the new State on history*/
 		void updateHistory();
@@ -81,8 +85,7 @@ class Chess : public ChessBasedGame {
 		void updateMove(const ChessMove &mv);
 
 		/*! \brief update The State, considering one move was made*/
-		//FIXME captured shouldn't be here
-		void updateState(const ChessMove& mv,bool capatured);
+		void updateState(const ChessMove& mv);
 
 		bool verifyCastle(const ChessMove& mv) const;
 
@@ -102,6 +105,8 @@ class Chess : public ChessBasedGame {
 		virtual void putPieces();
 
 		int _turn;
+
+		bool pawn_promoted;
 
 };
 

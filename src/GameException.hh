@@ -51,4 +51,9 @@ class time_over : public game_exception {
 		time_over(const std::string &msg) : game_exception(msg) { }
 };
 
+class game_over : public game_exception {
+	public:
+		game_over(const std::string &msg) : game_exception(msg) { }
+};
+
 #endif
