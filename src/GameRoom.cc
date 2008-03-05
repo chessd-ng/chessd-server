@@ -109,12 +109,10 @@ GameRoom::GameRoom(
     this->setIqHandler(boost::bind(&GameRoom::handleState, this, _1),
             XMLNS_GAME_STATE);
 
-    foreach(team, game->teams()) {
-        foreach(player, *team) {
-            this->draw_agreement.insert(*player);
-            this->cancel_agreement.insert(*player);
-            this->all_players.insert(*player);
-        }
+    foreach(player, game->players()) {
+        this->draw_agreement.insert(*player);
+        this->cancel_agreement.insert(*player);
+        this->all_players.insert(*player);
     }
 
     /* set time check */
@@ -333,6 +331,7 @@ XMPP::Stanza* GameRoom::createMoveStanza(XML::Tag* move_tag) {
     tag_generator.openTag("query");
     tag_generator.addAttribute("xmlns", XMLNS_GAME_MOVE);
     tag_generator.addChild(move_tag);
+    tag_generator.addChild(this->game->state());
     stanza->children().push_back(tag_generator.getTag());
     return stanza;
 }
@@ -361,7 +360,7 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
         tmp.wins() = rating.wins;
         tmp.draws() = rating.draws;
         tmp.losses() = rating.defeats;
-        ratings.insert(std::make_pair(player->jid, Rating()));
+        ratings.insert(std::make_pair(player->jid, tmp));
     }
     result->updateRating(ratings);
     foreach(it, ratings) {
