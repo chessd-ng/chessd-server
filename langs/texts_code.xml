@@ -10,4 +10,6 @@
     <text code='9'>Draw by impossibility of checkmate</text>
     <text code='10'>Draw by fifty move rule</text>
     <text code='11'>Draw by stalemate</text>
+    <text code='12'>The game was adjourned</text>
+    <text code='13'>The game was canceled</text>
 </text_code>

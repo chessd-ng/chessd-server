@@ -52,10 +52,10 @@ static const char xmlns_table[][64] = {
     XMLNS_GAME_ADJOURN_DECLINE
 };
 
-static const char result_table[][32] = {
-    "winner",
-    "drawer",
-    "loser"
+static const char game_end_type_table[][64] = {
+    "normal",
+    "canceled",
+    "adjourned"
 };
 
 class xmpp_invalid_move : public XMPP::xmpp_exception {
@@ -65,6 +65,16 @@ class xmpp_invalid_move : public XMPP::xmpp_exception {
         virtual XMPP::Stanza* getErrorStanza(XMPP::Stanza* stanza) const {
             return XMPP::Stanza::createErrorStanza
                 (stanza, "modify", "invalid-move", this->what(), XMLNS_GAME);
+        }
+};
+
+class xmpp_game_over : public XMPP::xmpp_exception {
+    public:
+        xmpp_game_over(const std::string& what) : xmpp_exception(what) { }
+
+        virtual XMPP::Stanza* getErrorStanza(XMPP::Stanza* stanza) const {
+            return XMPP::Stanza::createErrorStanza
+                (stanza, "modify", "game-over", this->what(), XMLNS_GAME);
         }
 };
 
@@ -81,8 +91,7 @@ GameRoom::GameRoom(
     handlers(handlers),
     game_active(true),
     start_time(Util::Timer::now()),
-    move_count(0),
-    canceled(false)
+    move_count(0)
 {
 
     /* Set features */
@@ -112,6 +121,7 @@ GameRoom::GameRoom(
     foreach(player, game->players()) {
         this->draw_agreement.insert(*player);
         this->cancel_agreement.insert(*player);
+        this->adjourn_agreement.insert(*player);
         this->all_players.insert(*player);
     }
 
@@ -217,6 +227,9 @@ void GameRoom::handleMove(const XMPP::Stanza& stanza) {
         this->sendStanza(stanza.createIQResult());
         this->notifyMove(move_notification.release());
         this->move_count ++;
+    } catch (const time_over& error) {
+        this->endGame();
+        throw xmpp_game_over("Time over");
     } catch (const game_exception& error) {
         throw xmpp_invalid_move(error.what());
     }
@@ -266,8 +279,7 @@ void GameRoom::handleAdjournAccept(const XMPP::Stanza& stanza) {
     this->sendStanza(stanza.createIQResult());
     if(this->adjourn_agreement.left_count()==0) {
         this->adjournGame();
-    }
-    if(this->adjourn_agreement.agreed_count() == 1) {
+    } else if(this->adjourn_agreement.agreed_count() == 1) {
         this->notifyRequest(REQUEST_ADJOURN, stanza.from());
     }
 }
@@ -293,17 +305,19 @@ void GameRoom::notifyRequest(GameRequest request, const XMPP::Jid& requester) {
 }
 
 XMPP::Stanza* GameRoom::createResultStanza(const std::string& lang) {
-    if(not this->canceled) {
-        XML::TagGenerator tag_generator;
-        std::auto_ptr<XMPP::Stanza> stanza(new XMPP::Stanza("iq"));
-        stanza->subtype() = "set";
-        stanza->lang() = lang;
-        tag_generator.openTag("query");
-        tag_generator.addAttribute("xmlns", XMLNS_GAME_END);
-        tag_generator.openTag("reason");
-        tag_generator.addCData(i18n.getText(this->result_reason, lang));
-        tag_generator.addAttribute("code", Util::to_string(i18n.getTextCode(this->result_reason)));
-        tag_generator.closeTag();
+    XML::TagGenerator tag_generator;
+    std::auto_ptr<XMPP::Stanza> stanza(new XMPP::Stanza("iq"));
+    stanza->subtype() = "set";
+    stanza->lang() = lang;
+    tag_generator.openTag("query");
+    tag_generator.addAttribute("xmlns", XMLNS_GAME_END);
+    tag_generator.openTag("reason");
+    tag_generator.addCData(i18n.getText(this->result_reason, lang));
+    tag_generator.addAttribute("type", Util::to_string(game_end_type_table[this->end_type]));
+    tag_generator.closeTag();
+
+    /* results are available only if the game ended normally */
+    if(this->end_type == END_TYPE_NORMAL) {
         foreach(player, this->players_result) {
             tag_generator.openTag("player");
             tag_generator.addAttribute("jid", player->jid.full());
@@ -311,17 +325,9 @@ XMPP::Stanza* GameRoom::createResultStanza(const std::string& lang) {
             tag_generator.addAttribute("role", player->role);
             tag_generator.closeTag();
         }
-        stanza->children().push_back(tag_generator.getTag());
-        return stanza.release();
-    } else {
-        XML::TagGenerator tag_generator;
-        std::auto_ptr<XMPP::Stanza> stanza(new XMPP::Stanza("iq"));
-        stanza->subtype() = "set";
-        tag_generator.openTag("query");
-        tag_generator.addAttribute("xmlns", XMLNS_GAME_CANCELED);
-        stanza->children().push_back(tag_generator.getTag());
-        return stanza.release();
     }
+    stanza->children().push_back(tag_generator.getTag());
+    return stanza.release();
 }
 
 XMPP::Stanza* GameRoom::createMoveStanza(XML::Tag* move_tag) {
@@ -389,6 +395,21 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
     delete result;
 }
 
+void storeAdjourned(AdjournedGame* adj_game, DatabaseInterface& database) {
+    AdjournedDatabase& game_database = database.adjourned_game_database;
+    PersistentAdjourned game;
+    std::auto_ptr<XML::Tag> history(adj_game->history());
+
+    game.category = adj_game->category();
+    game.players = adj_game->players();
+    game.history = history->xml();
+    game.time_stamp = boost::posix_time::second_clock::local_time();
+    
+    game_database.insertGame(game);
+
+    delete adj_game;
+}
+
 void GameRoom::setResult(const GameResult& result) {
     this->result_reason = result.end_reason();
     this->players_result = result.players();
@@ -404,6 +425,7 @@ void GameRoom::endGame() {
     std::auto_ptr<GameResult> result(this->game->result());
 
     this->game_active = false;
+    this->end_type = END_TYPE_NORMAL;
 
     this->setResult(*result);
 
@@ -413,9 +435,15 @@ void GameRoom::endGame() {
 }
 
 void GameRoom::adjournGame() {
-    //this->game->adjourn();
-    this->cancelGame();
-    // TODO
+    AdjournedGame* adj_game = this->game->adjourn(this->currentTime());
+
+    this->game_active = false;
+    this->end_type = END_TYPE_ADJOURNED;
+    this->result_reason = "The game was adjourned";
+
+    this->broadcastResultStanza();
+
+    this->database_manager.queueTransaction(boost::bind(storeAdjourned, adj_game, _1));
 }
 
 XMPP::Stanza* createCanceledStanza() {
@@ -430,8 +458,7 @@ XMPP::Stanza* createCanceledStanza() {
 
 void GameRoom::cancelGame() {
     this->game_active = false;
-
-    this->canceled = true;
+    this->end_type = END_TYPE_CANCELED;
     this->result_reason = "The game was canceled";
 
     this->broadcastResultStanza();

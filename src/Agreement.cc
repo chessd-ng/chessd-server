@@ -22,7 +22,7 @@
 
 using namespace std;
 
-Agreement::Agreement() : _agreed_count(0), _left_count(0) {
+Agreement::Agreement() : _agreed_count(0) {
 }
 
 void Agreement::insert(const XMPP::Jid& jid) {
@@ -42,5 +42,4 @@ void Agreement::clear() {
 		it->second = false;
 	}
 	this->_agreed_count = 0;
-    this->_left_count = 0;
 }

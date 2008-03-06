@@ -147,17 +147,21 @@ class ChessGameResult : public GameResult {
 
 class ChessAdjournedGame : public AdjournedGame {
 	public:
-		ChessAdjournedGame(XML::Tag* history, const PlayerList& list);
+		ChessAdjournedGame(XML::Tag* history, const PlayerList& list, const std::string& category);
 
 		~ChessAdjournedGame();
 
 		virtual XML::Tag* history() const;
 
 		virtual const PlayerList& players() const;
+
+        virtual const std::string& category() const;
 	private:
 		XML::Tag* _history;
 
 		PlayerList _players;
+
+        std::string _category;
 };
 
 #endif

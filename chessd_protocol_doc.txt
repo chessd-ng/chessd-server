@@ -163,7 +163,11 @@ Any date and time is in the format specified by the XEP-082.
 <!-- 
      The players can accept the offer sending the same message of the offer.
      Or decline it by sending the same message with a "-decline" sufix
-     in the xmlns.
+     in the xmlns. The type can be one of the folowing values:
+
+     normal - The game ended normally, expect to have a list of player with their scores.
+     canceled - The game was canceled.
+     adjourned - The game was adjourned.
 -->
 
 <!--
@@ -171,7 +175,7 @@ Any date and time is in the format specified by the XEP-082.
 -->
 <iq from="game_0@games.shiva" type="set" id="2" to="eduari@shiva/Psi" >
     <query xmlns="http://c3sl.ufpr.br/chessd#game#end">
-        <reason>Black has resigned</reason>
+        <reason type='normal'>Black has resigned</reason>
         <player role="white" score="1" jid="raphaelhr@shiva/Psi"/>
         <player role="black" score="0" jid="eduari@shiva/Psi"/>
     </query>

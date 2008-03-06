@@ -43,5 +43,13 @@
 		<name>Draw by stalemate</name>
 		<text>Empate por cheque perpétuo</text>
 	</text>
+    <text>
+        <name>The game was adjourned</name>
+        <text>O jogo foi adiado</test>
+    </text>
+    <text>
+        <name>The game was canceled</name>
+        <text>O jogo foi cancelado</text>
+    </text>
 </locale>
 

@@ -53,7 +53,8 @@ SOURCES = \
 		  src/GameDatabase.cc \
 		  src/I18n.cc \
 		  src/HistoryProcess.cc \
-		  src/Util/Log.cc
+		  src/Util/Log.cc \
+		  src/AdjournedDatabase.cc
 
 
 SRCDIR = src

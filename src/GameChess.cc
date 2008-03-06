@@ -179,7 +179,7 @@ AdjournedGame* GameChess::adjourn(const Util::Time& current_time) {
 		if(it->name()=="player")
 			it->attributes().erase("score");
 
-	return new ChessAdjournedGame(hist,p);
+	return new ChessAdjournedGame(hist,p,this->category());
 }
 
 bool GameChess::done(const Util::Time& current_time) {
@@ -426,7 +426,7 @@ void ChessGameResult::updateRating(std::map<Player, Rating> &ratings) const {
 //CHESS ADJOURNED GAME Stuff
 //--------------------------------------
 
-ChessAdjournedGame::ChessAdjournedGame(XML::Tag* __history, const PlayerList& __players) : _history(__history), _players(__players) {
+ChessAdjournedGame::ChessAdjournedGame(XML::Tag* __history, const PlayerList& __players, const std::string& category) : _history(__history), _players(__players), _category(category) {
 }
 
 ChessAdjournedGame::~ChessAdjournedGame() {
@@ -439,4 +439,8 @@ XML::Tag* ChessAdjournedGame::history() const {
 
 const PlayerList& ChessAdjournedGame::players() const {
 	return this->_players;
+}
+
+const std::string& ChessAdjournedGame::category() const {
+	return this->_category;
 }

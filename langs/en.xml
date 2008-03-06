@@ -43,5 +43,13 @@
 		<name>Draw by stalemate</name>
 		<text>Draw by stalemate</text>
 	</text>
+    <text>
+        <name>The game was adjourned</name>
+        <text>The game was adjourned</test>
+    </text>
+    <text>
+        <name>The game was canceled</name>
+        <text>The game was canceled</text>
+    </text>
 </locale>
 

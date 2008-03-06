@@ -22,6 +22,7 @@
 
 DatabaseInterface::DatabaseInterface(pqxx::work& work) :
     game_database(work),
+    adjourned_game_database(work),
     rating_database(work)
 {
 }

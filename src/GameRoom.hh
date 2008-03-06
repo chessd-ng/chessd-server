@@ -72,6 +72,12 @@ class GameRoom : public XMPP::Muc {
 			REQUEST_ADJOURN_DECLINE
 		};
 
+        enum GameEndType {
+            END_TYPE_NORMAL = 0,
+            END_TYPE_CANCELED = 1,
+            END_TYPE_ADJOURNED = 2
+        };
+
 		/*! \brief Handle an incoming game iq */
 		void handleGame(XMPP::Stanza* stanza);
 
@@ -172,7 +178,7 @@ class GameRoom : public XMPP::Muc {
 
         int move_count;
 
-        bool canceled;
+        GameEndType end_type;
 };
 
 #endif

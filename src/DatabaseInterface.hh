@@ -22,6 +22,7 @@
 #include <pqxx/pqxx>
 
 #include "GameDatabase.hh"
+#include "AdjournedDatabase.hh"
 
 #include "RatingDatabase.hh"
 
@@ -36,6 +37,8 @@ class DatabaseInterface : public pqxx::transactor<>
         DatabaseInterface(pqxx::work&);
 
         GameDatabase game_database;
+
+        AdjournedDatabase adjourned_game_database;
 
         RatingDatabase rating_database;
 

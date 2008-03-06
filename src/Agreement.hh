@@ -50,7 +50,7 @@ class Agreement {
 
 		AgreementMap agreement;
 
-		int _agreed_count, _left_count;
+		int _agreed_count;
 
 };
 
