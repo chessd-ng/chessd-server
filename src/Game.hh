@@ -1,4 +1,4 @@
-/*
+*
  *   Copyright (c) 2007-2008 C3SL.
  *
  *   This file is part of Chessd.
@@ -66,9 +66,11 @@ class AdjournedGame {
 	public:
 		virtual ~AdjournedGame() { }
 
-		virtual XML::Tag* history() const=0;
+		virtual XML::Tag* history() const = 0;
 
-		virtual const PlayerList& players() const=0;
+        virtual const std::string& category() const = 0;
+
+		virtual const PlayerList& players() const = 0;
 };
 
 class Game {
@@ -83,7 +85,7 @@ class Game {
 
 
         /*! \brief The list of players in the game */
-        virtual const std::vector<XMPP::Jid>& players() const = 0;
+        virtual const PlayerList& players() const = 0;
 
 		/*! \brief Current history of the game*/
 		virtual XML::Tag* history() const = 0;
