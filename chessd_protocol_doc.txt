@@ -269,6 +269,16 @@ Any date and time is in the format specified by the XEP-082.
 </history>
 
 <!--
+    Adjourned Games.
+--!>
+
+<history category='standard'>
+	<moves movetext='a2a4 660 h7h5 660 a4a5 661 h5h4 661 a5a6 662 h4h3 662 a6b7 663 h3g2 663 b7a8q 664 g2h1r 664'/>
+	<player color='white' inc='1' jid='Link@Hyrule/psi' time='660' time_left='649'/>
+	<player color='black' inc='1' jid='Sonic@ChaosEmeralds/psi' time='660' time_left='649'/>
+</history>
+
+<!--
     other history
 --!>
 
