@@ -64,7 +64,7 @@ GameChess::GameChess(XML::Tag* adjourned_game) {
 	foreach(it,adjourned_game->tags()) {
 		if(it->name()=="player") {
 			this->_players.push_back(StandardPlayer(XMPP::Jid(it->getAttribute("jid")),
-						Util::Time(it->getAttribute("time"),Util::Seconds),
+						Util::Time(it->getAttribute("time_left"),Util::Seconds),
 						Util::Time(it->getAttribute("inc"),Util::Seconds),
 						StandardPlayerColor(it->getAttribute("color")=="white"?White:Black)));
 			this->colormap[this->_players.rbegin()->jid]=this->_players.rbegin()->color==White?Chess::WHITE:Chess::BLACK;
@@ -88,15 +88,12 @@ GameChess::GameChess(XML::Tag* adjourned_game) {
 	std::string mv;
 	for(int i=0 ; ss >> mv ; i=(i+1)%2) {
 		this->chess.makeMove(mv);
-		int time;
-		ss >> time;
-		this->_players[i].time=time * Util::Seconds;
+		ss >> mv;
 	}
 
 	this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
 
 	this->time_of_last_move=Util::Time();
-	this->initial_time=this->_players[0].time.getSeconds()+0.001;
 	this->_resign=Chess::UNDEFINED;
 	this->time_over=-1;
 	this->turns_restart=0;
@@ -146,8 +143,7 @@ XML::Tag* GameChess::state(const Util::Time& current_time) const {
 
 XML::Tag* GameChess::history() const {
 	XML::Tag* h=generateHistoryTag();
-	ChessHistoryProcess chp;
-	return chp.generate(h);
+	return ChessHistoryProcess::generate(h);
 }
 
 const std::string& GameChess::category() const {
@@ -170,12 +166,15 @@ void GameChess::draw() {
 	this->_done=DRAWAGREED;
 }
 
-AdjournedGame* GameChess::adjourn() {
+AdjournedGame* GameChess::adjourn(const Util::Time& current_time) {
+	if(this->_done!=NOREASON)
+		throw game_over("cannot adjourn, game already over");
+
 	PlayerList p;
 	foreach(it,this->_players)
 		p.push_back(it->jid);
 
-	XML::Tag* hist=this->generateHistoryTag();
+	XML::Tag* hist=this->generateHistoryTag(current_time-time_of_last_move);
 	foreach(it,hist->tags())
 		if(it->name()=="player")
 			it->attributes().erase("score");
@@ -262,8 +261,10 @@ XML::Tag* GameChess::move(const Player& player, const std::string& movement, con
 		throw game_over("The game is already over");
 
 	if(this->turns_restart >= 2)
-		if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time())
-			throw time_over::time_over(std::string("Time of")+std::string(this->standard_player_map[player]->color==White?"white":"black")+std::string("is over"));
+		if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time()) {
+			this->_done=TIMEOVER;
+			throw time_over::time_over(std::string("Time of ")+std::string(this->standard_player_map[player]->color==White?"white":"black")+std::string(" is over"));
+		}
 
 	if(colormap[player]!=chess.turn())
 		throw wrong_turn(std::string("It's not ")+std::string(colormap[player]==Chess::WHITE?"white":"black")+std::string("'s turn"));
@@ -282,19 +283,20 @@ XML::Tag* GameChess::move(const Player& player, const std::string& movement, con
 
 	int last_time=(this->standard_player_map[player]->time.getSeconds()+0.001);
 
-	history_moves+=movement+" "+Util::to_string(last_time)+" ";
+
+	std::string realmove=movement;
+	if(chess.hasThePawnPromoted() and movement.size()<5)
+		realmove+="q";
+
+	history_moves+=realmove+" "+Util::to_string(last_time)+" ";
 
 	XML::TagGenerator move_tag;
 	move_tag.openTag("move");
-	if(chess.hasThePawnPromoted() and movement.size()<5)
-		move_tag.addAttribute("long",movement+"q");
-	else
-		move_tag.addAttribute("long",movement);
-
+	move_tag.addAttribute("long",realmove);
 	return move_tag.getTag();
 }
 
-XML::Tag* GameChess::generateHistoryTag() const {
+XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
 	XML::TagGenerator gen;
 
 	gen.openTag("history");
@@ -316,6 +318,15 @@ XML::Tag* GameChess::generateHistoryTag() const {
 			gen.addAttribute("score",it->score);
 
 			gen.addAttribute("time",Util::to_string(this->initial_time));
+
+			//TODO
+			//confirm if time_left is only for adjourned games
+			if(this->_done==NOREASON) {
+				if(this->chess.turn() == colormap.find(it->jid)->second and this->turns_restart>=2)
+					gen.addAttribute("time_left",Util::to_string<int>((this->_players[it->role=="white"?0:1].time-time_passed).getSeconds()+0.001));
+				else
+					gen.addAttribute("time_left",Util::to_string<int>(this->_players[it->role=="white"?0:1].time.getSeconds()+0.001));
+			}
 
 			gen.addAttribute("inc",Util::to_string<int>(this->_players[0].inc.getSeconds()+0.001));
 

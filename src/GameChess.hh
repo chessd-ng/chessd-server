@@ -60,7 +60,7 @@ class GameChess : public Game {
 		/*! \brief The players agreed on a draw */
 		virtual void draw();
 
-		virtual AdjournedGame* adjourn(); //TODO
+		virtual AdjournedGame* adjourn(const Util::Time& current_time);
 
 		/*! \brief Has the game ended?
 		 * \return Returns the game result if the game is over, NULL otherwise.
@@ -82,7 +82,7 @@ class GameChess : public Game {
 
 		XML::Tag* generateStateTag(const ChessState &est,const Util::Time& current_time) const ;
 		
-		XML::Tag* generateHistoryTag() const;
+		XML::Tag* generateHistoryTag(Util::Time time_passed=Util::Time()) const;
 
 		//no problem to stay here.
 		Chess chess;
