@@ -30,13 +30,14 @@
 #include "Rating.hh"
 
 struct PersistentRating {
-    PersistentRating() : rating(0), volatility(0), wins(0), defeats(0), draws(0), max_rating(0) { }
+    PersistentRating() : rating(0), volatility(0), wins(0), defeats(0), draws(0), max_rating(0), last_game(0) { }
     int rating;
     double volatility;
     int wins;
     int defeats;
     int draws;
     int max_rating;
+    int last_game;
     boost::posix_time::ptime max_timestamp;
 };
 

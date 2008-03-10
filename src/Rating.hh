@@ -21,8 +21,8 @@
 
 class Rating {
 	public:
-		Rating() : _rating(0), _volatility(0.0), _wins(0), _losses(0), _draws(0) { }
-		Rating(int rating, double volatility) : _rating(rating), _volatility(volatility), _wins(0), _losses(0), _draws(0) { }
+		Rating() : _rating(0), _volatility(0.0), _wins(0), _losses(0), _draws(0), _last_game(0) { }
+		Rating(int rating, double volatility) : _rating(rating), _volatility(volatility), _wins(0), _losses(0), _draws(0), _last_game(0) { }
 
 		int rating() const { return this->_rating; }
 		int& rating() { return this->_rating; }
@@ -39,12 +39,16 @@ class Rating {
 		int draws() const { return this->_draws; }
 		int& draws() { return this->_draws; }
 
+		int last_game() const { return this->_last_game; }
+		int& last_game() { return this->_last_game; }
+
 		int countGames() const { return this->_wins + this->_losses + this->_draws; }
 
 	private:
 		int _rating;
 		double _volatility;
 		int _wins, _losses, _draws;
+        int _last_game;
 };
 
 #endif

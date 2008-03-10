@@ -56,6 +56,7 @@ std::vector<std::pair<std::string, PersistentRating> > RatingDatabase::getRating
         r->at("draws").to(rating.draws);
         r->at("max_rating").to(rating.max_rating);
         r->at("max_timestamp").to(t);
+        r->at("last_game").to(rating.last_game);
         rating.max_timestamp = from_time_t(t);
         ratings.push_back(std::make_pair(category, rating));
     }
@@ -101,6 +102,7 @@ PersistentRating RatingDatabase::getRatingForUpdate(const std::string& user, con
         r[0]["draws"].to(rating.draws);
         r[0]["max_rating"].to(rating.max_rating);
         r[0]["max_timestamp"].to(t);
+        r[0]["last_game"].to(rating.last_game);
         rating.max_timestamp = from_time_t(t);
         return rating;
     }
@@ -117,6 +119,7 @@ void RatingDatabase::setRating(const std::string& user, const std::string& categ
             ",draws=" + pqxx::to_string(rating.draws) +
             ",max_rating=" + pqxx::to_string(rating.max_rating) +
             ",max_timestamp=" + pqxx::to_string(Util::ptime_to_time_t(rating.max_timestamp)) +
+            ",last_game=" + pqxx::to_string(rating.last_game) +
         " WHERE username='" + this->work.esc(user) + "'" +
           " AND category='" + this->work.esc(category) + "'";
         
@@ -137,6 +140,7 @@ void RatingDatabase::setRating(const std::string& user, const std::string& categ
             ", " + pqxx::to_string(rating.defeats) +
             ", " + pqxx::to_string(rating.max_rating) +
             ", " + pqxx::to_string(Util::ptime_to_time_t(rating.max_timestamp)) + ")";
+            ", " + pqxx::to_string(rating.last_game) + ")";
         
         work.exec(query);
     }
