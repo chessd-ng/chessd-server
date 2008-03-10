@@ -371,6 +371,7 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
     result->updateRating(ratings);
     foreach(it, ratings) {
         rating.rating = it->second.rating();
+        rating.volatility = it->second.volatility();
         rating.wins = it->second.wins();
         rating.draws = it->second.draws();
         rating.defeats = it->second.losses();
