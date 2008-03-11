@@ -381,4 +381,14 @@ namespace XML {
 	Tag* parseXmlString(const std::string& xml) {
 		return iksReadXMLString(xml);
 	}
+
+    Tag& Tag::operator=(const Tag& tag) {
+        this->name() = tag.name();
+        this->attributes() = tag.attributes();
+        foreach(child, tag.children()) {
+            this->children().push_back(child->clone());
+        }
+        return *this;
+    }
+
 }
