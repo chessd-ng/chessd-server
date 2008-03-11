@@ -75,8 +75,6 @@ struct MatchChessAdjourn : public MatchChess {
 	public:
 		MatchChessAdjourn(XML::Tag* _history) : MatchChess(this->getPlayersTag(*_history),_history->getAttribute("category")), history(_history) { }
 
-		~MatchChessAdjourn() { delete this->history;}
-
 	protected:
 		XML::Tag* history;
 
