@@ -75,6 +75,7 @@ struct MatchChessAdjourn : public MatchChess {
 	public:
 		MatchChessAdjourn(XML::Tag* _history) : MatchChess(this->getPlayersTag(*_history),_history->getAttribute("category")), history(_history) { }
 
+		virtual XML::Tag* notification() const;
 	protected:
 		XML::Tag* history;
 

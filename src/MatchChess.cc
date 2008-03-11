@@ -161,3 +161,15 @@ std::vector<XML::Tag> MatchChessAdjourn::getPlayersTag(const XML::Tag& history_a
 			players.push_back(XML::Tag(*it));
 	return players;
 }
+
+XML::Tag* MatchChessAdjourn::notification() const {
+	XML::TagGenerator t;
+	t.openTag("match");
+	t.addAttribute("category",this->category());
+	t.addAttribute("type","adjourned");
+	foreach(it,this->_match_players)
+		t.addChild(new XML::Tag(*it));
+	t.closeTag();
+	return t.getTag();
+}
+
