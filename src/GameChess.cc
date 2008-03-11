@@ -54,10 +54,6 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 	this->turns_restart=0;
 }
 
-const std::vector<XMPP::Jid>& GameChess::players() const {
-    return this->_simple_players;
-}
-
 GameChess::GameChess(XML::Tag* adjourned_game) {
 	this->_category=adjourned_game->getAttribute("category");
 
@@ -69,6 +65,7 @@ GameChess::GameChess(XML::Tag* adjourned_game) {
 						StandardPlayerColor(it->getAttribute("color")=="white"?White:Black)));
 			this->colormap[this->_players.rbegin()->jid]=this->_players.rbegin()->color==White?Chess::WHITE:Chess::BLACK;
 			this->initial_time=Util::parse_string<int>(it->getAttribute("time"));
+        	_simple_players.push_back(XMPP::Jid(it->getAttribute("jid")));
 		}
 		else {
 			this->history_moves=it->getAttribute("movetext")+" ";
@@ -101,6 +98,10 @@ GameChess::GameChess(XML::Tag* adjourned_game) {
 	this->_done=(end_reason)realDone();
 
 	delete adjourned_game;
+}
+
+const std::vector<XMPP::Jid>& GameChess::players() const {
+    return this->_simple_players;
 }
 
 XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& current_time) const {
