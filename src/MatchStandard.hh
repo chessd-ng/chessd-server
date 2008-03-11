@@ -1,4 +1,4 @@
-/*
+	/*
  *   Copyright (c) 2007-2008 C3SL.
  *
  *   This file is part of Chessd.
@@ -36,10 +36,19 @@ class MatchRuleStandard : public MatchRuleChess {
 struct MatchStandard : public MatchChess {
 	public:
 
-		MatchStandard(const StandardPlayerList &players);
+		MatchStandard(const std::vector<XML::Tag>& players);
 
 		virtual ~MatchStandard();
 		
+		virtual Game* createGame() const;
+
+	private:
+};
+
+struct MatchChessStandardAdjourn : public MatchChessAdjourn {
+	public:
+		MatchChessStandardAdjourn(XML::Tag* _history) : MatchChessAdjourn(_history) { }
+
 		virtual Game* createGame() const;
 
 	private:

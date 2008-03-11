@@ -32,7 +32,7 @@ MatchRuleBlitz::~MatchRuleBlitz() {
 }
 
 Match* MatchRuleBlitz::checkOffer(const XML::Tag& _match_offer, const TeamDatabase&) const {
-	return new MatchBlitz(getPlayersfromXML(_match_offer));
+	return new MatchBlitz(getPlayersTag(_match_offer));
 }
 
 bool MatchRuleBlitz::isTimeValid(const XML::Tag& _player) const {
@@ -47,7 +47,7 @@ bool MatchRuleBlitz::isTimeValid(const XML::Tag& _player) const {
 /*
  * Coisas do MatchBlitz
 */
-MatchBlitz::MatchBlitz(const StandardPlayerList &players) :
+MatchBlitz::MatchBlitz(const std::vector<XML::Tag>& players) :
 	MatchChess(players,"blitz")
 {
 }
@@ -56,5 +56,13 @@ MatchBlitz::~MatchBlitz() {
 }
 
 Game* MatchBlitz::createGame() const {
-	return new GameBlitz(this->_match_players);
+	return new GameBlitz(getPlayersFromXML(this->_match_players));
+}
+
+/*
+ * MatchChessBlitzAdjourn Stuff
+*/
+
+Game* MatchChessBlitzAdjourn::createGame() const {
+	return new GameBlitz(this->history);
 }

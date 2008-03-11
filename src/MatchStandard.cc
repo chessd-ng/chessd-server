@@ -23,7 +23,7 @@
 #include <memory>
 
 /*
- * Coisas do MatchRuleStandard
+ * MatchRuleStandard Stuff
 */
 MatchRuleStandard::MatchRuleStandard() : MatchRuleChess("standard") {
 }
@@ -32,7 +32,7 @@ MatchRuleStandard::~MatchRuleStandard() {
 }
 
 Match* MatchRuleStandard::checkOffer(const XML::Tag& _match_offer, const TeamDatabase&) const {
-	return new MatchStandard(getPlayersfromXML(_match_offer));
+	return new MatchStandard(this->getPlayersTag(_match_offer));
 }
 
 bool MatchRuleStandard::isTimeValid(const XML::Tag& _player) const {
@@ -44,9 +44,9 @@ bool MatchRuleStandard::isTimeValid(const XML::Tag& _player) const {
 }
 
 /*
- * Coisas do MatchStandard
+ * MatchStandard Stuff
 */
-MatchStandard::MatchStandard(const StandardPlayerList &players) :
+MatchStandard::MatchStandard(const std::vector<XML::Tag>& players) :
 	MatchChess(players,"standard")
 {
 }
@@ -55,5 +55,13 @@ MatchStandard::~MatchStandard() {
 }
 
 Game* MatchStandard::createGame() const {
-	return new GameStandard(this->_match_players);
+	return new GameStandard(getPlayersFromXML(this->_match_players));
+}
+
+/*
+ * MatchChessStandardAdjourn Stuff
+*/
+
+Game* MatchChessStandardAdjourn::createGame() const {
+	return new GameStandard(this->history);
 }

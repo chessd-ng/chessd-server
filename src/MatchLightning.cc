@@ -32,7 +32,7 @@ MatchRuleLightning::~MatchRuleLightning() {
 }
 
 Match* MatchRuleLightning::checkOffer(const XML::Tag& _match_offer, const TeamDatabase&) const {
-	return new MatchLightning(getPlayersfromXML(_match_offer));
+	return new MatchLightning(getPlayersTag(_match_offer));
 }
 
 bool MatchRuleLightning::isTimeValid(const XML::Tag& _player) const {
@@ -47,7 +47,7 @@ bool MatchRuleLightning::isTimeValid(const XML::Tag& _player) const {
 /*
  * Coisas do MatchLightning
 */
-MatchLightning::MatchLightning(const StandardPlayerList &players) :
+MatchLightning::MatchLightning(const std::vector<XML::Tag>& players) :
 	MatchChess(players,"lightning")
 {
 }
@@ -56,5 +56,13 @@ MatchLightning::~MatchLightning() {
 }
 
 Game* MatchLightning::createGame() const {
-	return new GameLightning(this->_match_players);
+	return new GameLightning(getPlayersFromXML(this->_match_players));
+}
+
+/*
+ * MatchChessStandardAdjourn Stuff
+*/
+
+Game* MatchChessLightningAdjourn::createGame() const {
+	return new GameLightning(this->history);
 }

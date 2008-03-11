@@ -82,6 +82,15 @@ void MatchRuleChess::validateXML(const XML::Tag& _match_offer) const {
 		throw bad_information(std::string("Invalid number of players for category")+this->getCategory());
 }
 
+std::vector<XML::Tag> MatchRuleChess::getPlayersTag(const XML::Tag& match_offer) const {
+	this->validateXML(match_offer);
+	std::vector<XML::Tag> ans;
+	foreach(it,match_offer.tags())
+		if(it->name()=="player")
+			ans.push_back(XML::Tag(*it));
+	return ans;
+}
+
 StandardPlayerList MatchRuleChess::getPlayersfromXML(const XML::Tag& _match_offer) const {
 	this->validateXML(_match_offer);
 	StandardPlayerList players;
@@ -103,12 +112,12 @@ StandardPlayerList MatchRuleChess::getPlayersfromXML(const XML::Tag& _match_offe
  * MatchChess things
 */
 
-MatchChess::MatchChess(const StandardPlayerList &players, const std::string& __category) : 
+MatchChess::MatchChess(const std::vector<XML::Tag>& players, const std::string& __category) : 
 	_match_players(players) ,
 	_category(__category)
 {
 	foreach(it,players)
-		this->_players.push_back(Player(it->jid));
+		this->_players.push_back(Player(it->getAttribute("jid")));
 }
 
 MatchChess::~MatchChess(){
@@ -126,24 +135,29 @@ XML::Tag* MatchChess::notification() const {
 	XML::TagGenerator t;
 	t.openTag("match");
 	t.addAttribute("category",this->category());
-	foreach(it,_match_players) {
-		t.openTag("player");
-		{
-			t.addAttribute("jid",it->jid.full());
-
-			char tmp[8];
-			int tempo=(int)(it->time.getSeconds()+0.5);
-			sprintf(tmp,"%d",tempo);
-			t.addAttribute("time",std::string(tmp));
-
-			tempo=(int)(it->inc.getSeconds()+0.5);
-			sprintf(tmp,"%d",tempo);
-			t.addAttribute("inc",std::string(tmp));
-
-			t.addAttribute("color",it->color==White?"white":"black");
-		}
-		t.closeTag();
-	}
+	foreach(it,this->_match_players)
+		t.addChild(new XML::Tag(*it));
 	t.closeTag();
 	return t.getTag();
+}
+
+StandardPlayerList MatchChess::getPlayersFromXML(const std::vector<XML::Tag>& xml_players) {
+	StandardPlayerList players;
+	foreach(c_it,xml_players) {
+		XMPP::Jid aux(c_it->getAttribute("jid"));
+		Util::Time time(c_it->getAttribute("time"),Util::Seconds),inc;
+		if(c_it->hasAttribute("inc"))
+			inc=Util::Time(c_it->getAttribute("inc"),Util::Seconds);
+		StandardPlayerColor c(c_it->getAttribute("color")=="white"?White:Black);
+		players.push_back(StandardPlayer(aux,time,inc,c));
+	}
+	return players;
+}
+
+std::vector<XML::Tag> MatchChessAdjourn::getPlayersTag(const XML::Tag& history_adjourn) {
+	std::vector<XML::Tag> players;
+	foreach(it,history_adjourn.tags())
+		if(it->name()=="player")
+			players.push_back(XML::Tag(*it));
+	return players;
 }

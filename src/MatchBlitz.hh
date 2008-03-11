@@ -37,7 +37,7 @@ class MatchRuleBlitz : public MatchRuleChess {
 struct MatchBlitz : public MatchChess {
 	public:
 
-		MatchBlitz(const StandardPlayerList &players);
+		MatchBlitz(const std::vector<XML::Tag>& players);
 
 		virtual ~MatchBlitz();
 		
@@ -45,6 +45,15 @@ struct MatchBlitz : public MatchChess {
 
 	private:
 		std::string _category;
+};
+
+struct MatchChessBlitzAdjourn : public MatchChessAdjourn {
+	public:
+		MatchChessBlitzAdjourn(XML::Tag* _history) : MatchChessAdjourn(_history) { }
+
+		virtual Game* createGame() const;
+
+	private:
 };
 
 #endif

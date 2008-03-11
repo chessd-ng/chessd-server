@@ -29,7 +29,6 @@
 
 /*! \brief An abstract match description. */
 struct Match {
-
 	public:
 
 		/*! \brief Destructor */

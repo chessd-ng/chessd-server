@@ -37,7 +37,7 @@ class MatchRuleLightning : public MatchRuleChess {
 struct MatchLightning : public MatchChess {
 	public:
 
-		MatchLightning(const StandardPlayerList &players);
+		MatchLightning(const std::vector<XML::Tag>& players);
 
 		virtual ~MatchLightning();
 		
@@ -45,6 +45,15 @@ struct MatchLightning : public MatchChess {
 
 	private:
 		std::string _category;
+};
+
+struct MatchChessLightningAdjourn : public MatchChessAdjourn {
+	public:
+		MatchChessLightningAdjourn(XML::Tag* _history) : MatchChessAdjourn(_history) { }
+
+		virtual Game* createGame() const;
+
+	private:
 };
 
 #endif

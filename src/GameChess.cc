@@ -97,7 +97,10 @@ GameChess::GameChess(XML::Tag* adjourned_game) {
 	this->_resign=Chess::UNDEFINED;
 	this->time_over=-1;
 	this->turns_restart=0;
+	this->_done=NOREASON;
 	this->_done=(end_reason)realDone();
+
+	delete adjourned_game;
 }
 
 XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& current_time) const {
@@ -196,7 +199,7 @@ bool GameChess::done(const Util::Time& current_time) {
 
 int GameChess::realDone() {
 	int aux=0;
-	if(this->_done!=0)
+	if(this->_done!=NOREASON)
 		return this->_done;
 	else if(chess.verifyCheckMate())
 		return CHECKMATE;
