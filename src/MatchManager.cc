@@ -323,6 +323,14 @@ void MatchManager::handleDecline(const Stanza& stanza) {
 void MatchManager::closeMatch(int id, bool accepted) {
     std::auto_ptr<Match> match(this->match_db.closeMatch(id));
     if(accepted) {
+        /* close all other matchs */
+        foreach(player, match->players()) {
+            set<int> matchs = this->match_db.getPlayerMatchs(*player);
+            foreach(id, matchs) {
+                this->closeMatch(*id, false);
+            }
+        }
+        /* create the game */
         Game* game = match->createGame();
         this->game_manager.createGame(
                 game,
