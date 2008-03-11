@@ -50,8 +50,6 @@ class AdjournedDatabase {
         /*! brief Constructor */
         AdjournedDatabase(pqxx::work& w);
 
-        //PersistentAdjourned* getAdjourned(int game_id) const;
-
         /*! \brief Store a game in the database */
         void insertGame(const PersistentAdjourned& game);
 
@@ -62,7 +60,7 @@ class AdjournedDatabase {
 
         std::string getGameHistory(int game_id);
 
-        void removeGame(int game_id);
+        void eraseGame(int game_id);
 
     private:
         pqxx::work& work;

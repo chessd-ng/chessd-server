@@ -32,10 +32,11 @@ Core::Core(const XML::Tag& config_xml) :
         boost::bind(&Core::handleError, this, _1)),
 	match_manager(config_xml.findChild("match-manager"),
         this->game_manager,
+        this->database_manager,
         boost::bind(&Core::handleError, this, _1)),
 	rating_component(config_xml.findChild("rating-manager"),
         boost::bind(&Core::handleError, this, _1),
-        this->database_manager)
+            this->database_manager)
 {
 }
 
