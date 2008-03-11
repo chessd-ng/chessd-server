@@ -366,6 +366,7 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
         tmp.wins() = rating.wins;
         tmp.draws() = rating.draws;
         tmp.losses() = rating.defeats;
+        tmp.last_game() = rating.last_game;
         ratings.insert(std::make_pair(player->jid, tmp));
     }
     result->updateRating(ratings);
@@ -376,6 +377,7 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
         rating.defeats = it->second.losses();
         rating.max_rating = pratings[it->first].max_rating;
         rating.max_timestamp = pratings[it->first].max_timestamp;
+        rating.last_game = Util::ptime_to_time_t(boost::posix_time::second_clock::local_time());
         if(rating.rating > rating.max_rating) {
             rating.max_rating = rating.rating;
             rating.max_timestamp = boost::posix_time::second_clock::local_time();
