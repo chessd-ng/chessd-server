@@ -130,8 +130,6 @@ namespace XML {
 			/* generate xml string */
 			virtual void xml(std::string&) const;
 
-			void clearChildren();
-
             Tag& operator=(const Tag& tag);
 
 		private:
