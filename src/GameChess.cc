@@ -43,7 +43,7 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 	this->colormap[this->_players[0].jid]=this->_players[0].color==White?Chess::WHITE:Chess::BLACK;
 	this->colormap[this->_players[1].jid]=this->_players[1].color==White?Chess::WHITE:Chess::BLACK;
 
-	this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
+	this->_title=this->_players[0].jid.node()+" x "+this->_players[1].jid.node();
 
 	this->initial_time=int(this->_players[0].time.getSeconds()+0.001);
 
@@ -88,7 +88,7 @@ GameChess::GameChess(XML::Tag* adjourned_game) {
 		ss >> mv;
 	}
 
-	this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
+	this->_title=this->_players[0].jid.node()+" x "+this->_players[1].jid.node();
 
 	this->time_of_last_move=Util::Time();
 	this->_resign=Chess::UNDEFINED;
