@@ -25,6 +25,7 @@
 #include "MatchStandard.hh"
 #include "MatchBlitz.hh"
 #include "MatchLightning.hh"
+#include "MatchAdjournFactory.hh"
 
 #include "XMPP/Exception.hh"
 #include "Exception.hh"
@@ -34,6 +35,8 @@
 #define XMLNS_MATCH_OFFER   "http://c3sl.ufpr.br/chessd#match#offer"
 #define XMLNS_MATCH_ACCEPT  "http://c3sl.ufpr.br/chessd#match#accept"
 #define XMLNS_MATCH_DECLINE "http://c3sl.ufpr.br/chessd#match#decline"
+
+#define XMLNS_ADJOURNED_LIST "http://c3sl.ufpr.br/chessd#adjourned#list"
 
 using namespace std;
 using namespace XML;
@@ -50,16 +53,43 @@ class match_error : public XMPP::xmpp_exception {
         }
 };
 
+static void eraseAdjGame(int adj_id, DatabaseInterface& interface) {
+    interface.adjourned_game_database.eraseGame(adj_id);
+}
 
+class AdjournedWrapper : public Match {
+    public:
+        AdjournedWrapper(int adj_id, DatabaseManager& database, Match* match) :
+            adj_id(adj_id),
+            database(database),
+            match(match) { }
+
+        ~AdjournedWrapper() { }
+        const PlayerList& players() const { return this->match->players(); }
+        const std::string& category() const { return this->match->category(); }
+        XML::Tag* notification() const { return this->match->notification(); }
+
+        Game* createGame() const {
+            this->database.queueTransaction(boost::bind(eraseAdjGame, adj_id, _1));
+            return match->createGame();
+        }
+    private:
+
+        int adj_id;
+        DatabaseManager& database;
+        std::auto_ptr<Match> match;
+};
 
 MatchManager::MatchManager(
         const XML::Tag& config,
         GameManager& game_manager,
+        DatabaseManager& database,
         const XMPP::ErrorHandler& handleError) :
     ComponentBase(config, "Match Manager"),
     roster(boost::bind(&ComponentBase::sendStanza, this, _1),
             boost::bind(&MatchManager::notifyUserStatus, this, _1, _2)),
     game_manager(game_manager),
+    database(database),
     handleError(handleError)
 {
 
@@ -69,6 +99,7 @@ MatchManager::MatchManager(
     /* Set features */
     this->root_node.disco().features().insert("presence");
     this->root_node.disco().features().insert(XMLNS_MATCH);
+    this->root_node.disco().features().insert(XMLNS_ADJOURNED_LIST);
 
     /* Set match iqs */
     this->root_node.setIqHandler(boost::bind(&MatchManager::handleOffer, this, _1),
@@ -77,6 +108,10 @@ MatchManager::MatchManager(
             XMLNS_MATCH_ACCEPT);
     this->root_node.setIqHandler(boost::bind(&MatchManager::handleDecline, this, _1),
             XMLNS_MATCH_DECLINE);
+    this->root_node.setIqHandler(boost::bind(&MatchManager::handleDecline, this, _1),
+            XMLNS_MATCH_DECLINE);
+    this->root_node.setIqHandler(boost::bind(&MatchManager::handleList, this, _1),
+            XMLNS_ADJOURNED_LIST);
 
     /* FIXME */
     /* this should not be here */
@@ -112,24 +147,52 @@ void MatchManager::sendOfferResult(const XMPP::Jid& to, const std::string& iq_id
 
 void MatchManager::handleOffer(const Stanza& stanza) {
     try {
-        Jid requester = stanza.from();
+
         /* parse message */
         const XML::Tag& offer = stanza.query().findChild("match");
-        const std::string& category = offer.getAttribute("category");
+
+        /* Is the offer to resume an adjourned game? */
+        if(offer.hasAttribute("adjourned_id")) {
+            int adj_id = Util::parse_string<int>(offer.getAttribute("adjourned_id"));
+            this->delayed_offer.push_back(make_pair(adj_id, new XMPP::Stanza(stanza)));
+            this->database.queueTransaction(boost::bind(&MatchManager::loadAdjourned, this, adj_id, _1));
+        } else {
+
+            /* check category */
+            const std::string& category = offer.getAttribute("category");
+
+            /* apply match rule */
+            if(not Util::has_key(this->rules, category))
+                throw match_error("This category is not available");
+            std::auto_ptr<Match> match(this->rules.find(category)->second->checkOffer(offer, this->teams));
+            /* The processOffer was part of this function.
+             * It was separated due to the need to
+             * load an adjourned game asynchronously */
+            this->processOffer(stanza, match.release());
+        }
+    } catch (const XML::xml_error& error) {
+        throw XMPP::bad_request(error.what());
+    } catch (const game_exception& error) {
+        throw XMPP::bad_request(error.what());
+    }
+}
+
+void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
+    try {
+        std::auto_ptr<Match> match(_match);
+
+        /* parse message */
+        const XML::Tag& offer = stanza.query().findChild("match");
         int match_id;
 
+        /* is it a rematch? */
         if(offer.hasAttribute("id")) {
             match_id = Util::parse_string<int>(offer.getAttribute("id"));
         } else {
             match_id = -1;
         }
 
-        /* apply match rule */
-        if(not Util::has_key(this->rules, category))
-            throw match_error("This category is not available");
-        std::auto_ptr<Match> match(this->rules.find(category)->second->checkOffer(offer, this->teams));
-
-        /* check if everynoe is available and if the sender is in the match */
+        /* check if everyone is available and if the sender is in the match */
         bool valid = false;
         foreach(player, match->players()) {
             if(not this->roster.isUserAvailable(*player))
@@ -148,7 +211,7 @@ void MatchManager::handleOffer(const Stanza& stanza) {
             }
         }
 
-        /* If an id is given, consider it to be a rematch */
+        /* If an id is given, then it is a rematch */
         if(match_id != -1) {
             if(not this->match_db.hasMatch(match_id))
                 throw match_error("Invalid match id");
@@ -160,24 +223,49 @@ void MatchManager::handleOffer(const Stanza& stanza) {
             sort(old_player_list.begin(), old_player_list.end());
             sort(player_list.begin(), player_list.end());
             if(old_player_list != player_list) {
-                throw match_error("The player in the match must not change in a rematch");
+                throw match_error("The players in the match must not change in a rematch");
             }
             this->match_db.replaceMatch(match_id, match.release());
         } else {
             match_id = this->match_db.insertMatch(match.release());
         }
 
-        this->match_db.acceptMatch(match_id, requester);
-
+        /* the offer is ok, now add it to the offer list and notify users */
+        this->match_db.acceptMatch(match_id, stanza.from());
         this->sendOfferResult(stanza.from(), stanza.id(), match_id);
-        this->notifyOffer(match_id, requester);
+        this->notifyOffer(match_id, stanza.from());
 
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request(error.what());
     } catch (const game_exception& error) {
         throw XMPP::bad_request(error.what());
-    } catch (const char* error) {
-        throw XMPP::bad_request(error);
+    }
+}
+
+void MatchManager::resumeOffer(int adj_id, const std::string& history) {
+    std::auto_ptr<XMPP::Stanza> stanza;
+    try {
+        /* now we are to resume an adjourned game */
+        /* find the offer message */
+        foreach(offer, this->delayed_offer) {
+            if(offer->first == adj_id) {
+                stanza = std::auto_ptr<XMPP::Stanza>(offer->second);
+                this->delayed_offer.erase(offer);
+                break;
+            }
+        }
+
+        /* create the match and proces it */
+        std::auto_ptr<XML::Tag> history_tag(XML::parseXmlString(history));
+        std::auto_ptr<Match> match(
+                new AdjournedWrapper(
+                        adj_id,
+                        this->database,
+                        MatchAdjournFactory::create(history_tag.release())));
+        this->processOffer(*stanza, match.release());
+
+    } catch (XMPP::xmpp_exception& error) {
+        this->sendStanza(error.getErrorStanza(stanza.release()));
     }
 }
 
@@ -233,14 +321,14 @@ void MatchManager::handleDecline(const Stanza& stanza) {
 }
 
 void MatchManager::closeMatch(int id, bool accepted) {
-    Match* match = this->match_db.closeMatch(id);
+    std::auto_ptr<Match> match(this->match_db.closeMatch(id));
     if(accepted) {
+        Game* game = match->createGame();
         this->game_manager.createGame(
-                match->createGame(),
-                boost::bind(&MatchManager::notifyGameStart, this, id, match, _1));
+                game,
+                boost::bind(&MatchManager::notifyGameStart, this, id, match.release(), _1));
     } else {
         this->notifyResult(*match, id, accepted);
-        delete match;
     }
 }
 
@@ -303,5 +391,70 @@ void MatchManager::onClose() {
     vector<int> matchs = this->match_db.getActiveMatchs();
     foreach(match_id, matchs) {
         this->closeMatch(*match_id, false);
+    }
+}
+
+void MatchManager::handleList(const XMPP::Stanza& query) {
+    this->database.queueTransaction(boost::bind(&MatchManager::listAdjournedGames, this, query, _1));
+}
+
+void MatchManager::listAdjournedGames(const XMPP::Stanza& query, DatabaseInterface& database) {
+    AdjournedDatabase& adj_database = database.adjourned_game_database;
+
+    try {
+        try {
+            std::vector<std::string> players;
+            int offset = 0;
+            int max_results = 50;
+            std::vector<PersistentAdjourned> games;
+            XML::TagGenerator generator;
+
+            /* Parse request */
+            const XML::Tag& search_tag = query.query().findChild("search");
+            offset = Util::parse_string<int>(search_tag.getAttribute("offset"));
+            max_results = min(max_results, Util::parse_string<int>(search_tag.getAttribute("results")));
+            players.push_back(query.from().partial());
+
+            /* Search in the database */
+            games = adj_database.searchGames(players, offset, max_results);
+
+            /* Create result */
+            std::auto_ptr<XMPP::Stanza> resp(query.createIQResult());
+            generator.openTag("query");
+            generator.addAttribute("xmlns", XMLNS_ADJOURNED_LIST);
+            foreach(game, games) {
+                generator.openTag("game");
+                generator.addAttribute("category", game->category);
+                generator.addAttribute("id", Util::to_string(game->id));
+                generator.addAttribute("time_stamp", Util::ptime_to_xmpp_date_time(game->time_stamp));
+                foreach(player, game->players) {
+                    generator.openTag("player");
+                    generator.addAttribute("jid", player->partial());
+                    generator.closeTag();
+                }
+                generator.closeTag();
+            }
+            resp->children().push_back(generator.getTag());
+            this->sendStanza(resp.release());
+        } catch (const XML::xml_error& error) {
+            throw XMPP::bad_request("Invalid format");
+        }
+    } catch (const XMPP::xmpp_exception& error) {
+        this->sendStanza(error.getErrorStanza(new Stanza(query)));
+    }
+}
+
+void MatchManager::loadAdjourned(int game_id, DatabaseInterface& database) {
+    AdjournedDatabase& adj_database = database.adjourned_game_database;
+
+    try {
+        /* get game from the database */
+        std::string history = adj_database.getGameHistory(game_id);
+        this->dispatcher.queue(boost::bind(&MatchManager::resumeOffer, this, game_id, history));
+
+    } catch (const adjourned_game_not_found& error) {
+
+        /* on error send an empty history */
+        this->dispatcher.queue(boost::bind(&MatchManager::resumeOffer, this, game_id, ""));
     }
 }

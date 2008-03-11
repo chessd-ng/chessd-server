@@ -115,3 +115,21 @@ std::vector<PersistentAdjourned> AdjournedDatabase::searchGames(
     }
     return games;
 }
+
+void AdjournedDatabase::eraseGame(int game_id) {
+
+    std::string query;
+
+    query =
+            " DELETE FROM adjourned_games WHERE "
+            "   game_id= " + pqxx::to_string(game_id);
+
+    this->work.exec(query);
+
+    query =
+            " DELETE FROM adjourned_game_players WHERE "
+            "   game_id= " + pqxx::to_string(game_id);
+
+    this->work.exec(query);
+
+}

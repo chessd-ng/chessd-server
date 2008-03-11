@@ -183,6 +183,54 @@ Any date and time is in the format specified by the XEP-082.
 </iq>
 
 <!--
+    To list adjourned games
+--!>
+
+<iq type='get' to='match.shiva' id='get_adj'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#adjourned#list'>
+        <search results='10' offset='0'/>
+    </query>
+</iq>
+
+<!--
+    The result.
+--!>
+
+<iq from="match.shiva" type="result" id="get_adj">
+    <query xmlns="http://c3sl.ufpr.br/chessd#adjourned#list">
+        <game time_stamp="2008-03-06T15:19:09Z" category="blitz" id="89" >
+            <player jid="ulyssesb@shiva" />
+            <player jid="robofacilaaa@shiva" />
+        </game>
+    </query>
+</iq>
+
+<!--
+    To offer a player to resume an adjourned game.
+--!>
+
+<iq to="match.shiva" type="set" id="offer_adj">
+    <query xmlns="http://c3sl.ufpr.br/chessd#match#offer">
+        <match adjourned_id='4'/>
+    </query>
+</iq>
+
+
+<!--
+    The other player will recieve a notification just like
+    a normal offer, but with a type set to adjourned.
+--!>
+
+<iq from="match.shiva" type="set" id="1" to="eduari@shiva/Psi" >
+    <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'/>
+        <match category="standard" id="0" type='adjourned'>
+            <player inc="1" color="white" time="521" jid="raphaelhr@shiva/Psi"/>
+            <player inc="1" color="black" time="534" jid="eduari@shiva/Psi"/>
+        </match>
+    </query>
+</iq>
+
+<!--
     After the game is over, the players may leave the room.
 -->
 <presence to='game_0@games.shiva/raphaelhr' type='unavailable'/>
