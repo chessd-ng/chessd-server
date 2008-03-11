@@ -45,7 +45,7 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
 
 	this->_title=this->_players[0].jid.partial()+" x "+this->_players[1].jid.partial();
 
-	this->initial_time=this->_players[0].time.getSeconds()+0.001;
+	this->initial_time=int(this->_players[0].time.getSeconds()+0.001);
 
 	//These three are set only for ending reasons
 	this->_resign=Chess::UNDEFINED;
@@ -285,7 +285,7 @@ XML::Tag* GameChess::move(const Player& player, const std::string& movement, con
 
 	this->_done=(end_reason)realDone();
 
-	int last_time=(this->standard_player_map[player]->time.getSeconds()+0.001);
+	int last_time=int(this->standard_player_map[player]->time.getSeconds()+0.001);
 
 
 	std::string realmove=movement;
@@ -327,12 +327,12 @@ XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
 			//confirm if time_left is only for adjourned games
 			if(this->_done==NOREASON) {
 				if(this->chess.turn() == colormap.find(it->jid)->second and this->turns_restart>=2)
-					gen.addAttribute("time_left",Util::to_string<int>((this->_players[it->role=="white"?0:1].time-time_passed).getSeconds()+0.001));
+					gen.addAttribute("time_left",Util::to_string<int>(int((this->_players[it->role=="white"?0:1].time-time_passed).getSeconds()+0.001)));
 				else
-					gen.addAttribute("time_left",Util::to_string<int>(this->_players[it->role=="white"?0:1].time.getSeconds()+0.001));
+					gen.addAttribute("time_left",Util::to_string<int>(int(this->_players[it->role=="white"?0:1].time.getSeconds()+0.001)));
 			}
 
-			gen.addAttribute("inc",Util::to_string<int>(this->_players[0].inc.getSeconds()+0.001));
+			gen.addAttribute("inc",Util::to_string<int>(int(this->_players[0].inc.getSeconds()+0.001)));
 
 			gen.closeTag();
 		}
