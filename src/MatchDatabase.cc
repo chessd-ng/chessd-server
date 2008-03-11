@@ -39,6 +39,7 @@ int MatchDatabase::insertMatch(Match* match) {
 }
 
 void MatchDatabase::replaceMatch(int match_id, Match* match) {
+    this->matchs.erase(match_id);
 	this->matchs.insert(match_id, new MatchInfo(match));
 }
 
