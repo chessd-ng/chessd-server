@@ -49,6 +49,7 @@ struct pqxx_transaction : public pqxx::transactor<>
 DatabaseManager::DatabaseManager(const XML::Tag& config) :
     colector_task(boost::bind(&DatabaseManager::colector, this))
 {
+    /* prepare the connetion string */
     this->connection_string =
         " host=" + config.getAttribute("host") +
         " port=" + config.getAttribute("port") +
@@ -57,21 +58,24 @@ DatabaseManager::DatabaseManager(const XML::Tag& config) :
         " password=" + config.getAttribute("password") +
         " sslmode=disable";
 
-    // Check if we can connect to the database
+    /* Check if we can connect to the database */
     pqxx::connection* conn = new pqxx::connection(this->connection_string);
 
+    /* put the unused connection on the queue */
     this->free_connections.push(conn);
 
+    /* start the tasks colector */
     this->colector_task.start();
 }
 
 DatabaseManager::~DatabaseManager()
 {
+    /* stop threads */
     this->running_tasks.push(0);
     this->colector_task.join();
 
+    /* close connections */
     pqxx::connection* connection = 0;
-
     while(this->free_connections.try_pop(connection)) {
         delete connection;
     }
@@ -83,6 +87,7 @@ void DatabaseManager::execTransaction(const Transactor& transactor)
 
     pqxx::connection* conn = 0;
 
+    /* get a connection to the database */
     try {
         if(not this->free_connections.try_pop(conn)) {
             std::cout << "new connection to the database" << std::endl;
@@ -93,13 +98,16 @@ void DatabaseManager::execTransaction(const Transactor& transactor)
         conn = this->free_connections.pop();
     }
 
+    /* execute it */
     conn->perform(t);
 
+    /* return the connection to the queue */
     this->free_connections.push(conn);
 }
 
 void DatabaseManager::queueTransaction(const Transactor& transaction)
 {
+    /* run the transaction as a task */
     Threads::Task* task =
         new Threads::Task(boost::bind(
                     &DatabaseManager::execTransaction,

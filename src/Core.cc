@@ -41,6 +41,7 @@ Core::Core(const XML::Tag& config_xml) :
 }
 
 void Core::start() {
+    /* start all compoenents */
 	this->dispatcher.start();
 	this->match_manager.connect();
 	this->game_manager.connect();
@@ -52,6 +53,7 @@ void Core::join() {
 }
 
 Core::~Core() {
+    /* close all components */
 	this->rating_component.close();
 	this->game_manager.close();
 	this->match_manager.close();
@@ -59,6 +61,7 @@ Core::~Core() {
 }
 
 void Core::init(const XML::Tag& config_xml) {
+    /* instanciate the core */
 	Core::_singleton = new Core(config_xml);
 }
 

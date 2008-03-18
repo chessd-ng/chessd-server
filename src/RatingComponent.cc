@@ -189,6 +189,8 @@ void RatingComponent::fetchGame(const Stanza& stanza, DatabaseInterface& databas
             generator.openTag("query");
             generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_FETCH);
             generator.addChild(HistoryProcess::generate(XML::parseXmlString(game_history)));
+
+            /* send the result to the player */
             this->sendStanza(new XMPP::Stanza(generator.getTag()));
         } catch(const XML::xml_error& error) {
             throw XMPP::bad_request("Invalid format");
@@ -206,6 +208,7 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
     const Tag& query = stanza.findChild("query");
     std::string category, jid;
 
+    /* create message */
     generator.openTag("iq");
     generator.addAttribute("to", stanza.from().full());
     generator.addAttribute("from", stanza.to().full());
@@ -213,12 +216,19 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
     generator.addAttribute("type", "result");
     generator.openTag("query");
     generator.addAttribute("xmlns", XMLNS_CHESSD_INFO);
+
+    /* for each requested info, consult the database */
     foreach(tag, query.tags()) {
         if(tag->name() == "rating") {
-            category = (tag->hasAttribute("category")) ? tag->getAttribute("category"): "";
+            /* parse tag */
+            category = tag->hasAttribute("category") ? tag->getAttribute("category") : "";
             jid = tag->getAttribute("jid");
+
+            /* consult the database */
             std::vector<std::pair<std::string, PersistentRating> > ratings = rating_database.getRatings(
                         jid, category);
+
+            /* add result to the message */
             foreach(rating, ratings) {
                 generator.openTag("rating");
                 generator.addAttribute("jid", jid);
@@ -232,9 +242,16 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
                 generator.closeTag();
             }
         } else if(tag->name() == "type") {
+            /* parse message */
+            jid = tag->getAttribute("jid");
+
+            /* consult the database */
+            std::string type = rating_database.getUserType(jid);
+
+            /* create the tag */
             generator.openTag("type");
-            generator.addAttribute("jid", tag->getAttribute("jid"));
-            generator.addAttribute("type", rating_database.getUserType(tag->getAttribute("jid")));
+            generator.addAttribute("jid", jid);
+            generator.addAttribute("type", type);
             generator.closeTag();
         }
     }

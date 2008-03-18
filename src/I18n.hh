@@ -8,13 +8,14 @@
 class I18n {
     public:
 
+        /*! \brief Return the code of a text */
         uint32_t getTextCode(const std::string& text_name) const;
 
+        /*! \brief Return the tranlation of a text */
         const std::string& getText(const std::string& text_name, const std::string& lang) const;
 
+        /*! \brief Load langs files in the given path */
         void loadLangs(const std::string& locales_path);
-
-        //const std::string& getText(uint32_t text_code, const std::string lang) const;
 
     private:
 

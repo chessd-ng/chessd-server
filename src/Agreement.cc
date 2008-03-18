@@ -30,7 +30,10 @@ void Agreement::insert(const XMPP::Jid& jid) {
 }
 
 void Agreement::agreed(const XMPP::Jid& jid) {
+    /* find player */
 	AgreementMap::iterator it = this->agreement.find(jid);
+
+    /* set to agreed */
 	if(not it->second) {
 		this->_agreed_count ++;
 		it->second = true;

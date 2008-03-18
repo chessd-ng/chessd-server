@@ -57,6 +57,8 @@ static void eraseAdjGame(int adj_id, DatabaseInterface& interface) {
     interface.adjourned_game_database.eraseGame(adj_id);
 }
 
+/*! \brief A wrapper for an adjourned match that erases the
+ * from the database when the game starts */
 class AdjournedWrapper : public Match {
     public:
         AdjournedWrapper(int adj_id, DatabaseManager& database, Match* match) :
@@ -65,12 +67,15 @@ class AdjournedWrapper : public Match {
             match(match) { }
 
         ~AdjournedWrapper() { }
+
         const PlayerList& players() const { return this->match->players(); }
         const std::string& category() const { return this->match->category(); }
         XML::Tag* notification() const { return this->match->notification(); }
 
         Game* createGame() const {
+            /* Erase the game from the database */
             this->database.queueTransaction(boost::bind(eraseAdjGame, adj_id, _1));
+            /* Create the game */
             return match->createGame();
         }
     private:
@@ -114,7 +119,8 @@ MatchManager::MatchManager(
             XMLNS_ADJOURNED_LIST);
 
     /* FIXME */
-    /* this should not be here */
+    /* this should not be here
+     * we shoud have a match factory intead */
     this->insertMatchRule(new MatchRuleStandard());
     this->insertMatchRule(new MatchRuleBlitz());
     this->insertMatchRule(new MatchRuleLightning());
@@ -270,7 +276,10 @@ void MatchManager::resumeOffer(int adj_id, const std::string& history) {
 }
 
 void MatchManager::notifyOffer(int id, const Jid& requester) {
+    /* get match */
     const Match& match = this->match_db.getMatch(id);
+
+    /* create message */
     TagGenerator generator;
     XML::Tag* tag = 0;
     Stanza stanza("iq");
@@ -281,6 +290,8 @@ void MatchManager::notifyOffer(int id, const Jid& requester) {
     tag->setAttribute("id", Util::to_string(id));
     generator.addChild(tag);
     stanza.children().push_back(generator.getTag());
+
+    /* send the message to the players */
     foreach(player, match.players()) {
         if(*player != requester) {
             stanza.to() = *player;
@@ -291,10 +302,15 @@ void MatchManager::notifyOffer(int id, const Jid& requester) {
 
 void MatchManager::handleAccept(const Stanza& stanza) {
     try {
+        /* get match */
         const XML::Tag& match = stanza.query().findChild("match");
+        /* parse message */
         int id = Util::parse_string<int>(match.getAttribute("id"));
+        /* update accepted */
         this->match_db.acceptMatch(id, stanza.from());
+        /* reply result */
         this->sendStanza(stanza.createIQResult());
+        /* check whether eeryone has already accepted */
         if(this->match_db.isDone(id)) {
             this->closeMatch(id, true);
         }
@@ -307,11 +323,16 @@ void MatchManager::handleAccept(const Stanza& stanza) {
 
 void MatchManager::handleDecline(const Stanza& stanza) {
     try {
+        /* get match */
         const XML::Tag& match = stanza.query().findChild("match");
+        /* parse message */
         int id = Util::parse_string<int>(match.getAttribute("id"));
+        /* sanity check */
         if(not this->match_db.hasPlayer(id, stanza.from()))
             throw match_error("Invalid match id");
+        /* reply result */
         this->sendStanza(stanza.createIQResult());
+        /* close the match */
         this->closeMatch(id, false);
     } catch (const XML::xml_error& error) {
         throw bad_request("Invalid format");
@@ -341,21 +362,27 @@ void MatchManager::closeMatch(int id, bool accepted) {
 }
 
 void MatchManager::notifyGameStart(int match_id, Match* match, const XMPP::Jid& jid) {
+    /* receive a notification when the game is created,
+     * it has to be tunneled due to thread safety*/
     this->dispatcher.queue(boost::bind(&MatchManager::_notifyGameStart, this, match_id, match, jid));
 }
 
 void MatchManager::_notifyGameStart(int match_id, Match* match, const XMPP::Jid& jid) {
+    /* the game has been created
+     * we need to tell the game room
+     * to the players */
+
+    /* create message */
 	XML::TagGenerator generator;
     Stanza stanza("iq");
-
     stanza.subtype() = "set";
-
 	generator.openTag("query");
 	generator.addAttribute("xmlns", XMLNS_MATCH_ACCEPT);
 	generator.openTag("match");
 	generator.addAttribute("id", Util::to_string(match_id));
 	generator.addAttribute("room", jid.full());
 
+    /* send message to the players */
     stanza.children().push_back(generator.getTag());
     foreach(player, match->players()) {
         stanza.to() = *player;
@@ -365,16 +392,16 @@ void MatchManager::_notifyGameStart(int match_id, Match* match, const XMPP::Jid&
 }
 
 void MatchManager::notifyResult(const Match& match, int id, bool accepted) {
+    /* create the message */
 	XML::TagGenerator generator;
     Stanza stanza("iq");
-
     stanza.subtype() = "set";
-
 	generator.openTag("query");
 	generator.addAttribute("xmlns", accepted ? XMLNS_MATCH_ACCEPT : XMLNS_MATCH_DECLINE);
 	generator.openTag("match");
 	generator.addAttribute("id", Util::to_string<int>(id));
 
+    /* send to the players */
     stanza.children().push_back(generator.getTag());
     foreach(player, match.players()) {
         stanza.to() = *player;
@@ -383,6 +410,8 @@ void MatchManager::notifyResult(const Match& match, int id, bool accepted) {
 }
 
 void MatchManager::notifyUserStatus(const XMPP::Jid& jid, bool available) {
+    /* receive a notification of availability of a player,
+     * hen a player goes offline, close all his matchs */
     if(not available) {
         set<int> matchs = this->match_db.getPlayerMatchs(jid);
         foreach(id, matchs) {
@@ -403,6 +432,7 @@ void MatchManager::onClose() {
 }
 
 void MatchManager::handleList(const XMPP::Stanza& query) {
+    /* we have to consult the database here */
     this->database.queueTransaction(boost::bind(&MatchManager::listAdjournedGames, this, query, _1));
 }
 
@@ -443,6 +473,8 @@ void MatchManager::listAdjournedGames(const XMPP::Stanza& query, DatabaseInterfa
                 generator.closeTag();
             }
             resp->children().push_back(generator.getTag());
+
+            /* send the message */
             this->sendStanza(resp.release());
         } catch (const XML::xml_error& error) {
             throw XMPP::bad_request("Invalid format");

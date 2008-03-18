@@ -53,13 +53,16 @@ class AdjournedDatabase {
         /*! \brief Store a game in the database */
         void insertGame(const PersistentAdjourned& game);
 
+        /*! \brief Store an adjourned game */
         std::vector<PersistentAdjourned> searchGames(
                 const std::vector<std::string> players,
                 int offset,
                 int max_results);
 
+        /*! \brief Get a game's history */
         std::string getGameHistory(int game_id);
 
+        /*! \brief Erase game from the dtabase */
         void eraseGame(int game_id);
 
     private:

@@ -55,11 +55,13 @@ class GameDatabase {
         /*! \brief Store a game in the database */
         void insertGame(const PersistentGame& game);
 
+        /*! \brief Search games in the database */
         std::vector<PersistentGame> searchGames(
                 const std::vector<std::string> players,
                 int offset,
                 int max_results);
 
+        /*! \brief Get a game's history */
         std::string getGameHistory(int game_id);
 
     private:

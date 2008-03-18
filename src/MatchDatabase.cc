@@ -30,8 +30,11 @@ MatchDatabase::~MatchDatabase() {
 }
 
 int MatchDatabase::insertMatch(Match* match) {
+    /* get an id */
 	int match_id = this->match_ids.acquireID();
+    /* insert the match */
 	this->matchs.insert(match_id, new MatchInfo(match));
+    /* update players map */
 	foreach(player, match->players()) {
 		this->player_matchs[*player].insert(match_id);
 	}
@@ -51,10 +54,14 @@ MatchDatabase::MatchInfo::MatchInfo(Match* match) : match(match), pending_count(
 }
 
 void MatchDatabase::acceptMatch(int match_id, const XMPP::Jid& player) {
+    /* find player info */
     MatchInfo& mi = this->findMatchInfo(match_id);
 	map<XMPP::Jid, bool>::iterator it2 = mi.accepted_players.find(player);
-	if(it2 == mi.accepted_players.end())
+    /* sanity test */
+	if(it2 == mi.accepted_players.end()) {
 		throw user_error("Invalid match id");
+    }
+    /* update info */
 	if(not it2->second) {
 		mi.pending_count--;
         it2->second = true;
@@ -78,12 +85,15 @@ const set<int>& MatchDatabase::getPlayerMatchs(const XMPP::Jid& player) {
 }
 
 Match* MatchDatabase::closeMatch(int match_id) {
+    /* find the match */
 	boost::ptr_map<int, MatchInfo>::iterator it = this->matchs.find(match_id);
 	MatchInfo& match_info = *it->second;
 	Match* match = match_info.match.release();
+    /* update players map */
     foreach(player, match->players()) {
 		this->player_matchs[*player].erase(match_id);
     }
+    /* erase the match */
 	this->match_ids.releaseID(match_id);
 	this->matchs.erase(it);
 	return match;
@@ -100,8 +110,9 @@ bool MatchDatabase::hasMatch(int match_id) const {
 vector<int> MatchDatabase::getActiveMatchs() const {
     vector<int> ret;
     foreach(match, this->matchs) {
-        if(match->second->pending_count > 0)
+        if(match->second->pending_count > 0) {
             ret.push_back(match->first);
+        }
     }
     return ret;
 }

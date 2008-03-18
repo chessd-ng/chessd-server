@@ -47,10 +47,13 @@ ComponentBase::~ComponentBase() {
 }
 
 void ComponentBase::connect() {
+    /* connect to the server */
     this->component.connect(
             this->server_address,
             this->server_port,
             this->server_password);
+
+    /* start the threads */
     this->running = true;
     this->task_recv.start();
     this->task_send.start();
@@ -62,21 +65,30 @@ void ComponentBase::close() {
 
 void ComponentBase::_close() {
 	if(this->running) {
+        /* call handler */
         this->onClose();
+
+        /* close threads */
 		this->running = false;
 		this->stanza_queue.push(0);
 		this->task_recv.join();
 		this->task_send.join();
+
+        /* close connection */
 		this->component.close();
 	}
 }
 
 void ComponentBase::handleError(const std::string& error) {
+    /* tunel the call */
     this->dispatcher.queue(boost::bind(&ComponentBase::_handleError, this, error));
 }
 
 void ComponentBase::_handleError(const std::string& error) {
+    /* call handler */
     this->onError(error);
+
+    /* close connection */
     this->_close();
 }
 
@@ -88,7 +100,9 @@ void ComponentBase::run_recv() {
     XMPP::Stanza* stanza;
 	try {
 		while(this->running) {
+            /* receive stanzas */
 			stanza = this->component.recvStanza(1);
+            /* deliver the stanza */
             if(stanza != 0) {
                 this->handleStanza(stanza);
             }
@@ -102,9 +116,11 @@ void ComponentBase::run_recv() {
 void ComponentBase::run_send() {
 	XMPP::Stanza* stanza;
 	while(this->running) {
+        /* take one stanza from the queue */
 		stanza = this->stanza_queue.pop();
 		if(stanza==0)
 			break;
+        /* deliver it */
         try {
             this->component.sendStanza(stanza);
         } catch (const char* error) {
@@ -114,5 +130,6 @@ void ComponentBase::run_send() {
 }
 
 void ComponentBase::sendStanza(XMPP::Stanza* stanza) {
+    /* put in the queue*/
     this->stanza_queue.push(stanza);
 }

@@ -30,21 +30,22 @@ void AdjournedDatabase::insertGame(const PersistentAdjourned& game)
 {
     int game_id;
 
+    /* get and id from the sequence */
     pqxx::result r = work.exec("SELECT nextval('adjourned_game_id_seq')");
-
     r[0][0].to(game_id);
 
     std::string query;
 
+    /* inert game */
     query =
             " INSERT INTO adjourned_games VALUES"
             "   ( " + pqxx::to_string(game_id) + "" +
             "   ,'" + this->work.esc(game.category) + "'" +
             "   , " + pqxx::to_string(Util::ptime_to_time_t(game.time_stamp)) + "" +
             "   ,'" + this->work.esc(game.history) + "')";
-
     this->work.exec(query);
  
+    /* insert players */
     foreach(player, game.players) {
         query =
             " INSERT INTO adjourned_game_players VALUES"
@@ -55,9 +56,10 @@ void AdjournedDatabase::insertGame(const PersistentAdjourned& game)
 }
 
 std::string AdjournedDatabase::getGameHistory(int game_id) {
-    std::string query = 
-        "SELECT history FROM adjourned_games WHERE game_id = " + Util::to_string(game_id);
-
+    std::string query;
+    
+    /* find game */
+    query = "SELECT history FROM adjourned_games WHERE game_id = " + Util::to_string(game_id);
     pqxx::result result = this->work.exec(query);
 
     if(result.empty()) {
@@ -72,12 +74,15 @@ std::vector<PersistentAdjourned> AdjournedDatabase::searchGames(
                 int offset,
                 int max_results)
 {
+    std::vector<PersistentAdjourned> games;
+
     std::string select =
             " SELECT adjourned_games.game_id, category, time_stamp ";
     std::string from =
             " FROM adjourned_games ";
     std::string where;
 
+    /* prepare sql query */
     for(int i=0;i<int(players.size());++i) {
         std::string id_str = Util::to_string(i);
         from += ", adjourned_game_players g" + id_str + " ";
@@ -91,10 +96,11 @@ std::vector<PersistentAdjourned> AdjournedDatabase::searchGames(
     }
     std::string query = select + from + where + " limit " + Util::to_string(max_results) + " offset " + Util::to_string(offset);
 
+    /* search games */
     pqxx::result result = this->work.exec(query);
 
-    std::vector<PersistentAdjourned> games;
 
+    /* chek each result */
     foreach(r, result) {
         PersistentAdjourned game;
         time_t t;
@@ -102,6 +108,8 @@ std::vector<PersistentAdjourned> AdjournedDatabase::searchGames(
         r->at("time_stamp").to(t);
         game.time_stamp = boost::posix_time::from_time_t(t);
         game.category = r->at("category").c_str();
+
+        /* get players */
         std::string query =
             "SELECT username FROM adjourned_game_players WHERE game_id = "
             + pqxx::to_string(game.id);
@@ -120,16 +128,16 @@ void AdjournedDatabase::eraseGame(int game_id) {
 
     std::string query;
 
+    /* erase game */
     query =
             " DELETE FROM adjourned_games WHERE "
             "   game_id= " + pqxx::to_string(game_id);
-
     this->work.exec(query);
 
+    /* erase players */
     query =
             " DELETE FROM adjourned_game_players WHERE "
             "   game_id= " + pqxx::to_string(game_id);
-
     this->work.exec(query);
 
 }

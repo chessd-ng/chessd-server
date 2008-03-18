@@ -6,7 +6,10 @@
 I18n i18n;
 
 uint32_t I18n::getTextCode(const std::string& text_name) const {
+    /* find the string code */
     std::map<std::string, uint32_t>::const_iterator it = this->code_map.find(text_name);
+
+    /* check if the code was found */
     if(it == this->code_map.end()) {
         return 0xffffffff;
     } else {
@@ -18,10 +21,12 @@ const std::string& I18n::getText(const std::string& text_name, const std::string
     std::map<std::string, std::map<std::string, std::string> >::const_iterator it1;
     std::map<std::string, std::string>::const_iterator it2;
 
+    /* find the lang */
     it1 = this->langs.find(lang);
     if(it1 == this->langs.end())
         return text_name;
 
+    /* find the string name */
     it2 = it1->second.find(text_name);
     if(it2 == it1->second.end())
         return text_name;
@@ -30,8 +35,10 @@ const std::string& I18n::getText(const std::string& text_name, const std::string
 }
 
 void I18n::loadCodeTable(const std::string& filename) {
+    /* parse XML file */
     std::auto_ptr<XML::Tag> xml(XML::parseXmlFile(filename));
 
+    /* read codes */
     foreach(text, xml->tags()) {
         uint32_t code = Util::parse_string<uint32_t>(text->getAttribute("code"));
         const std::string& text_name = text->findCData().data();
@@ -40,8 +47,13 @@ void I18n::loadCodeTable(const std::string& filename) {
 }
 
 void I18n::loadLang(const std::string& filename) {
+    /* parse file */
     std::auto_ptr<XML::Tag> xml(XML::parseXmlFile(filename));
+
+    /* get lang name */
     std::string lang = xml->getAttribute("lang");
+
+    /* get strings */
     foreach(child, xml->tags()) {
         const std::string& text_name = child->findChild("name").findCData().data();
         const std::string& text = child->findChild("text").findCData().data();
@@ -50,8 +62,10 @@ void I18n::loadLang(const std::string& filename) {
 }
 
 void I18n::loadLangs(const std::string& locales_path) {
+    /* load code */
     this->loadCodeTable(locales_path + "/texts_code.xml");
 
+    /* load langs */
     this->loadLang(locales_path + "/pt-br.xml");
     this->loadLang(locales_path + "/en.xml");
 }
