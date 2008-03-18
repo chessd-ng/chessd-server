@@ -347,9 +347,9 @@ std::vector <Position> *ChessBasedGame::getVerticalandHorizontal(const Position&
 	for(int k=0;k<4;k++) {
 		for(int i=(p.y+py[k]),j=(p.x+px[k]);(i<this->nlines) and (i>=0) and (j < this->ncolums) and (j>=0);i+=py[k],j+=px[k]) {
 			Position aux(j,i);
-			if(this->gameboard->color(aux) == -1)
-				ans->push_back(aux);
-			else break;
+			ans->push_back(aux);
+			if(this->gameboard->color(aux) != UNDEFINED)
+				break;
 		}
 	}
 	return ans;
@@ -362,9 +362,9 @@ std::vector <Position> *ChessBasedGame::getDiagonals(const Position& p) const {
 	for(int k=0;k<4;k++) {
 		for(int i=(p.y+dy[k]),j=(p.x+dx[k]);(i<this->ncolums) and(i>=0) and (j < this->ncolums) and (j>=0);i+=dy[k],j+=dx[k]) {
 			Position aux(j,i);
-			if( this->gameboard->color(aux) == -1)
-				ans->push_back(aux);
-			else break;
+			ans->push_back(aux);
+			if( this->gameboard->color(aux) != UNDEFINED)
+				break;
 		}
 	}
 	return ans;
