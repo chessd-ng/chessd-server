@@ -421,7 +421,7 @@ void storeResult(GameResult* result, DatabaseInterface& database) {
     game.time_stamp = boost::posix_time::second_clock::local_time();
 
     /* get history */
-    std::aut_ptr<XML::Tag> history = result->history();
+    std::auto_ptr<XML::Tag> history(result->history());
     game.history = history->xml();
 
     /* insert to the database */
