@@ -1,60 +1,62 @@
 SOURCES = \
-		  src/Agreement.cc \
-		  src/ComponentBase.cc \
-		  src/Core.cc \
-		  src/DatabaseManager.cc \
-		  src/Game.cc \
-		  src/GameBlitz.cc \
-		  src/GameChess.cc \
-		  src/GameLightning.cc \
-		  src/GameManager.cc \
-		  src/GameRoom.cc \
-		  src/GameStandard.cc \
-		  src/libchess/Board.cc \
-		  src/libchess/ChessBasedGame.cc \
-		  src/libchess/Chess.cc \
-		  src/libchess/ChessMove.cc \
-		  src/libchess/History.cc \
-		  src/libchess/Piece.cc \
-		  src/libchess/State.cc \
-		  src/main.cc \
-		  src/MatchBlitz.cc \
-		  src/MatchChess.cc \
-		  src/MatchLightning.cc \
-		  src/MatchDatabase.cc \
-		  src/MatchManager.cc \
-		  src/MatchStandard.cc \
 		  src/Pairing/Game.cc \
 		  src/Pairing/Player.cc \
-		  src/Pairing/Tourney.cc \
 		  src/Pairing/TourneyPlayers.cc \
-		  src/RatingComponent.cc \
-		  src/RatingDatabase.cc \
-		  src/Threads/Dispatcher.cc \
+		  src/Pairing/Tourney.cc \
 		  src/Threads/Pool.cc \
 		  src/Threads/Task.cc \
-		  src/Util/Identifier.cc \
+		  src/Threads/Dispatcher.cc \
 		  src/Util/IDSet.cc \
+		  src/Util/Identifier.cc \
 		  src/Util/Timer.cc \
+		  src/Util/Log.cc \
 		  src/XML/iksutil.cc \
 		  src/XML/Xml.cc \
 		  src/XMPP/Component.cc \
 		  src/XMPP/Disco.cc \
 		  src/XMPP/Jid.cc \
-		  src/XMPP/Muc.cc \
 		  src/XMPP/Node.cc \
 		  src/XMPP/RootNode.cc \
 		  src/XMPP/Roster.cc \
-		  src/XMPP/StanzaBase.cc \
 		  src/XMPP/Stanza.cc \
+		  src/XMPP/StanzaBase.cc \
+		  src/XMPP/Muc.cc \
 		  src/XMPP/Stream.cc \
-		  src/GlickoSystem.cc \
-		  src/DatabaseInterface.cc \
-		  src/GameDatabase.cc \
+		  src/libchess/History.cc \
+		  src/libchess/ChessMove.cc \
+		  src/libchess/State.cc \
+		  src/libchess/Chess.cc \
+		  src/libchess/Board.cc \
+		  src/libchess/Piece.cc \
+		  src/libchess/ChessBasedGame.cc \
+		  src/MatchManager.cc \
+		  src/ChessTourney.cc \
+		  src/Core.cc \
+		  src/RatingComponent.cc \
+		  src/GameChess.cc \
+		  src/TourneyTypes.cc \
+		  src/Game.cc \
+		  src/GameLightning.cc \
+		  src/GameRoom.cc \
+		  src/MatchChess.cc \
+		  src/MatchStandard.cc \
+		  src/ComponentBase.cc \
+		  src/MatchDatabase.cc \
+		  src/MatchBlitz.cc \
+		  src/RatingDatabase.cc \
 		  src/I18n.cc \
+		  src/GameStandard.cc \
+		  src/main.cc \
+		  src/Agreement.cc \
+		  src/DatabaseManager.cc \
+		  src/DatabaseInterface.cc \
+		  src/GlickoSystem.cc \
+		  src/GameBlitz.cc \
 		  src/HistoryProcess.cc \
-		  src/Util/Log.cc \
-		  src/AdjournedDatabase.cc
+		  src/GameManager.cc \
+		  src/AdjournedDatabase.cc \
+		  src/GameDatabase.cc \
+		  src/MatchLightning.cc
 
 
 SRCDIR = src
