@@ -29,8 +29,8 @@ namespace Util {
 
 #define foreach(it, cont) \
     for(bool __continue__ = true; __continue__;) \
-    for(typeof(cont)& __cont__ = (cont);__continue__; __continue__ = false) \
-    for(typeof(__cont__.begin()) it = __cont__.begin(); it != __cont__.end(); ++it)
+        for(typeof(cont)& __cont__ = (cont);__continue__; __continue__ = false) \
+            for(typeof(__cont__.begin()) it = __cont__.begin(); it != __cont__.end(); ++it)
 
 #define foreach_it(it, begin, end) \
     for(typeof(begin) it = begin, __end__ = end; it != __end__; ++ it)

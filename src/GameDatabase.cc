@@ -29,13 +29,13 @@ GameDatabase::GameDatabase(pqxx::work& work) : work(work)
 void GameDatabase::insertGame(const PersistentGame& game)
 {
     int game_id;
-
-    pqxx::result r = work.exec("SELECT nextval('game_id_seq')");
-
-    r[0][0].to(game_id);
-
     std::string query;
 
+    /* get a id from the sequence */
+    pqxx::result r = work.exec("SELECT nextval('game_id_seq')");
+    r[0][0].to(game_id);
+
+    /* insert the game in the database */
     query =
             " INSERT INTO games VALUES"
             "   ( " + pqxx::to_string(game_id) + "" +
@@ -45,6 +45,7 @@ void GameDatabase::insertGame(const PersistentGame& game)
 
     this->work.exec(query);
  
+    /* insert the players */
     foreach(player, game.players) {
         query =
             " INSERT INTO game_players VALUES"
@@ -57,11 +58,13 @@ void GameDatabase::insertGame(const PersistentGame& game)
 }
 
 std::string GameDatabase::getGameHistory(int game_id) {
+
+    /* find the game in the database */
     std::string query = 
         "SELECT history FROM games WHERE game_id = " + Util::to_string(game_id);
-
     pqxx::result result = this->work.exec(query);
 
+    /* check result */
     if(result.empty()) {
         throw game_not_found("The requested game is not in the database");
     }
@@ -74,12 +77,15 @@ std::vector<PersistentGame> GameDatabase::searchGames(
                 int offset,
                 int max_results)
 {
+    std::vector<PersistentGame> games;
+    time_t t;
+
+    /* prepare sql query */
     std::string select =
             " SELECT games.game_id, category, time_stamp ";
     std::string from =
             " FROM games ";
     std::string where;
-
     for(int i=0;i<int(players.size());++i) {
         std::string id_str = Util::to_string(i);
         from += ", game_players g" + id_str + " ";
@@ -93,17 +99,20 @@ std::vector<PersistentGame> GameDatabase::searchGames(
     }
     std::string query = select + from + where + " limit " + Util::to_string(max_results) + " offset " + Util::to_string(offset);
 
+    /* execute query */
     pqxx::result result = this->work.exec(query);
 
-    std::vector<PersistentGame> games;
-
+    /* list results */
     foreach(r, result) {
         PersistentGame game;
-        time_t t;
+
+        /*  parse values */
         r->at("game_id").to(game.id);
         r->at("time_stamp").to(t);
         game.time_stamp = boost::posix_time::from_time_t(t);
         game.category = r->at("category").c_str();
+
+        /* get players */
         std::string query =
             "SELECT username, role, score FROM game_players WHERE game_id = "
             + Util::to_string(game.id);
@@ -115,6 +124,8 @@ std::vector<PersistentGame> GameDatabase::searchGames(
             player.score = r->at("score").c_str();
             game.players.push_back(player);
         }
+
+        /* store game */
         games.push_back(game);
     }
     return games;

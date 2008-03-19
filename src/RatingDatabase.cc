@@ -28,6 +28,10 @@ RatingDatabase::RatingDatabase(pqxx::work& work) : work(work) { }
 std::vector<std::pair<std::string, PersistentRating> > RatingDatabase::getRatings(const std::string& user, const std::string& category)
 {
     std::string query;
+    std::vector<std::pair<std::string, PersistentRating> > ratings;
+
+    /* prepare SQL query */
+    /* if no category is givn, take all of them */
     if(category.empty()) {
         query =
             "SELECT * "
@@ -40,10 +44,11 @@ std::vector<std::pair<std::string, PersistentRating> > RatingDatabase::getRating
             " WHERE username='" + this->work.esc(user) + "'" +
             " AND category='" + this->work.esc(category) + "'";
     }
-        
+    
+    /* execute query */
     pqxx::result result = work.exec(query);
 
-    std::vector<std::pair<std::string, PersistentRating> > ratings;
+    /* read results */
     foreach(r, result) {
         PersistentRating rating;
         std::string category;
@@ -65,13 +70,18 @@ std::vector<std::pair<std::string, PersistentRating> > RatingDatabase::getRating
 
 std::string RatingDatabase::getUserType(const std::string& user)
 {
+    /* prepare query */
     std::string query =
         "SELECT type"
         " FROM player_type"
         " WHERE username='" + this->work.esc(user) + "'";
-        
+    
+    /* execute query */
     pqxx::result r = work.exec(query);
 
+    /* read result */
+    /* if nothing was found, default
+     * to user */
     if(r.size() == 0) {
         return "user";
     } else {
@@ -81,15 +91,20 @@ std::string RatingDatabase::getUserType(const std::string& user)
 
 PersistentRating RatingDatabase::getRatingForUpdate(const std::string& user, const std::string& category)
 {
+    /* prepare query */
     std::string query =
         "SELECT *"
         " FROM player_rating"
         " WHERE username='" + this->work.esc(user) + "'" +
           " AND category='" + this->work.esc(category) + "'" +
         " FOR UPDATE";
-        
+    
+    /* execute query */
     pqxx::result r = work.exec(query);
 
+    /* read results */
+    /* if not found, 
+     * default to 0 */
     if(r.size() == 0) {
         return PersistentRating();
     } else {
@@ -110,6 +125,7 @@ PersistentRating RatingDatabase::getRatingForUpdate(const std::string& user, con
 
 void RatingDatabase::setRating(const std::string& user, const std::string& category, const PersistentRating& rating)
 {
+    /* prepare query */
     std::string query =
         " UPDATE player_rating"
         " SET rating=" + pqxx::to_string(rating.rating) +
@@ -122,12 +138,14 @@ void RatingDatabase::setRating(const std::string& user, const std::string& categ
             ",last_game=" + pqxx::to_string(rating.last_game) +
         " WHERE username='" + this->work.esc(user) + "'" +
           " AND category='" + this->work.esc(category) + "'";
-        
+    
+    /* execute query */
     pqxx::result r = work.exec(query);
 
     
+    /* if the entry was not in the database
+     * then create it */
     if(r.affected_rows() == 0) {
-        // entry does not exists on the table
 
         query = 
             " INSERT INTO player_rating VALUES"

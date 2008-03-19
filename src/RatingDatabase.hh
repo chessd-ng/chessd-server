@@ -46,12 +46,16 @@ class RatingDatabase {
 
         RatingDatabase(pqxx::work& w);
 
+        /*! \brief Get the ratings of a player */
         std::vector<std::pair<std::string, PersistentRating> > getRatings(const std::string& user, const std::string& category);
 
+        /*! \brief Get a rating of a player that is going to be updated */
         PersistentRating getRatingForUpdate(const std::string& user, const std::string& category);
 
+        /*! \brief Set the rating of the player */
         void setRating(const std::string& user, const std::string& category, const PersistentRating& rating);
 
+        /*! \brief Get the type of a user */
         std::string getUserType(const std::string& user);
 
     private:

@@ -34,10 +34,7 @@ class MatchDatabase {
 		MatchDatabase();
 		~MatchDatabase();
 
-		/*! \brief Insert a match to the database
-		 *
-		 * \param match is the match to be inserted
-		 */
+		/*! \brief Insert a match to the database */
 		int insertMatch(Match* match);
 
 		/*! \brief Inform that a player accepted a match */
