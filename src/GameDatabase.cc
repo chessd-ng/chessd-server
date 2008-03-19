@@ -78,7 +78,6 @@ std::vector<PersistentGame> GameDatabase::searchGames(
                 int max_results)
 {
     std::vector<PersistentGame> games;
-    PersistentGame game;
     time_t t;
 
     /* prepare sql query */
@@ -105,6 +104,8 @@ std::vector<PersistentGame> GameDatabase::searchGames(
 
     /* list results */
     foreach(r, result) {
+        PersistentGame game;
+
         /*  parse values */
         r->at("game_id").to(game.id);
         r->at("time_stamp").to(t);
