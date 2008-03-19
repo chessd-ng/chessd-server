@@ -28,7 +28,7 @@ class GlickoSystem {
 		/*! \brief returns the c constant for calcuting the new RD based on time*/
 		static double c();
 		/*! \brief Calculate the new Rating Deviation*/
-		static double InitRD(const Rating& r, long long int t);
+		static double InitRD(const Rating& r);
 
 		//Step 2
 		/*! \brief function g(RD)

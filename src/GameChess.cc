@@ -326,7 +326,7 @@ XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
 			//TODO
 			//confirm if time_left is only for adjourned games
 			if(this->_done==NOREASON) {
-				if(this->chess.turn() == colormap.find(it->jid)->second and this->turns_restart>=2)
+				if( (this->chess.turn() == colormap.find(it->jid)->second) and (this->turns_restart>=2))
 					gen.addAttribute("time_left",Util::to_string<int>(int((this->_players[it->role=="white"?0:1].time-time_passed).getSeconds()+0.001)));
 				else
 					gen.addAttribute("time_left",Util::to_string<int>(int(this->_players[it->role=="white"?0:1].time.getSeconds()+0.001)));
@@ -376,6 +376,9 @@ void ChessGameResult::updateRating(std::map<Player, Rating> &ratings) const {
 		if(it->second.countGames() == 0) {
 			it->second.rating()=1500;
 			it->second.volatility()=350.0;
+		}
+		else {
+			it->second.volatility()=GlickoSystem::InitRD(it->second);
 		}
 	}
 	std::vector<Player> playerlist;

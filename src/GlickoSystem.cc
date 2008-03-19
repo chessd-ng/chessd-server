@@ -23,8 +23,11 @@
 double GlickoSystem::c() {
 	return 1.483; //got from previous chessd server
 }
-double GlickoSystem::InitRD(const Rating &r, long long int t) {
-	return std::min(sqrt(r.volatility()*r.volatility()+c()*c()*log(1.0+double(t)/60.0)),350.0);
+double GlickoSystem::InitRD(const Rating &r) {
+	//logaritmal formula
+	return std::min(sqrt(r.volatility()*r.volatility()+c()*c()*log(1.0+double(time(NULL)-r.last_game())/60.0)),350.0);
+	//linear formula
+//	return std::min(sqrt(r.volatility()*r.volatility()+square(0.027777777777777)*double(time(NULL)-r.last_game())),350.0);
 }
 double GlickoSystem::gRD(const Rating &r) {
 	return 1.0/(sqrt(1.0 + 3.0*q()*q()*square(r.volatility())/square(M_PI)));
