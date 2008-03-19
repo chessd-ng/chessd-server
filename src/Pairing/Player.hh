@@ -64,7 +64,6 @@
 #define _Player_
 
 #include <string>
-
 namespace Pairing {
 	class Player {
 		public:
@@ -75,6 +74,9 @@ namespace Pairing {
 			Player(const std::string&, float, int);
 			Player(const std::string&, float, int, int);
 			~Player();
+			bool operator<(const Player& p) const {
+				return this->floatValue > p.floatValue;
+			}
 
 		private:
 
@@ -87,6 +89,11 @@ namespace Pairing {
 
 		private:
 
+	};
+	struct cmpFloatValueless {
+		bool operator()(const Player& p1, const Player& p2) const {
+			return p1.floatValue<p2.floatValue;
+		}
 	};
 
 }

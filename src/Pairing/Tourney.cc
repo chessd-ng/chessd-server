@@ -147,9 +147,11 @@ namespace Pairing {
 	//- SortPlayers ----------------------------------
 	void Tourney::SortPlayers()
 	{
-		int i=0, added=0;
+		int i=0;//, added=0;
 
 		this->sortList.clear();
+		this->sortList_name.clear();
+		this->sortList_value.clear();
 
 		foreach(player, this->playerList) {
 			if(player->activeFlag)
@@ -166,6 +168,7 @@ namespace Pairing {
 		}
 
 		foreach(player, this->playerList) {
+			/*
 			added=0;
 			foreach(s, this->sortList) {
 				if(player->sortValue > s->floatValue)
@@ -176,12 +179,17 @@ namespace Pairing {
 				}
 			}
 			if(!added)
+			*/
 				sortList.push_back(Player(player->name, player->sortValue));
 		}
+		sortList.sort();
 
 		i = 1;
-		foreach(s, this->sortList) {
+		foreach(s, this->sortList) {			
 			s->value = i;
+			this->sortList_name[s->name]=&*s;
+			this->sortList_value[s->name]=s->value;
+
 			/*if(gMamer.debugLevel >= 15) printf("%4d %-18s\n", s->value, s->name);*/
 			i++;
 		}
@@ -194,11 +202,14 @@ namespace Pairing {
 	}//- end of Sort Players ----------------------
 
 	//- GetSortValue --------------------------------------------------------
-	int Tourney::GetSortValue(const std::string&name) {
+	int Tourney::GetSortValue(const std::string& name) {
+		return sortList_value[name];
+		/*
 		foreach(p, this->sortList)
 			if(p->name == name)
 				return p->value;
 		return 0;
+		*/
 	}
 
 	//- GetSortValueCount -------------------------------------------------------
@@ -220,11 +231,14 @@ namespace Pairing {
 	//- GetSortPlayer ----------
 	Player *Tourney::GetSortPlayer(const std::string&name)
 	{
+		return sortList_name[name];
+		/*
 		foreach(p, this->sortList)
 			if(p->name == name)
 				return &*p;
 
 		return 0;
+		*/
 	}//- end of GetSortPlayer -----
 
 	//- GetSortPlayer ------------------------------
@@ -442,10 +456,11 @@ namespace Pairing {
 	//- Start of FindBestOpponent
 	TourneyPlayers *Tourney::FindBestOpponent(TourneyPlayers *tp)
 	{
+		int i=0;
 		foreach(tmp, tp->potentialOpponentList) {
-			if( (tmp->value == tp->oppChoice) && (0 == GetPlayer(tmp->name)->IsPaired()) ) {
+			if( (i == tp->oppChoice) && (0 == GetPlayer(tmp->name)->IsPaired()) )
 				return GetPlayer(tmp->name);
-			}
+			i++;
 		}
 		return NULL;
 	}
@@ -454,7 +469,7 @@ namespace Pairing {
 	void Tourney::SetPairingScores(TourneyPlayers *tp) {
 		double score;
 		Player *t=NULL, *me=NULL;
-		int offset=2, place=1, i=0, added=0, timesPlayed=0;
+		int offset=2, place=1,/* i=0, added=0,*/ timesPlayed=0;
 
 		if(tp->activeFlag == 0) return;       // If I am NOT active move to next player, do NOT pair me
 		if(tp->alive == 0) return;                           // if I am NOT alive don't pair me
@@ -521,6 +536,7 @@ namespace Pairing {
 			/*if(gMamer.debugLevel >= 15) 
 			  printf("%s %s %f %d\n", me->name, opponent->name, score, offset);*/
 
+			/*
 			added=0;
 			foreach(temp, tp->potentialOpponentList) {
 				if(score < temp->floatValue) {
@@ -529,11 +545,14 @@ namespace Pairing {
 					break;
 				}
 			}
-			if(!added) tp->potentialOpponentList.push_back(Player(opponent->name, score));
+			if(!added) tp->potentialOpponentList.push_back(Player(opponent->name, score));*/
+			tp->potentialOpponentList.insert(Player(opponent->name,score));
 
-			i = 0;
-			foreach(temp, tp->potentialOpponentList) temp->value = i++;
 		}
+/*			i=0;	
+			foreach(temp, tp->potentialOpponentList) temp->value = i++;
+//			tp->value is only used in one function, so dont need to set it here
+*/				
 	}
 
 	//- Start of PairPlayers ----------------------------------
@@ -652,6 +671,10 @@ namespace Pairing {
 	}
 
 	list<TourneyPlayers>& Tourney::getPlayers() {
+		return this->playerList;
+	}
+
+	const list<TourneyPlayers>& Tourney::getPlayers() const {
 		return this->playerList;
 	}
 

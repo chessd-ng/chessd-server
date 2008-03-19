@@ -234,12 +234,12 @@ namespace Pairing {
 	}//- end GetTotalBlacks
 
 	//- GetConsecutiveWhites ---------------------------------
-	int TourneyPlayers::GetConsecutiveWhites(void) {
+	int TourneyPlayers::GetConsecutiveWhites(void) const {
 		return consecutiveWhites;
 	}//- end GetConsecutiveWhites
 
 	//- GetConsecutiveBlacks ---------------------------------
-	int TourneyPlayers::GetConsecutiveBlacks(void) {
+	int TourneyPlayers::GetConsecutiveBlacks(void) const {
 		return consecutiveBlacks;
 	}//- end GetConsecutiveBlacks
 
