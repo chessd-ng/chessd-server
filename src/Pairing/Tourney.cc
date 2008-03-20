@@ -32,6 +32,8 @@
 
 #include "Tourney.hh"
 #include "Util/utils.hh"
+#include <vector>
+#include <algorithm>
 
 #ifndef log2
 #define log2(x) (log(double(x))/log(2.0))
@@ -437,6 +439,9 @@ namespace Pairing {
 
 		SortPlayers();
 
+		// Set up Offsets for swiss
+		SetOffsets();
+
 		// Set up the PairingScores
 		foreach(tp, this->playerList) { if(!tp->IsPaired()) SetPairingScores(&*tp); }
 
@@ -465,17 +470,89 @@ namespace Pairing {
 		return NULL;
 	}
 
+	//- Start of SetOffsets  ------------------------------------
+	void Tourney::SetOffsets() {
+		
+		TourneyPlayers** players = new TourneyPlayers*[this->playerList.size()+1];
+		{
+			int i=0;
+			foreach(player,this->playerList)
+				players[i++]=(&*player);
+		}
+
+		/*order them by Score, and if it is equal, order by rating*/
+		std::sort(players,players+this->playerList.size(),byScoreAndRating());
+		players[this->playerList.size()]=(new TourneyPlayers("",0,-1));
+
+		float score=-1;
+		int count=0;
+		int *places=new int[this->playerList.size()+1];
+		int beg=0;
+		for(int j=0;j<(int)this->playerList.size()+1;j++) {
+			if(players[j]->score!=score) {
+				if(j!=0)places[j-1]=1;
+				int tmp=1;
+				int i;
+				for(i=j-2;i>=beg;i--) { //set places for everyone with the same rating
+					places[i]=places[i+1];
+					if(players[i]->rating!=players[i+1]->rating) {
+						places[i]+=tmp;
+						tmp=0;
+					}
+					tmp++;
+				}
+
+				//set the offset that is based in the number of people with the same score
+				//and the place of that person within the people with the same score as his
+				for(int i=0;beg!=j;beg++,i++) {
+					players[beg]->offset=count+1;
+
+					players[beg]->offset % 2 ? players[beg]->offset : players[beg]->offset--;
+					players[beg]->offset/=2;
+					if(places[beg] > players[beg]->offset)
+						players[beg]->offset *= -1;
+				}
+				score=players[j]->score;
+				count=0;
+			}
+			count++;
+		}
+		delete players[this->playerList.size()];
+		delete places;
+		delete players;
+	/*	
+		
+		foreach(p,this->playerList) {
+			TourneyPlayers* tp=&*p;
+			int offset=2,place=1;
+			foreach(opponent, this->playerList) {
+				if((tp->name != opponent->name) && (tp->score == opponent->score)) {
+					offset++;
+					if(opponent->rating > tp->rating) place++;
+				}
+			}
+			(offset % 2) ? offset : offset--;     // Makes the pairings move UP in a tie instead of down
+			offset = offset / 2;                  // three players 1 = 2 = 3 = score;  will pair  1-2 instead of 1-3
+			if(place > offset) { offset *= -1; }  // flip the offset so that it looks upward.
+			tp->offset=offset;
+		}
+		*/
+		
+	}
+
 	//- Start of SetPairingScores -------------------------------
 	void Tourney::SetPairingScores(TourneyPlayers *tp) {
 		double score;
 		Player *t=NULL, *me=NULL;
-		int offset=2, place=1,/* i=0, added=0,*/ timesPlayed=0;
+		int /*offset=2, place=1, i=0, added=0,*/ timesPlayed=0;
+		int offset=tp->offset;
 
 		if(tp->activeFlag == 0) return;       // If I am NOT active move to next player, do NOT pair me
 		if(tp->alive == 0) return;                           // if I am NOT alive don't pair me
 
 		tp->RemovePotentialOppList();
 
+	/*	
 		if(style == 's') {               // we only need offset in a swiss
 			foreach(opponent, this->playerList) {
 				if((tp->name != opponent->name) && (tp->score == opponent->score)) {
@@ -487,6 +564,8 @@ namespace Pairing {
 			offset = offset / 2;                  // three players 1 = 2 = 3 = score;  will pair  1-2 instead of 1-3
 			if(place > offset) { offset *= -1; }  // flip the offset so that it looks upward.
 		}
+		*/
+		
 
 		me = GetSortPlayer(tp->name);
 		foreach(opponent, this->playerList) {

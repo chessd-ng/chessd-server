@@ -120,6 +120,7 @@ namespace Pairing {
 			int GetSortValue(const std::string&);
 
 			/* pairing stuff */
+			void SetOffsets();
 			void SetPairingScores(TourneyPlayers *);
 			TourneyPlayers *FindBestOpponent(TourneyPlayers *);
 			int PairPlayers(TourneyPlayers *, TourneyPlayers *);

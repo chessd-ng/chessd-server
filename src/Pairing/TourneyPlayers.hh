@@ -136,6 +136,7 @@ namespace Pairing {
 			int activeFlag;
 			double sortValue;
 			int oppChoice;
+			int offset;
 
 			int alive;
 			int seed;
@@ -157,6 +158,13 @@ namespace Pairing {
 
 			int byeCount;
 
+	};
+	struct byScoreAndRating {
+		bool operator()(const TourneyPlayers* a, const TourneyPlayers* b) {
+			if(a->score==b->score)
+				return a->rating < b->rating;
+			return a->score < b->score;
+		}
 	};
 
 }

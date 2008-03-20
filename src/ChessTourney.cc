@@ -57,7 +57,7 @@ std::vector<Game*>* ChessTourney::match() {
 
 void ChessTourney::addResult(const PlayerResultList& prl) {
 	foreach(it,prl) {
-		if(result_set.insert(it->jid).second==false)
+		if(result_set.find(it->jid)!=result_set.end())
 			throw result_error("Cannot set result, already set");
 		if(player_map.find(it->jid)==player_map.end())
 			throw result_error("Player not found to set result");
