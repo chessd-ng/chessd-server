@@ -1,22 +1,31 @@
 <server>
-	<rating-manager
+	<rating-component
 		server_address="localhost"
 		server_port="5560"
 		server_password="secret"
 		node_name="rating.shiva"
 	/>
-	<game-manager
+	<game-component
 		server_address="localhost"
 		server_port="5561"
 		server_password="secret"
 		node_name="games.shiva"
 	/>
-	<match-manager
+	<match-component
 		server_address="localhost"
 		server_port="5562"
 		server_password="secret"
 		node_name="match.shiva"
 	/>
+
+	<admin-component
+		server_address="localhost"
+		server_port="5563"
+		server_password="secret"
+		node_name="admin.shiva"
+        server_name="shiva"
+	/>
+
     <database
         host="localhost"
         port="5432"

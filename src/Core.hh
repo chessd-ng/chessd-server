@@ -26,6 +26,7 @@
 #include "MatchManager.hh"
 #include "GameManager.hh"
 #include "RatingComponent.hh"
+#include "AdminComponent.hh"
 
 #include "DatabaseManager.hh"
 
@@ -76,6 +77,7 @@ class Core {
 		GameManager game_manager;
 		MatchManager match_manager;
 		RatingComponent rating_component;
+		AdminComponent admin_component;
 
 		static Core* _singleton;
 

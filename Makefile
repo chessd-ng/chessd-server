@@ -56,7 +56,8 @@ SOURCES = \
 		  src/GameManager.cc \
 		  src/AdjournedDatabase.cc \
 		  src/GameDatabase.cc \
-		  src/MatchLightning.cc
+		  src/MatchLightning.cc \
+		  src/AdminComponent.cc
 
 
 SRCDIR = src
