@@ -30,7 +30,6 @@ enum end_reason{
 };
 
 
-//TODO ver negocios do tempo!
 class GameChess : public Game {
 	public:
 		GameChess(const StandardPlayerList& _players, const std::string &category);

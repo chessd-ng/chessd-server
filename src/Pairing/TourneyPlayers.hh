@@ -82,6 +82,7 @@
 
 #include <string>
 #include <list>
+#include <set>
 
 namespace Pairing {
 
@@ -93,8 +94,8 @@ namespace Pairing {
 			void AddWhite();
 			void AddBlack();
 
-			int GetConsecutiveWhites();
-			int GetConsecutiveBlacks();
+			int GetConsecutiveWhites() const;
+			int GetConsecutiveBlacks() const;
 			int GetTotalWhites();
 			int GetTotalBlacks();
 			int ColorDue();
@@ -117,8 +118,8 @@ namespace Pairing {
 
 			void ChangeColorDue(int);
 
-			float getScore() { return this->score; }
-			const std::string getName() { return this->name; }
+			float getScore() const { return this->score; }
+			const std::string getName() const { return this->name; }
 
 		private:
 			void CalculatePerform();
@@ -142,7 +143,8 @@ namespace Pairing {
 			std::string oppName;
 
 			std::list<Player> opponentList;
-			std::list<Player> potentialOpponentList;
+//			std::list<Player> potentialOpponentList;
+			std::multiset<Player,cmpFloatValueless> potentialOpponentList;
 
 		private:
 

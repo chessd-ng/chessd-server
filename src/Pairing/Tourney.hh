@@ -55,6 +55,7 @@
 #include <cmath>
 
 #include <list>
+#include <map>
 
 #include "TourneyPlayers.hh"
 #include "Game.hh"
@@ -75,6 +76,7 @@ namespace Pairing {
 			std::list<Game>& getGames();
 
 			std::list<TourneyPlayers>& getPlayers();
+			const std::list<TourneyPlayers>& getPlayers() const;
 
 			/* This may stay alive */
 			int IsKnockOut();
@@ -104,7 +106,11 @@ namespace Pairing {
 			/* Pair players */
 			int MakeAssignments();
 
-			int SetGameResult(const std::string&, const std::string&, int);
+			/*result:
+			 * 1 white wins
+			 * 0 black wins
+			 * 2 draw*/
+			int SetGameResult(const std::string& white, const std::string& black, int result);
 			void SetByeResult();
 
 		private:
@@ -138,6 +144,8 @@ namespace Pairing {
 			std::list<TourneyPlayers> playerList;
 			std::list<Game> gameList;
 			std::list<Player> sortList;
+			std::map<std::string,Player*> sortList_name;
+			std::map<std::string,int> sortList_value;
 			std::list<PairedPlayer> pairedPlayers;
 
 

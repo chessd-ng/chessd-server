@@ -338,3 +338,10 @@ Any date and time is in the format specified by the XEP-082.
     <state board='rnbqkbnr/1ppp1ppp/8/p3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR' move='a6a5' time='662' turn='white'/>
     <state board='rnbqkbnr/1ppp1Qpp/8/p3p3/2B1P3/8/PPPP1PPP/RNB1K1NR' move='f3f7' time='663' turn='black'/>
 </history>
+
+
+<!--
+    Tourney
+--!>
+
+<tourney category='standard' time='660' inc='1' rounds='6'/>
