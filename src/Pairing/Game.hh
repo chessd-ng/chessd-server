@@ -72,11 +72,11 @@ namespace Pairing {
 	class Game {
 		public:
 
-			Game(const std::string& whitePlayer, const std::string& blackPlayer);
+			Game(int whitePlayer, int blackPlayer);
 			~Game();
 
-			std::string whiteName;
-			std::string blackName;
+			int whiteName;
+			int blackName;
 
 	};
 
@@ -84,9 +84,3 @@ namespace Pairing {
 
 
 #endif
-
-
-
-
-
-

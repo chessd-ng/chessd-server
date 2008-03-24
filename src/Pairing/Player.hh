@@ -60,19 +60,19 @@
 //
 //--------------------------------------------------------------------------
 
-#ifndef _Player_
-#define _Player_
+#ifndef PAIRING_PLAYER_HH
+#define PAIRING_PLAYER_HH
 
 #include <string>
 namespace Pairing {
 	class Player {
 		public:
 
-			Player(const std::string&, int);
-			Player(const std::string&, float);
-			Player(const std::string&, double);
-			Player(const std::string&, float, int);
-			Player(const std::string&, float, int, int);
+			Player(int name, int);
+			Player(int name, float);
+			Player(int name, double);
+			Player(int name, float, int);
+			Player(int name, float, int, int);
 			~Player();
 			bool operator<(const Player& p) const {
 				return this->floatValue > p.floatValue;
@@ -82,7 +82,7 @@ namespace Pairing {
 
 		public:
 
-			std::string name;
+			int name;
 			double floatValue;
 			int  value;
 			int rating;
@@ -93,6 +93,11 @@ namespace Pairing {
 	struct cmpFloatValueless {
 		bool operator()(const Player& p1, const Player& p2) const {
 			return p1.floatValue<p2.floatValue;
+		}
+	};
+	struct cmpPlayerByName {
+		bool operator()(const Player& p1, const Player& p2) const {
+			return p1.name<p2.name;
 		}
 	};
 

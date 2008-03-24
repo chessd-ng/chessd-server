@@ -83,12 +83,14 @@
 #include <string>
 #include <list>
 #include <set>
+#include <map>
 
 namespace Pairing {
+#define _BYE_ -1
 
 	class TourneyPlayers {
 		public:
-			TourneyPlayers(const std::string& name = "", int rating = 0, float score = 0);
+			TourneyPlayers(int name = 0, int rating = 0, float score = 0);
 			~TourneyPlayers();
 
 			void AddWhite();
@@ -98,7 +100,7 @@ namespace Pairing {
 			int GetConsecutiveBlacks() const;
 			int GetTotalWhites();
 			int GetTotalBlacks();
-			int ColorDue();
+			int ColorDue() const { return this->dueColor; }
 
 			void AddBye();
 			void SubBye();
@@ -107,19 +109,19 @@ namespace Pairing {
 			bool IsPaired();
 			void NowPaired(bool);
 
-			int AlreadyPlayed(const std::string&);
+			int AlreadyPlayed(int name);
 			int CountOpponents();
 			void CalculateScore();
 
 			int RemovePotentialOppList();
 			//Player *GetOpponentPlayer(const std::string&);
-			void RemoveFromOppList(const std::string&);
+			void RemoveFromOppList(int name);
 			void RemoveLastOpponent();
 
 			void ChangeColorDue(int);
 
 			float getScore() const { return this->score; }
-			const std::string getName() const { return this->name; }
+			int getName() const { return this->name; }
 
 		private:
 			void CalculatePerform();
@@ -130,7 +132,7 @@ namespace Pairing {
 
 			int perform;
 			int upset;
-			std::string name;
+			int name;
 			int rating;
 			float score;
 			int activeFlag;
@@ -141,10 +143,11 @@ namespace Pairing {
 			int alive;
 			int seed;
 
-			std::string oppName;
+			int oppName;
 
 			std::list<Player> opponentList;
 //			std::list<Player> potentialOpponentList;
+//			std::map<int/*name*/,int/*times player*/> opponentList_map;
 			std::multiset<Player,cmpFloatValueless> potentialOpponentList;
 
 		private:

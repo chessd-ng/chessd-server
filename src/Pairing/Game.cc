@@ -69,7 +69,7 @@
 namespace Pairing {
 
 	//- Constructor -----------------------------------------------------------
-	Game::Game(const std::string& wn, const std::string& bn) : whiteName(wn), blackName(bn)
+	Game::Game(int wn, int bn) : whiteName(wn), blackName(bn)
 	{
 	}
 
