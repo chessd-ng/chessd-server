@@ -27,14 +27,17 @@ Core* Core::_singleton = 0;
 
 Core::Core(const XML::Tag& config_xml) :
     database_manager(config_xml.findChild("database")),
-	game_manager(config_xml.findChild("game-manager"),
+	game_manager(config_xml.findChild("game-component"),
         this->database_manager,
         boost::bind(&Core::handleError, this, _1)),
-	match_manager(config_xml.findChild("match-manager"),
+	match_manager(config_xml.findChild("match-component"),
         this->game_manager,
         this->database_manager,
         boost::bind(&Core::handleError, this, _1)),
-	rating_component(config_xml.findChild("rating-manager"),
+	rating_component(config_xml.findChild("rating-component"),
+        boost::bind(&Core::handleError, this, _1),
+            this->database_manager),
+	admin_component(config_xml.findChild("admin-component"),
         boost::bind(&Core::handleError, this, _1),
             this->database_manager)
 {
@@ -46,6 +49,7 @@ void Core::start() {
 	this->match_manager.connect();
 	this->game_manager.connect();
 	this->rating_component.connect();
+	this->admin_component.connect();
 }
 
 void Core::join() {
@@ -54,6 +58,7 @@ void Core::join() {
 
 Core::~Core() {
     /* close all components */
+	this->admin_component.close();
 	this->rating_component.close();
 	this->game_manager.close();
 	this->match_manager.close();

@@ -171,6 +171,7 @@ void MatchManager::handleOffer(const Stanza& stanza) {
             if(not Util::has_key(this->rules, category))
                 throw match_error("This category is not available");
             std::auto_ptr<Match> match(this->rules.find(category)->second->checkOffer(offer, this->teams));
+
             /* The processOffer was part of this function.
              * It was separated due to the need to
              * load an adjourned game asynchronously */
