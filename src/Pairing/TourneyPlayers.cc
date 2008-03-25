@@ -140,10 +140,13 @@ namespace Pairing {
 	}
 
 	//- Start of RemovePotentialOppList
-	int TourneyPlayers::RemovePotentialOppList() {
-		this->potentialOpponentList.clear();
+/*	int TourneyPlayers::RemovePotentialOppList() {
+		if(this->potentialOpponentList != 0) {
+			delete this->potentialOpponentList;
+			potentialOpponentList=0;
+		}
 		return 1;
-	}//- end of RemovePotentialOppList
+	}*///- end of RemovePotentialOppList
 
 	//- Start of RemoveFromOppList -------------------------------------------------
 	void TourneyPlayers::RemoveFromOppList(int name) {

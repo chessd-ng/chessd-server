@@ -123,16 +123,18 @@ namespace Pairing {
 			/* pairing stuff */
 			void SetOffsets();
 			void SetPairingScores(TourneyPlayers *);
-			TourneyPlayers *FindBestOpponent(TourneyPlayers *);
+			TourneyPlayers *FindBestOpponent(TourneyPlayers *,const std::vector<Player>&);
 			int PairPlayers(TourneyPlayers *, TourneyPlayers *);
 			void UnPairPlayer(TourneyPlayers *);
 			void AssignColors(TourneyPlayers *, TourneyPlayers *);
 			void AddGame(const Game& game);
 			int PopLastPairedPlayer();
 			void ClearPairedPlayers();
+			int TryToPair(int player_count, TourneyPlayers* tp, TourneyPlayers** opponent) ;
 
 			/* pairing stuff */
-			int SwissAssign(int);
+//			int SwissAssign(int);
+			int SwissAssign2(int);
 			int UnpairAndCheckBye();
 			void ColorizeTourney();
 			int GetPlayerNumber(int name);
@@ -152,6 +154,7 @@ namespace Pairing {
 			std::vector<Player*> sortList_name;// indexed by name
 			std::map<int/*name*/,int> sortList_value;
 			std::list<PairedPlayer> pairedPlayers;
+			std::vector<Player> potentialOpponentList;
 
 			int total_number_of_players;
 

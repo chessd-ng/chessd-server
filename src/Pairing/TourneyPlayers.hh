@@ -113,7 +113,7 @@ namespace Pairing {
 			int CountOpponents();
 			void CalculateScore();
 
-			int RemovePotentialOppList();
+			//int RemovePotentialOppList();
 			//Player *GetOpponentPlayer(const std::string&);
 			void RemoveFromOppList(int name);
 			void RemoveLastOpponent();
@@ -148,7 +148,7 @@ namespace Pairing {
 			std::list<Player> opponentList;
 //			std::list<Player> potentialOpponentList;
 //			std::map<int/*name*/,int/*times player*/> opponentList_map;
-			std::multiset<Player,cmpFloatValueless> potentialOpponentList;
+//			std::multiset<Player,cmpFloatValueless> potentialOpponentList;
 
 		private:
 
