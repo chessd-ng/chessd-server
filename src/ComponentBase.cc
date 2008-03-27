@@ -57,6 +57,9 @@ void ComponentBase::connect() {
     this->running = true;
     this->task_recv.start();
     this->task_send.start();
+
+    /* Notify connection */
+    this->dispatcher.queue(boost::bind(&ComponentBase::onConnect, this));
 }
 
 void ComponentBase::close() {
@@ -132,4 +135,8 @@ void ComponentBase::run_send() {
 void ComponentBase::sendStanza(XMPP::Stanza* stanza) {
     /* put in the queue*/
     this->stanza_queue.push(stanza);
+}
+
+void ComponentBase::onConnect() {
+    /* Default action is to do nothing */
 }

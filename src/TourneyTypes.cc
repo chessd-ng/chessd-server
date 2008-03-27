@@ -24,8 +24,8 @@ std::vector<Game*>* TourneyStandard::makeGames(const std::list<Pairing::Game>& g
 	std::vector<Game*>* g = new std::vector<Game*>;
 	foreach(it,games) {
 		StandardPlayerList players;
-		players.push_back(StandardPlayer(XMPP::Jid(it->whiteName),this->initial_time,this->inc,White));
-		players.push_back(StandardPlayer(XMPP::Jid(it->blackName),this->initial_time,this->inc,Black));
+		players.push_back(StandardPlayer(this->_players[it->whiteName].jid,this->initial_time,this->inc,White));
+		players.push_back(StandardPlayer(this->_players[it->blackName].jid,this->initial_time,this->inc,Black));
 		g->push_back(new GameStandard(players));
 	}
 	return g;

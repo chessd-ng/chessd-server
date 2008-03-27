@@ -30,7 +30,7 @@ const TourneyPlayerList& ChessTourney::players() const {
 }
 
 void ChessTourney::addPlayer(const TourneyPlayer& p) {
-	this->tourney.AddPlayer(p.jid.full(),p.rating.rating());
+	this->tourney.AddPlayer(this->_players.size(),p.rating.rating());
 	this->_players.push_back(p);
 	this->player_map[p.jid]=this->_players.size()-1;
 }
@@ -57,14 +57,14 @@ std::vector<Game*>* ChessTourney::match() {
 
 void ChessTourney::addResult(const PlayerResultList& prl) {
 	foreach(it,prl) {
-		if(result_set.insert(it->jid).second==false)
+		if(result_set.find(it->jid)!=result_set.end())
 			throw result_error("Cannot set result, already set");
 		if(player_map.find(it->jid)==player_map.end())
 			throw result_error("Player not found to set result");
 	}
 	result_set.insert(prl[0].jid);
 	result_set.insert(prl[1].jid);
-	missing_results=tourney.SetGameResult(prl[0].jid.full(),prl[1].jid.full(),(prl[0].score!="1/2"?(prl[0].score=="1"?1:0):2))!=2;
-	this->_players[player_map[prl[0].jid]].score=tourney.GetPlayer(prl[0].jid.full())->score;
-	this->_players[player_map[prl[1].jid]].score=tourney.GetPlayer(prl[1].jid.full())->score;
+	missing_results=tourney.SetGameResult(this->player_map[prl[0].jid],this->player_map[prl[1].jid],(prl[0].score!="1/2"?(prl[0].score=="1"?1:0):2))!=2;
+	this->_players[player_map[prl[0].jid]].score=tourney.GetPlayerByName(this->player_map[prl[0].jid])->score;
+	this->_players[player_map[prl[1].jid]].score=tourney.GetPlayerByName(this->player_map[prl[1].jid])->score;
 }

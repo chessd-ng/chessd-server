@@ -304,6 +304,42 @@ Any date and time is in the format specified by the XEP-082.
 --!>
 
 <!--
+    Admin tools.
+    Only users with admin privilegies
+    are allowed to send these messages.
+--!>
+
+<!--
+    To kick a user from the server
+--!>
+
+<iq type='set' to='admin.shiva' id='12345'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#admin'>
+        <kick jid='eduari@shiva'/>
+    </query>
+</iq>
+
+<!--
+    To ban a user from the server
+--!>
+
+<iq type='set' to='admin.shiva' id='12345'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#admin'>
+        <ban jid='eduari@shiva'/>
+    </query>
+</iq>
+
+<!--
+    To unban a user from the server
+--!>
+
+<iq type='set' to='admin.shiva' id='12345'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#admin'>
+        <unban jid='eduari@shiva'/>
+    </query>
+</iq>
+
+<!--
     History.
 --!>
 

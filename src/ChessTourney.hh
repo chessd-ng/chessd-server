@@ -52,10 +52,10 @@ class ChessTourney : public Tourney {
 		
 		Util::Time inc;
 		
-	private:
 		TourneyPlayerList _players;
 
-		std::map<XMPP::Jid,unsigned int> player_map;
+	private:
+		std::map<XMPP::Jid,int> player_map;
 
 		std::set<XMPP::Jid> result_set;
 

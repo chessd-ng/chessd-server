@@ -73,14 +73,13 @@
 // static char RCSid[] = "$Id: TourneyPlayers.cc,v 1.3 2003/11/20 23:26:14 pedrorib Exp $";
 
 #include "TourneyPlayers.hh"
-
 using namespace std;
 
 #define foreach(it, cont) for(typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
 
 namespace Pairing {
 	// NEW
-	TourneyPlayers::TourneyPlayers(const std::string& n, int r, float s) :
+	TourneyPlayers::TourneyPlayers(int n, int r, float s) :
 		perform(0),
 		upset(0),
 		name(n),
@@ -106,7 +105,9 @@ namespace Pairing {
 	}
 
 	//- AlreadyPlayed --------------------------------------------------------
-	int TourneyPlayers::AlreadyPlayed(const std::string& oppName) {
+	int TourneyPlayers::AlreadyPlayed(int oppName) {
+		//return opponentList_map[oppName];
+		
 		int count=0;
 		foreach(temp, this->opponentList) {
 			if(oppName == temp->name) {
@@ -115,16 +116,12 @@ namespace Pairing {
 		}
 
 		return count;
+		
 	}
 
 	//- CountOpponents --------------------------------------------------------
 	int TourneyPlayers::CountOpponents() {
-		int count=0;
-
-		foreach(temp, this->opponentList)
-			count++;
-
-		return count;
+		return this->opponentList.size();
 	}
 
 	//- AddBye ---------------------------------------------------------------
@@ -143,13 +140,16 @@ namespace Pairing {
 	}
 
 	//- Start of RemovePotentialOppList
-	int TourneyPlayers::RemovePotentialOppList() {
-		this->potentialOpponentList.clear();
+/*	int TourneyPlayers::RemovePotentialOppList() {
+		if(this->potentialOpponentList != 0) {
+			delete this->potentialOpponentList;
+			potentialOpponentList=0;
+		}
 		return 1;
-	}//- end of RemovePotentialOppList
+	}*///- end of RemovePotentialOppList
 
 	//- Start of RemoveFromOppList -------------------------------------------------
-	void TourneyPlayers::RemoveFromOppList(const std::string&name) {
+	void TourneyPlayers::RemoveFromOppList(int name) {
 		foreach(p, this->opponentList) {
 			if(p->name == name) {
 				opponentList.erase(p);
@@ -160,6 +160,7 @@ namespace Pairing {
 
 	//- Start of RemoveLastOpponent -------------------------------------------------
 	void TourneyPlayers::RemoveLastOpponent() {
+		//opponentList_map[this->opponentList.back().name]--;
 		this->opponentList.pop_back();
 	}//- end RemoveLastOpponent -----------------------------------------------------
 
@@ -181,11 +182,6 @@ namespace Pairing {
 	bool TourneyPlayers::IsPaired(void) {
 		return paired;
 	}//- end IsPaired
-
-	//- ColorDue ---------------------------------
-	int TourneyPlayers::ColorDue(void) {
-		return dueColor;
-	}//- end colorDue
 
 	//- NowPaired ---------------------------------
 	void TourneyPlayers::NowPaired(bool value) {
@@ -260,7 +256,7 @@ namespace Pairing {
 		int total=0, counter=0, upsetpoints=0, rtng=0;
 
 		foreach(opp, this->opponentList) {
-			if(opp->name == "_BYE_") continue;
+			if(opp->name == _BYE_) continue;
 			rtng = opp->rating;
 			if(opp->rating <= 0) rtng = 1675;
 			if(opp->floatValue == 0.5) {

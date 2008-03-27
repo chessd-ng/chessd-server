@@ -32,6 +32,8 @@
 
 #include "Tourney.hh"
 #include "Util/utils.hh"
+#include <vector>
+#include <algorithm>
 
 #ifndef log2
 #define log2(x) (log(double(x))/log(2.0))
@@ -45,24 +47,27 @@ namespace Pairing {
 	Tourney::Tourney(char style) {
 		this->style = style;
 		this->currentRound = 0;
+		this->total_number_of_players=0;
 	} //- End of Tourney
 
 	//- Deconstructor ---------------------------------------------------------
 	Tourney::~Tourney() { }
 
 	//- AddPlayer ----------------------------------------------------------
-	int Tourney::AddPlayer(const std::string&name, int rating, float score) {
-		playerList.push_back(TourneyPlayers(name, rating, score));
+	int Tourney::AddPlayer(int name, int rating, float score) {
+		this->playerList.push_back(TourneyPlayers(name, rating, score));
+		this->playerList_name[name]=&*(this->playerList.rbegin());
+		this->total_number_of_players++;
 		//SortPlayers();
 		return(1);   // we entered the tourney
 	}
 
 	//- RemovePlayer ----------------------------------------------------------
-	void Tourney::RemovePlayer(const std::string&name) {
+	void Tourney::RemovePlayer(int name) {
 		TourneyPlayers *tp = NULL, *p=NULL;
 		int seed=0;
 
-		tp = GetPlayer(name);
+		tp = GetPlayerByName(name);
 
 		tp->activeFlag = 0;
 		seed = tp->seed;
@@ -70,8 +75,8 @@ namespace Pairing {
 		// This code will go through a forfeited players list and give him a loss for current opponent
 		// with a quick modification it will give losses for all games played as well...
 		foreach(opp, tp->opponentList) {
-			if("_BYE_" == opp->name) {              // If I am not _BYE_
-				p = GetPlayer(opp->name);
+			if(_BYE_ == opp->name) {              // If I am not _BYE_
+				p = GetPlayerByName(opp->name);
 				if(opp->floatValue == -1) {                      // floatValue stores the result for this player -1 means no result
 					if(opp->value) {                               // if player leaving was white
 						SetGameResult(tp->name, opp->name, 0);
@@ -84,7 +89,7 @@ namespace Pairing {
 		}  
 		// Go through the player list and find _BYE_
 		foreach(p, this->playerList) {
-			if(p->name == "_BYE_")  {                   // If we find him make sure he is active
+			if(p->name == _BYE_)  {                   // If we find him make sure he is active
 				p->seed = seed;
 				if(p->activeFlag == 0) {
 					p->alive = 1;
@@ -101,11 +106,13 @@ namespace Pairing {
 	}
 
 	//- GetPlayer ----------------------------------------------------------
-	TourneyPlayers *Tourney::GetPlayer(const std::string&name) {
-		foreach(player, this->playerList)
+	TourneyPlayers *Tourney::GetPlayerByName(int name) {
+		return this->playerList_name[name];
+/*		foreach(player, this->playerList)
 			if(player->name == name)
 				return &*player;
 		return NULL;
+		*/
 	}
 
 	//- GetPlayer ----------------------------------------------------------
@@ -122,7 +129,7 @@ namespace Pairing {
 	}
 
 	//- GetPlayerNumber ----------------------------------------------------------
-	int Tourney::GetPlayerNumber(const std::string&name) {
+	int Tourney::GetPlayerNumber(int name) {
 		int i=1;
 		foreach(player, this->playerList) {
 			if(player->name == name)
@@ -150,8 +157,9 @@ namespace Pairing {
 		int i=0;//, added=0;
 
 		this->sortList.clear();
-		this->sortList_name.clear();
 		this->sortList_value.clear();
+		//this->sortList_name.clear();
+		this->sortList_name=std::vector<Player*>(total_number_of_players);
 
 		foreach(player, this->playerList) {
 			if(player->activeFlag)
@@ -182,7 +190,7 @@ namespace Pairing {
 			*/
 				sortList.push_back(Player(player->name, player->sortValue));
 		}
-		sortList.sort();
+		std::stable_sort(sortList.begin(),sortList.end());
 
 		i = 1;
 		foreach(s, this->sortList) {			
@@ -202,7 +210,7 @@ namespace Pairing {
 	}//- end of Sort Players ----------------------
 
 	//- GetSortValue --------------------------------------------------------
-	int Tourney::GetSortValue(const std::string& name) {
+	int Tourney::GetSortValue(int name) {
 		return sortList_value[name];
 		/*
 		foreach(p, this->sortList)
@@ -219,7 +227,7 @@ namespace Pairing {
 
 		foreach(player, this->playerList) {
 			if(player->sortValue == value) {
-				s = GetSortPlayer(player->name);
+				s = GetSortPlayerByName(player->name);
 				if(s->value != 0)
 					count++;
 			}
@@ -229,7 +237,7 @@ namespace Pairing {
 	}
 
 	//- GetSortPlayer ----------
-	Player *Tourney::GetSortPlayer(const std::string&name)
+	Player *Tourney::GetSortPlayerByName(int name)
 	{
 		return sortList_name[name];
 		/*
@@ -244,9 +252,13 @@ namespace Pairing {
 	//- GetSortPlayer ------------------------------
 	Player *Tourney::GetSortPlayer(int place)
 	{
+//		if(place<=(int)sortList.size())
+//			return &sortList[place-1];
+		
 		foreach(p, this->sortList)
 			if(p->value == place)
 				return &*p;
+		
 
 		return 0;
 	}//- end of GetSortPlayer -----
@@ -256,7 +268,7 @@ namespace Pairing {
 	{
 		int count = 0;
 		foreach(p, this->playerList)
-			if(p->name != "_BYE_")
+			if(p->name != _BYE_)
 				count++;
 		return count;
 	}//- end GetPlayerCountTotal ----------------------------------
@@ -321,20 +333,76 @@ namespace Pairing {
 		// Initialize a few things...make sure nobody is paired,
 		foreach(tp, this->playerList) {
 			UnPairPlayer(&*tp);
-			if(tp->name == "_BYE_")  { byeFlag = 0; }  // unset the byeFlag
+			if(tp->name == _BYE_)  { byeFlag = 0; }  // unset the byeFlag
 		}
 
 		playerCount = GetPlayerCount();
 
 		if((byeFlag) && (playerCount % 2))
 		{   // we need to add a bye
-			this->playerList.push_back(TourneyPlayers("_BYE_", 0, 0)); // add the bye to the tourney players list
+			this->playerList.push_back(TourneyPlayers(_BYE_, 0, 0)); // add the bye to the tourney players list
+			this->playerList_name[_BYE_]=&*(this->playerList.rbegin());
 			playerCount++;
 			this->playerList.back().seed = playerCount;
 		}
 		return playerCount;
 	}
 
+	int Tourney::TryToPair(int player_count, TourneyPlayers* tp, TourneyPlayers** opponent) {
+		this->SetPairingScores(tp);
+		for(;(*opponent = FindBestOpponent(tp,this->potentialOpponentList))==0 and (tp->oppChoice <= player_count);tp->oppChoice++);
+
+		if(tp->oppChoice > player_count) //if couldn't pair the player no mather what
+			return 0;
+
+		return 1;
+	}
+
+	int Tourney::SwissAssign2(int playerCount) {
+		TourneyPlayers *tp = NULL, *opponent = NULL;
+		Player *p=NULL;
+		int i=0;
+
+		if(playerCount <= 0) return 0;
+
+		foreach(player,this->sortList) {
+			p=&*player;
+			if((style == 'd') || (style == 'r')) {
+				// If this is a round robin we don't need to or WANT to sort the players first
+				tp = GetPlayer(player-this->sortList.begin()+1);
+			} else {
+				p = GetSortPlayer(player-this->sortList.begin()+1);
+				tp = GetPlayerByName(p->name);
+			}
+			if( ( !tp->IsPaired() ) && tp->activeFlag && tp->alive) {
+				while(this->TryToPair(playerCount,tp,&opponent)==0) {
+						tp->oppChoice = 0;
+						i = PopLastPairedPlayer();
+						if(i <= 0) return 0;
+
+						player=this->sortList.begin()-1; //be carefull with this
+
+						if((style == 'd') || (style == 'r'))
+							tp = GetPlayer(i);
+						else {
+							p = GetSortPlayer(i);
+							tp = GetPlayerByName(p->name);
+						}
+						
+						opponent = GetPlayerByName(tp->oppName);
+						tp->RemoveLastOpponent();                           // removes the person we were planning on playing
+						opponent->RemoveLastOpponent();                     // from both players!
+						UnPairPlayer(tp);                                   // unpair us so we can be re-paired
+						UnPairPlayer(opponent);
+						tp->oppChoice++;                                    // try the next possible opponent
+				}
+				pairedPlayers.push_back(PairedPlayer(tp->name, i));
+				PairPlayers(tp, opponent);
+			}
+		}
+		return 1;
+	}
+/*
 	int Tourney::SwissAssign(int playerCount)
 	{
 		TourneyPlayers *tp = NULL, *opponent = NULL;
@@ -348,7 +416,7 @@ namespace Pairing {
 				tp = GetPlayer(i);   // If this is a round robin we don't need to or WANT to sort the players first
 			} else {
 				p = GetSortPlayer(i);
-				tp = GetPlayer(p->name);
+				tp = GetPlayerByName(p->name);
 			}
 			opponent = (TourneyPlayers *)NULL;
 			// PrintPotentialLists();
@@ -357,8 +425,8 @@ namespace Pairing {
 				if((opponent = FindBestOpponent(tp))) {
 					// keep a list of paired players
 					pairedPlayers.push_back(PairedPlayer(tp->name, i));
-					/*if(gMamer.debugLevel >= 5)
-					  printf("Adding: %s %d to the paired list vs. %s\n", tp->name, i, opponent->name);*/
+					//if(gMamer.debugLevel >= 5)
+					//printf("Adding: %s %d to the paired list vs. %s\n", tp->name, i, opponent->name);
 					everybodyPaired = PairPlayers(tp, opponent);          // Actually Pair us
 					i++;                                                  // go to the next player
 				} else {                                                // If no opponent for me try & another up the tree
@@ -372,11 +440,11 @@ namespace Pairing {
 							tp = GetPlayer(i);   // If this is a round robin we don't need to or WANT to sort the players first
 						else {
 							p = GetSortPlayer(i);
-							tp = GetPlayer(p->name);
+							tp = GetPlayerByName(p->name);
 						}
-						opponent = GetPlayer(tp->oppName);
-						/*if(gMamer.debugLevel >= 5)
-						  printf("Un-Pairing: %s & %s choice #%d\n", tp->name, opponent->name, tp->oppChoice);*/
+						opponent = GetPlayerByName(tp->oppName);
+						//if(gMamer.debugLevel >= 5)
+						//printf("Un-Pairing: %s & %s choice #%d\n", tp->name, opponent->name, tp->oppChoice);
 						tp->RemoveLastOpponent();                           // removes the person we were planning on playing
 						opponent->RemoveLastOpponent();                     // from both players!
 						UnPairPlayer(tp);                                   // unpair us so we can be re-paired
@@ -392,7 +460,7 @@ namespace Pairing {
 		}
 		return 1;
 	}
-
+*/
 	void Tourney::ColorizeTourney(void) {
 		TourneyPlayers *opponent = NULL;
 
@@ -401,7 +469,7 @@ namespace Pairing {
 		// if they have been assiged a color
 		foreach(tp, this->playerList) {
 			if((!tp->IsPaired()) && (tp->activeFlag != 0) && (tp->alive != 0)) {
-				opponent = GetPlayer(tp->oppName);
+				opponent = GetPlayerByName(tp->oppName);
 				AssignColors(&*tp, opponent);
 				tp->NowPaired(true);               // mark BOTH players as having a color
 				opponent->NowPaired(true);         // this is important for when we hit this player later in the Iter
@@ -412,7 +480,7 @@ namespace Pairing {
 	void Tourney::SetByeResult(void) {
 
 		foreach(tp, this->playerList) {
-			if(tp->name == "_BYE_") {                     // If I am the bye
+			if(tp->name == _BYE_) {                     // If I am the bye
 				foreach(opp, tp->opponentList) { // find my current opponent in my oppList
 					if(opp->name == tp->oppName) {        // & Give him a win
 						if(opp->value)
@@ -437,14 +505,17 @@ namespace Pairing {
 
 		SortPlayers();
 
+		// Set up Offsets for swiss
+		SetOffsets();
+
 		// Set up the PairingScores
-		foreach(tp, this->playerList) { if(!tp->IsPaired()) SetPairingScores(&*tp); }
+//		foreach(tp, this->playerList) { if(!tp->IsPaired()) SetPairingScores(&*tp); }
 
 		foreach(tp, this->playerList) { UnPairPlayer(&*tp); tp->oppChoice = 0; }  // unpair all the players
 
 		ClearPairedPlayers();
 
-		ret = SwissAssign(playerCount);
+		ret = SwissAssign2(playerCount);
 		if(ret == 0) return 0;
 
 		ColorizeTourney();
@@ -454,29 +525,82 @@ namespace Pairing {
 	}
 
 	//- Start of FindBestOpponent
-	TourneyPlayers *Tourney::FindBestOpponent(TourneyPlayers *tp)
+	TourneyPlayers *Tourney::FindBestOpponent(TourneyPlayers *tp, const std::vector<Player>& potentialOpponentList)
 	{
+		if(tp->oppChoice > (int)potentialOpponentList.size())
+			return 0;
+
+		TourneyPlayers* ans=0;
+		if(0 == ((ans=GetPlayerByName(potentialOpponentList[tp->oppChoice].name))->IsPaired()))
+			return ans;
+
+		return 0;
+		/*
 		int i=0;
 		foreach(tmp, tp->potentialOpponentList) {
-			if( (i == tp->oppChoice) && (0 == GetPlayer(tmp->name)->IsPaired()) )
-				return GetPlayer(tmp->name);
+			if( (i == tp->oppChoice) && (0 == GetPlayerByName(tmp->name)->IsPaired()) )
+				return GetPlayerByName(tmp->name);
 			i++;
 		}
 		return NULL;
+		*/
 	}
 
-	//- Start of SetPairingScores -------------------------------
-	void Tourney::SetPairingScores(TourneyPlayers *tp) {
-		double score;
-		Player *t=NULL, *me=NULL;
-		int offset=2, place=1,/* i=0, added=0,*/ timesPlayed=0;
+	//- Start of SetOffsets  ------------------------------------
+	void Tourney::SetOffsets() {
+		
+		TourneyPlayers** players = new TourneyPlayers*[this->playerList.size()+1];
+		{
+			int i=0;
+			foreach(player,this->playerList)
+				players[i++]=(&*player);
+		}
 
-		if(tp->activeFlag == 0) return;       // If I am NOT active move to next player, do NOT pair me
-		if(tp->alive == 0) return;                           // if I am NOT alive don't pair me
+		/*order them by Score, and if it is equal, order by rating*/
+		std::sort(players,players+this->playerList.size(),byScoreAndRating());
+		players[this->playerList.size()]=(new TourneyPlayers(0,0,-1));
 
-		tp->RemovePotentialOppList();
+		float score=-1;
+		int count=0;
+		int *places=new int[this->playerList.size()+1];
+		int beg=0;
+		for(int j=0;j<(int)this->playerList.size()+1;j++) {
+			if(players[j]->score!=score) {
+				if(j!=0)places[j-1]=1;
+				int tmp=1;
+				int i;
+				for(i=j-2;i>=beg;i--) { //set places for everyone with the same rating
+					places[i]=places[i+1];
+					if(players[i]->rating!=players[i+1]->rating) {
+						places[i]+=tmp;
+						tmp=0;
+					}
+					tmp++;
+				}
 
-		if(style == 's') {               // we only need offset in a swiss
+				//set the offset that is based in the number of people with the same score
+				//and the place of that person within the people with the same score as his
+				for(int i=0;beg!=j;beg++,i++) {
+					players[beg]->offset=count+1;
+
+					players[beg]->offset % 2 ? players[beg]->offset : players[beg]->offset--;
+					players[beg]->offset/=2;
+					if(places[beg] > players[beg]->offset)
+						players[beg]->offset *= -1;
+				}
+				score=players[j]->score;
+				count=0;
+			}
+			count++;
+		}
+		delete players[this->playerList.size()];
+		delete places;
+		delete players;
+	/*	
+		
+		foreach(p,this->playerList) {
+			TourneyPlayers* tp=&*p;
+			int offset=2,place=1;
 			foreach(opponent, this->playerList) {
 				if((tp->name != opponent->name) && (tp->score == opponent->score)) {
 					offset++;
@@ -486,9 +610,26 @@ namespace Pairing {
 			(offset % 2) ? offset : offset--;     // Makes the pairings move UP in a tie instead of down
 			offset = offset / 2;                  // three players 1 = 2 = 3 = score;  will pair  1-2 instead of 1-3
 			if(place > offset) { offset *= -1; }  // flip the offset so that it looks upward.
+			tp->offset=offset;
 		}
+		*/
+		
+	}
 
-		me = GetSortPlayer(tp->name);
+	//- Start of SetPairingScores -------------------------------
+	void Tourney::SetPairingScores(TourneyPlayers *tp) {
+		double score;
+		Player *t=NULL, *me=NULL;
+		int /*offset=2, place=1, i=0, added=0,*/ timesPlayed=0;
+		int offset=tp->offset;
+
+		if(tp->activeFlag == 0) return;       // If I am NOT active move to next player, do NOT pair me
+		if(tp->alive == 0) return;                           // if I am NOT alive don't pair me
+
+//		tp->RemovePotentialOppList();
+		this->potentialOpponentList.clear();
+
+		me = GetSortPlayerByName(tp->name);
 		foreach(opponent, this->playerList) {
 			if(tp->name == opponent->name) continue;      // If this is me do NOT score me
 			if(opponent->activeFlag == 0) continue;                  // If this person is NOT active move on
@@ -505,7 +646,7 @@ namespace Pairing {
 					break;
 			}    
 
-			t = GetSortPlayer(opponent->name);
+			t = GetSortPlayerByName(opponent->name);
 			switch (style) {
 				case 'r':                                                // If this is a RR
 					score = GetPlayerNumber(tp->name) + currentRound;  // My location plus the round #
@@ -531,7 +672,7 @@ namespace Pairing {
 					break;
 			}
 			if(style != 'k')
-				if((opponent->name == "_BYE_") && (tp->GetByeCount())) score = 10000 * tp->GetByeCount();
+				if((opponent->name == _BYE_) && (tp->GetByeCount())) score = 10000 * tp->GetByeCount();
 
 			/*if(gMamer.debugLevel >= 15) 
 			  printf("%s %s %f %d\n", me->name, opponent->name, score, offset);*/
@@ -546,9 +687,10 @@ namespace Pairing {
 				}
 			}
 			if(!added) tp->potentialOpponentList.push_back(Player(opponent->name, score));*/
-			tp->potentialOpponentList.insert(Player(opponent->name,score));
+			this->potentialOpponentList.push_back(Player(opponent->name,score));
 
 		}
+		std::stable_sort(this->potentialOpponentList.begin(),this->potentialOpponentList.end(),cmpFloatValueless());
 /*			i=0;	
 			foreach(temp, tp->potentialOpponentList) temp->value = i++;
 //			tp->value is only used in one function, so dont need to set it here
@@ -559,10 +701,12 @@ namespace Pairing {
 	int Tourney::PairPlayers(TourneyPlayers *p1, TourneyPlayers *p2) {
 
 		p1->opponentList.push_back(Player(p2->name, -1.0, 0, p2->rating));
+//		p1->opponentList_map[p2->name]++;//XXX be carefull with this
 		p1->NowPaired(true);
 		p1->oppName = p2->name;
 
 		p2->opponentList.push_back(Player(p1->name, -1.0, 0, p1->rating));
+//		p2->opponentList_map[p1->name]++;//XXX be carefull with this
 		p2->NowPaired(true);
 		p2->oppName = p1->name;
 
@@ -679,12 +823,12 @@ namespace Pairing {
 	}
 
 	//- SetGameResult --------------------------------------------
-	int Tourney::SetGameResult(const std::string&white, const std::string&black, int result) {
+	int Tourney::SetGameResult(int white, int black, int result) {
 		Player *opp1 = NULL, *opp2 = NULL;
 		TourneyPlayers *tp1 = NULL, *tp2 = NULL;
 
-		tp1 = GetPlayer(white);
-		tp2 = GetPlayer(black);
+		tp1 = GetPlayerByName(white);
+		tp2 = GetPlayerByName(black);
 
 		//if((style == 'k') && ((tp1->alive == 0) || (tp2->alive == 0))) result = -1;
 
