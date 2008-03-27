@@ -56,12 +56,13 @@
 
 #include <list>
 #include <map>
+#include <vector>
 
 #include "TourneyPlayers.hh"
 #include "Game.hh"
 
 namespace Pairing {
-	typedef std::pair<std::string, int> PairedPlayer ;
+	typedef std::pair<int/*name*/, int> PairedPlayer ;
 
 	class Tourney {
 		public:
@@ -85,16 +86,16 @@ namespace Pairing {
 			void start(void);
 
 			/* add and remove players, this may stay like this */
-			int AddPlayer(const std::string& name, int rating, float score = 0.0);
-			void RemovePlayer(const std::string& name);
+			int AddPlayer(int name, int rating, float score = 0.0);
+			void RemovePlayer(int name);
 
 			/* sort player stuff, seems important */
 			void SortPlayers();
-			Player *GetSortPlayer(const std::string&);
+			Player *GetSortPlayerByName(int name);
 			Player *GetSortPlayer(int);
 
 			/* Retrieve a player in 3 different ways */
-			TourneyPlayers *GetPlayer(const std::string&);
+			TourneyPlayers *GetPlayerByName(int name);
 			TourneyPlayers *GetPlayer(int);
 
 			/* get stuff */
@@ -110,30 +111,33 @@ namespace Pairing {
 			 * 1 white wins
 			 * 0 black wins
 			 * 2 draw*/
-			int SetGameResult(const std::string& white, const std::string& black, int result);
+			int SetGameResult(int white, int black, int result);
 			void SetByeResult();
 
 		private:
 			/* Set the torunamets properties */
 
 			int GetSortValueCount(double);
-			int GetSortValue(const std::string&);
+			int GetSortValue(int name);
 
 			/* pairing stuff */
+			void SetOffsets();
 			void SetPairingScores(TourneyPlayers *);
-			TourneyPlayers *FindBestOpponent(TourneyPlayers *);
+			TourneyPlayers *FindBestOpponent(TourneyPlayers *,const std::vector<Player>&);
 			int PairPlayers(TourneyPlayers *, TourneyPlayers *);
 			void UnPairPlayer(TourneyPlayers *);
 			void AssignColors(TourneyPlayers *, TourneyPlayers *);
 			void AddGame(const Game& game);
 			int PopLastPairedPlayer();
 			void ClearPairedPlayers();
+			int TryToPair(int player_count, TourneyPlayers* tp, TourneyPlayers** opponent) ;
 
 			/* pairing stuff */
-			int SwissAssign(int);
+//			int SwissAssign(int);
+			int SwissAssign2(int);
 			int UnpairAndCheckBye();
 			void ColorizeTourney();
-			int GetPlayerNumber(const std::string&);
+			int GetPlayerNumber(int name);
 
 
 			/*LinkList<TourneyPlayers> playerList;
@@ -143,11 +147,16 @@ namespace Pairing {
 
 			std::list<TourneyPlayers> playerList;
 			std::list<Game> gameList;
-			std::list<Player> sortList;
-			std::map<std::string,Player*> sortList_name;
-			std::map<std::string,int> sortList_value;
+//			std::list<Player> sortList;
+			std::vector<Player> sortList;
+			std::map<int/*name*/,TourneyPlayers*> playerList_name;
+//			std::map<int/*name*/,Player*> sortList_name;
+			std::vector<Player*> sortList_name;// indexed by name
+			std::map<int/*name*/,int> sortList_value;
 			std::list<PairedPlayer> pairedPlayers;
+			std::vector<Player> potentialOpponentList;
 
+			int total_number_of_players;
 
 			int currentRound;
 

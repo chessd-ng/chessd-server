@@ -71,22 +71,22 @@
 namespace Pairing {
 
 	//- Constructor -----------------------------------------------------------
-	Player::Player(const std::string& n, int wt) : name(n), value(wt) { }
+	Player::Player(int n, int wt) : name(n), value(wt) { }
 
 	//- Constructor -----------------------------------------------------------
-	Player::Player(const std::string& n, float wt) : name(n), floatValue(wt) { }
+	Player::Player(int n, float wt) : name(n), floatValue(wt) { }
 
 	//- Constructor -----------------------------------------------------------
-	Player::Player(const std::string& n, double wt) : name(n), floatValue(wt)  { }
+	Player::Player(int n, double wt) : name(n), floatValue(wt)  { }
 
 	//- Constructor -----------------------------------------------------------
-	Player::Player(const std::string& n, float f, int i) :
+	Player::Player(int n, float f, int i) :
 		name(n),
 		floatValue(f),
 		value(i) { }
 
 	//- Constructor -----------------------------------------------------------
-	Player::Player(const std::string& n, float f, int i, int r) :
+	Player::Player(int n, float f, int i, int r) :
 		name(n),
 		floatValue(f),
 		value(i),
