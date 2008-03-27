@@ -16,30 +16,25 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef XMPPJID_HH
-#define XMPPJID_HH
+#ifndef XMPPPARTIALJID_HH
+#define XMPPPARTIALJID_HH
 
 #include <string>
 
-#include "PartialJid.hh"
-
 namespace XMPP {
 
-    class Jid : public PartialJid {
+    class PartialJid {
         public:
-            Jid(const Jid& jid);
+            PartialJid(const PartialJid& jid);
 
-            explicit Jid(const PartialJid& jid);
+            explicit PartialJid(const std::string& jid);
 
-            explicit Jid(const std::string& jid);
+            explicit PartialJid(const std::string& node,
+                                const std::string& domain);
 
-            explicit Jid(const std::string& node,
-                         const std::string& domain,
-                         const std::string& resource="");
+            PartialJid();
 
-            Jid();
-
-            ~Jid();
+            ~PartialJid();
 
             const std::string& node() const { return this->_node; }
             std::string& node() { return this->_node; }
@@ -47,44 +42,31 @@ namespace XMPP {
             const std::string& domain() const { return this->_domain; }
             std::string& domain() { return this->_domain; }
 
-            const std::string& resource() const { return this->_resource; }
-            std::string& resource() { return this->_resource; }
-
             /* \brief Returns the jid representation */
             std::string full() const;
 
-            /* \brief Returns the jid representation without the resource */
-            std::string partial() const;
-
             bool empty() const {
-                return this->node().empty() and this->domain().empty() and this->resource().empty();
+                return this->node().empty() and this->domain().empty();
             }
 
-            void swap(Jid& jid) {
+            void swap(PartialJid& jid) {
                 this->node().swap(jid.node());
                 this->domain().swap(jid.domain());
-                this->resource().swap(jid.resource());
             }
 
-            bool operator==(const Jid& jid) const {
+            bool operator==(const PartialJid& jid) const {
                 return this->node() == jid.node() and
-                       this->domain() == jid.domain() and
-                       this->resource() == jid.resource();
+                       this->domain() == jid.domain();
             }
-            bool operator!=(const Jid& jid) const {
+            bool operator!=(const PartialJid& jid) const {
                 return this->node() != jid.node() or
-                       this->domain() != jid.domain() or
-                       this->resource() != jid.resource();
+                       this->domain() != jid.domain();
             }
 
-            bool operator<(const Jid& jid) const {
+            bool operator<(const PartialJid& jid) const {
                 if(this->node() < jid.node())
                     return true;
                 else if(this->node() > jid.node())
-                    return false;
-                else if(this->resource() < jid.resource())
-                    return true;
-                else if(this->resource() > jid.resource())
                     return false;
                 else if(this->domain() < jid.domain())
                     return true;
@@ -92,14 +74,10 @@ namespace XMPP {
                     return false;
             }
 
-            bool operator>(const Jid& jid) const {
+            bool operator>(const PartialJid& jid) const {
                 if(this->node() > jid.node())
                     return true;
                 else if(this->node() < jid.node())
-                    return false;
-                else if(this->resource() > jid.resource())
-                    return true;
-                else if(this->resource() < jid.resource())
                     return false;
                 else if(this->domain() > jid.domain())
                     return true;
@@ -107,20 +85,15 @@ namespace XMPP {
                     return false;
             }
 
-            bool parcialCompare(const Jid& jid) const {
-                return this->node() == jid.node() and
-                       this->domain() == jid.domain();
-            }
-
         protected:
-            std::string _resource;
+            std::string _node, _domain;
     };
 
 }
 
-/* Overloaded swap function for the Jid class */
+/* Overloaded swap function for the PartialJid class */
 namespace std {
-    inline void swap(XMPP::Jid& j1, XMPP::Jid& j2) {
+    inline void swap(XMPP::PartialJid& j1, XMPP::PartialJid& j2) {
         j1.swap(j2);
     }
 }

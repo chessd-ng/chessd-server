@@ -80,6 +80,8 @@ class ComponentBase {
          * the connection has failed. */
         virtual void onError(const std::string& msg) = 0;
 
+        virtual void onConnect();
+
         /*! \brief Handle a connection error
          *
          * This is a tunnel to the real one.

@@ -163,3 +163,26 @@ void RatingDatabase::setRating(const std::string& user, const std::string& categ
         work.exec(query);
     }
 }
+
+std::vector<std::string> RatingDatabase::getAdmins() {
+
+    std::vector<std::string> admins;
+    std::string admin;
+
+    /* prepare query */
+    std::string query =
+        " SELECT username"
+        " FROM player_type "
+        " WHERE type='admin'";
+
+    /* execute query */
+    pqxx::result result = work.exec(query);
+    
+    /* read result */
+    foreach(r, result) {
+        r->at("username").to(admin);
+        admins.push_back(admin);
+    }
+    
+    return admins;
+}
