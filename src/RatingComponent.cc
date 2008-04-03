@@ -26,6 +26,8 @@
 
 #include "HistoryProcess.hh"
 
+#include "I18n.hh"
+
 using namespace std;
 using namespace XML;
 using namespace XMPP;
@@ -153,6 +155,8 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
         generator.addAttribute("id", Util::to_string(game->id));
         generator.addAttribute("category", game->category);
         generator.addAttribute("time_stamp", Util::ptime_to_xmpp_date_time(game->time_stamp));
+        generator.openTag("result");
+        generator.addCData(i18n.getText(game->result,stanza.lang()));
         foreach(player, game->players) {
             generator.openTag("player");
             generator.addAttribute("jid", player->jid.partial());

@@ -199,6 +199,7 @@ Any date and time is in the format specified by the XEP-082.
 <iq from="match.shiva" type="result" id="get_adj">
     <query xmlns="http://c3sl.ufpr.br/chessd#adjourned#list">
         <game time_stamp="2008-03-06T15:19:09Z" category="blitz" id="89" >
+            <result>The players agreed on a draw</result>
             <player jid="ulyssesb@shiva" />
             <player jid="robofacilaaa@shiva" />
         </game>
