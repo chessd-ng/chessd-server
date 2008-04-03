@@ -28,8 +28,8 @@
 #include "Util/Timer.hh"
 
 #include "Match.hh"
-#include "MatchRule.hh"
 #include "MatchDatabase.hh"
+#include "TeamDatabase.hh"
 
 #include "ComponentBase.hh"
 
@@ -54,13 +54,6 @@ class MatchManager : public ComponentBase {
 		 * Closes server connection if available
 		 */
 		~MatchManager();
-
-		/*! \brief Insert a match rule
-		 *
-		 * This must be called befre connect.
-		 * \param rule is the MatchRule to be inserted.
-		 */
-		void insertMatchRule(MatchRule* rule);
 
 	private:
 
@@ -135,10 +128,6 @@ class MatchManager : public ComponentBase {
 
 		/*! \brief Team database */
 		TeamDatabase teams;
-
-		typedef boost::ptr_map<std::string, MatchRule>  RuleMap;
-		/*! \brief Registered rules */
-		RuleMap rules;
 
 		/*! \brief Pending offers */
 		MatchDatabase match_db;

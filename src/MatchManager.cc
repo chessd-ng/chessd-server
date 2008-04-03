@@ -22,10 +22,8 @@
 #include "Threads/Task.hh"
 #include "Util/utils.hh"
 
-#include "MatchStandard.hh"
-#include "MatchBlitz.hh"
-#include "MatchLightning.hh"
 #include "MatchAdjournFactory.hh"
+#include "MatchFactory.hh"
 
 #include "XMPP/Exception.hh"
 #include "Exception.hh"
@@ -119,18 +117,6 @@ MatchManager::MatchManager(
             XMLNS_MATCH_DECLINE);
     this->root_node.setIqHandler(boost::bind(&MatchManager::handleList, this, _1),
             XMLNS_ADJOURNED_LIST);
-
-    /* FIXME */
-    /* this should not be here
-     * we shoud have a match factory intead */
-    this->insertMatchRule(new MatchRuleStandard());
-    this->insertMatchRule(new MatchRuleBlitz());
-    this->insertMatchRule(new MatchRuleLightning());
-}
-
-void MatchManager::insertMatchRule(MatchRule* rule) {
-    std::string category = rule->getCategory();
-    this->rules.insert(category, rule);
 }
 
 MatchManager::~MatchManager() {
@@ -166,13 +152,8 @@ void MatchManager::handleOffer(const Stanza& stanza) {
             this->database.queueTransaction(boost::bind(&MatchManager::loadAdjourned, this, adj_id, _1));
         } else {
 
-            /* check category */
-            const std::string& category = offer.getAttribute("category");
-
             /* apply match rule */
-            if(not Util::has_key(this->rules, category))
-                throw match_error("This category is not available");
-            std::auto_ptr<Match> match(this->rules.find(category)->second->checkOffer(offer, this->teams));
+            std::auto_ptr<Match> match(MatchFactory::create(offer, this->teams));
 
             /* The processOffer was part of this function.
              * It was separated due to the need to

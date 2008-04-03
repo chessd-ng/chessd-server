@@ -6,13 +6,10 @@ SOURCES = \
 		  src/Core.cc \
 		  src/DatabaseInterface.cc \
 		  src/DatabaseManager.cc \
-		  src/GameBlitz.cc \
 		  src/Game.cc \
 		  src/GameChess.cc \
-		  src/GameLightning.cc \
 		  src/GameManager.cc \
 		  src/GameRoom.cc \
-		  src/GameStandard.cc \
 		  src/GlickoSystem.cc \
 		  src/HistoryProcess.cc \
 		  src/I18n.cc \
@@ -24,12 +21,9 @@ SOURCES = \
 		  src/libchess/Piece.cc \
 		  src/libchess/State.cc \
 		  src/main.cc \
-		  src/MatchBlitz.cc \
 		  src/MatchChess.cc \
 		  src/MatchDatabase.cc \
-		  src/MatchLightning.cc \
 		  src/MatchManager.cc \
-		  src/MatchStandard.cc \
 		  src/Pairing/Game.cc \
 		  src/Pairing/Player.cc \
 		  src/Pairing/Tourney.cc \
@@ -38,7 +32,6 @@ SOURCES = \
 		  src/Threads/Dispatcher.cc \
 		  src/Threads/Pool.cc \
 		  src/Threads/Task.cc \
-		  src/TourneyTypes.cc \
 		  src/Util/Identifier.cc \
 		  src/Util/IDSet.cc \
 		  src/Util/Log.cc \
@@ -55,7 +48,8 @@ SOURCES = \
 		  src/XMPP/Roster.cc \
 		  src/XMPP/StanzaBase.cc \
 		  src/XMPP/Stanza.cc \
-		  src/XMPP/Stream.cc
+		  src/XMPP/Stream.cc \
+		  src/MatchFactory.cc
 
 
 SRCDIR = src
