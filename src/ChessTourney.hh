@@ -29,7 +29,7 @@
 
 class ChessTourney : public Tourney {
 	public:
-		ChessTourney (const Util::Time& _initial_time, const Util::Time& _inc, int rounds);
+		ChessTourney (const std::string& __category, const Util::Time& _initial_time, const Util::Time& _inc, int rounds);
 
 		virtual ~ChessTourney() { }
 
@@ -46,7 +46,9 @@ class ChessTourney : public Tourney {
 		int missing_rounds() const { return this->_missing_rounds;}
 
 	protected:
-		virtual std::vector<Game*>* makeGames(const std::list<Pairing::Game>& games) const=0;
+		std::vector<Game*>* makeGames(const std::list<Pairing::Game>& games) const;
+
+		std::string _category;
 
 		Util::Time initial_time;
 		

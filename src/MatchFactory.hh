@@ -16,30 +16,25 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef GAMESTANDARD_HH
-#define GAMESTANDARD_HH
+#ifndef MATCHFACTORY_HH
+#define MATCHFACTORY_HH
 
-#include "GameChess.hh"
+#include "Match.hh"
+#include "TeamDatabase.hh"
 
-class GameStandard : public GameChess {
+class MatchFactory {
 	public:
-		GameStandard(const StandardPlayerList& _players);
-
-		GameStandard(XML::Tag* adjourned_game) : GameChess(adjourned_game) { };
-
-		virtual ~GameStandard() {};
-
-		virtual GameResult* result() const;
+		static Match* create(const XML::Tag& match_offer,
+				const TeamDatabase& teams) ;
 
 	private:
-};
+		static std::vector<XML::Tag> getPlayersTag(const XML::Tag& match_offer) ;
 
-class ChessStandardGameResult : public ChessGameResult {
-	public:
-		ChessStandardGameResult(const std::string &endreason,const PlayerResultList &l,XML::Tag* _hist);
+		static StandardPlayerList getPlayersfromXML(const XML::Tag& _match_offer) ;
 
-//		virtual void updateRating(std::map<Player, Rating> &ratings) const;
-	private:
+		static void validateXML(const XML::Tag& _match_offer) ;
+
+		static bool isTimeValid(const XML::Tag& _player,const std::string& category) ;
 };
 
 #endif

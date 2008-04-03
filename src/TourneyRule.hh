@@ -19,14 +19,14 @@
 #ifndef TOURNEYRULE_HH
 #define TOURNEYRULE_HH
 
-#include "TourneyTypes.hh"
+#include "ChessTourney.hh"
 #include "XML/Xml.hh"
 
 struct TourneyRule {
 	public:
 		static Tourney* create(const XML::Tag& offer) {
-			if(offer.getAttribute("category")=="standard")
-				return new TourneyStandard(Util::Time(offer.getAttribute("initial_time"),Util::Minutes),Util::Time(offer.getAttribute("inc"),Util::Minutes),Util::parse_string<int>(offer.getAttribute("rounds")));
+			//test category
+			return new ChessTourney(offer.getAttribute("category"),Util::Time(offer.getAttribute("initial_time"),Util::Minutes),Util::Time(offer.getAttribute("inc"),Util::Minutes),Util::parse_string<int>(offer.getAttribute("rounds")));
 			/*
 			 * throw ;4
 			*/
