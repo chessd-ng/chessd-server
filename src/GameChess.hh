@@ -72,7 +72,7 @@ class GameChess : public Game {
 		 */
 		virtual bool done(const Util::Time& current_time) ;
 
-		virtual GameResult* result() const = 0;
+		virtual GameResult* result() const ;
 
 		virtual XML::Tag* move(const Player& player, const std::string& movement, const Util::Time& time_stamp);
 
@@ -101,6 +101,11 @@ class GameChess : public Game {
 	private:
 		//\brief set initial variables, it is just called in the constructor
 		void setInitialVariables();
+
+		//\brief check if the time of current player is over,
+		//if yes, then sed this->_done and this->time_over
+		bool checkTimeOver(const Util::Time& current_time);
+
 		/*
 		 * tells if the time of one player is over
 		 * -1 for no time over

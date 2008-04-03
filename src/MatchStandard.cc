@@ -32,36 +32,8 @@ MatchRuleStandard::~MatchRuleStandard() {
 }
 
 Match* MatchRuleStandard::checkOffer(const XML::Tag& _match_offer, const TeamDatabase&) const {
-	return new MatchStandard(this->getPlayersTag(_match_offer));
+	return new MatchChess(this->getPlayersTag(_match_offer),this->category());
 }
 
 bool MatchRuleStandard::isTimeValid(const XML::Tag& _player) const {
-	if(_player.hasAttribute("time")) {
-		if(11u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Seconds))
-			return true;
-	}
-	return false;
-}
-
-/*
- * MatchStandard Stuff
-*/
-MatchStandard::MatchStandard(const std::vector<XML::Tag>& players) :
-	MatchChess(players,"standard")
-{
-}
-
-MatchStandard::~MatchStandard() {
-}
-
-Game* MatchStandard::createGame() const {
-	return new GameStandard(getPlayersFromXML(this->_match_players));
-}
-
-/*
- * MatchChessStandardAdjourn Stuff
-*/
-
-Game* MatchChessStandardAdjourn::createGame() const {
-	return new GameStandard(this->history);
 }

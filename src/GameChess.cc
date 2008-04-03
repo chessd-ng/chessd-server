@@ -203,17 +203,24 @@ AdjournedGame* GameChess::adjourn(const Util::Time& current_time) {
 	return new ChessAdjournedGame(hist,this->_simple_players,this->category());
 }
 
+bool GameChess::checkTimeOver(const Util::Time& current_time) {
+	if(this->turns_restart >= 2)
+		if(this->_players[this->chess.turn()].time+this->time_of_last_move-current_time <= Util::Time()) {
+			this->time_over=this->chess.turn();
+			this->_done=TIMEOVER;
+			return true;
+		}
+	return false;
+}
+
 bool GameChess::done(const Util::Time& current_time) {
-	if(this->_done==NOREASON) {
-		if(this->turns_restart >= 2)
-			foreach(it,standard_player_map)
-				//check if the time of each player is over
-				if(it->second->time+(this->colormap[it->first]==this->chess.turn()?this->time_of_last_move-current_time:Util::Time()) <= Util::Time()) {
-					this->time_over=it->second->color;
-					this->_done=TIMEOVER;
-				}
-	}
+	if(this->_done==NOREASON)
+		this->checkTimeOver(current_time);
 	return this->_done!=0;
+}
+
+GameResult* GameChess::result() const {
+	return new ChessGameResult(this->doneEndReason(),this->donePlayerResultList(),this->category(),this->generateHistoryTag());
 }
 
 int GameChess::realDone() {
@@ -244,7 +251,7 @@ std::string GameChess::doneEndReason() const {
 			return "The players agreed on a draw";
 			break;
 		case TIMEOVER:
-			return std::string("Time of ")+std::string(time_over==int(White)?"white":"black")+std::string(" has ended");
+			return std::string("Time of ")+std::string((time_over==int(White))?"white":"black")+std::string(" has ended");
 			break;
 		case DRAWREPETITION:
 			return "Draw by three fold repetition rule";
@@ -272,14 +279,14 @@ PlayerResultList GameChess::donePlayerResultList() const {
 	 * 1 is black*/
 	PlayerResultList prl(2);
 	foreach(it,_players)
-		prl[colormap.find(it->jid)->second==Chess::WHITE?0:1]=PlayerResult(it->jid,(it->color==White?"white":"black"),(""));
+		prl[(colormap.find(it->jid)->second==Chess::WHITE)?0:1]=PlayerResult(it->jid,(it->color==White?"white":"black"),(""));
 
 	if(this->_done==3 or this->_done>=5) //if it is a draw
 		prl[0].score=prl[1].score="1/2";
 	else if (this->_done!=NOREASON) { //if the game ended
-		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->time_over==Black);
-		prl[0].score=aux==true?"1":"0";
-		prl[1].score=aux==true?"0":"1";
+		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->time_over==1/*black*/);
+		prl[0].score=(aux==true)?"1":"0";
+		prl[1].score=(aux==true)?"0":"1";
 	}
 	return prl;
 }
@@ -289,16 +296,13 @@ XML::Tag* GameChess::move(const Player& player, const std::string& movement, con
 	if(this->_done!=0)
 		throw game_over("The game is already over");
 
-	//check if time is over
-	if(this->turns_restart >= 2) //the time only begins to count after 2 rounds
-		if((this->standard_player_map[player]->time)-time_stamp+time_of_last_move < Util::Time()) {
-			this->_done=TIMEOVER;
-			throw time_over::time_over(std::string("Time of ")+std::string(this->standard_player_map[player]->color==White?"white":"black")+std::string(" is over"));
-		}
-
 	//can't move if it's not the player's turn
 	if(colormap[player]!=chess.turn())
 		throw wrong_turn(std::string("It's not ")+std::string(colormap[player]==Chess::WHITE?"white":"black")+std::string("'s turn"));
+
+	//check if time is over
+	if(this->checkTimeOver(time_stamp))
+		throw time_over::time_over(std::string("Time of ")+std::string(this->standard_player_map[player]->color==White?"white":"black")+std::string(" is over"));
 
 	//make the move
 	if(chess.verifyAndMakeMove(movement)==false)
@@ -317,15 +321,13 @@ XML::Tag* GameChess::move(const Player& player, const std::string& movement, con
 	//set the _done variable here for optimization
 	this->_done=(end_reason)realDone();
 
-	int last_time=int(this->standard_player_map[player]->time.getSeconds()+0.001);
-
-
 	std::string realmove=movement;
 	//if there was a pawn promotion and it's not explicit
 	if(chess.hasThePawnPromoted() and movement.size()<5)
 		realmove+="q";
 
 	//update history_moves
+	int last_time=int(this->standard_player_map[player]->time.getSeconds()+0.001);
 	history_moves+=realmove+" "+Util::to_string(last_time)+" ";
 
 	//generate move tag
@@ -362,9 +364,9 @@ XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
 			//confirm if time_left attribute is only for adjourned games
 			if(this->_done==NOREASON) {
 				if( (this->chess.turn() == colormap.find(it->jid)->second) and (this->turns_restart>=2))
-					gen.addAttribute("time_left",Util::to_string<int>(int((this->_players[it->role=="white"?0:1].time-time_passed).getSeconds()+0.001)));
+					gen.addAttribute("time_left",Util::to_string<int>(int((this->_players[(it->role=="white")?0:1].time-time_passed).getSeconds()+0.001)));
 				else
-					gen.addAttribute("time_left",Util::to_string<int>(int(this->_players[it->role=="white"?0:1].time.getSeconds()+0.001)));
+					gen.addAttribute("time_left",Util::to_string<int>(int(this->_players[(it->role=="white")?0:1].time.getSeconds()+0.001)));
 			}
 
 			gen.addAttribute("inc",Util::to_string<int>(int(this->_players[0].inc.getSeconds()+0.001)));

@@ -18,9 +18,10 @@
 
 #include "ChessTourney.hh"
 #include "TourneyException.hh"
+#include "GameChess.hh"
 #include <algorithm>
 
-ChessTourney::ChessTourney(const Util::Time& _initial_time, const Util::Time& _inc, int __rounds) : initial_time(_initial_time), inc(_inc), _rounds(__rounds), _missing_rounds(__rounds), tourney('s') {
+ChessTourney::ChessTourney(const std::string& __category, const Util::Time& _initial_time, const Util::Time& _inc, int __rounds) : _category(__category), initial_time(_initial_time), inc(_inc), _rounds(__rounds), _missing_rounds(__rounds), tourney('s') {
 	tourney_started=false;
 	missing_results=false;
 }
@@ -67,4 +68,15 @@ void ChessTourney::addResult(const PlayerResultList& prl) {
 	missing_results=tourney.SetGameResult(this->player_map[prl[0].jid],this->player_map[prl[1].jid],(prl[0].score!="1/2"?(prl[0].score=="1"?1:0):2))!=2;
 	this->_players[player_map[prl[0].jid]].score=tourney.GetPlayerByName(this->player_map[prl[0].jid])->score;
 	this->_players[player_map[prl[1].jid]].score=tourney.GetPlayerByName(this->player_map[prl[1].jid])->score;
+}
+
+std::vector<Game*>* ChessTourney::makeGames(const std::list<Pairing::Game>& games) const {
+	std::vector<Game*>* g = new std::vector<Game*>;
+	foreach(it,games) {
+		StandardPlayerList players;
+		players.push_back(StandardPlayer(this->_players[it->whiteName].jid,this->initial_time,this->inc,White));
+		players.push_back(StandardPlayer(this->_players[it->blackName].jid,this->initial_time,this->inc,Black));
+		g->push_back(new GameChess(players,this->_category));
+	}
+	return g;
 }

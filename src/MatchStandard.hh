@@ -33,25 +33,4 @@ class MatchRuleStandard : public MatchRuleChess {
 		virtual bool isTimeValid(const XML::Tag& _player) const ;
 };
 
-struct MatchStandard : public MatchChess {
-	public:
-
-		MatchStandard(const std::vector<XML::Tag>& players);
-
-		virtual ~MatchStandard();
-		
-		virtual Game* createGame() const;
-
-	private:
-};
-
-struct MatchChessStandardAdjourn : public MatchChessAdjourn {
-	public:
-		MatchChessStandardAdjourn(XML::Tag* _history) : MatchChessAdjourn(_history) { }
-
-		virtual Game* createGame() const;
-
-	private:
-};
-
 #endif

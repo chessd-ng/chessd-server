@@ -34,29 +34,23 @@ SOURCES = \
 		  src/Core.cc \
 		  src/RatingComponent.cc \
 		  src/GameChess.cc \
-		  src/TourneyTypes.cc \
 		  src/Game.cc \
-		  src/GameLightning.cc \
 		  src/GameRoom.cc \
 		  src/MatchChess.cc \
-		  src/MatchStandard.cc \
+		  src/MatchFactory.cc \
 		  src/ComponentBase.cc \
 		  src/MatchDatabase.cc \
-		  src/MatchBlitz.cc \
 		  src/RatingDatabase.cc \
 		  src/I18n.cc \
-		  src/GameStandard.cc \
 		  src/main.cc \
 		  src/Agreement.cc \
 		  src/DatabaseManager.cc \
 		  src/DatabaseInterface.cc \
 		  src/GlickoSystem.cc \
-		  src/GameBlitz.cc \
 		  src/HistoryProcess.cc \
 		  src/GameManager.cc \
 		  src/AdjournedDatabase.cc \
 		  src/GameDatabase.cc \
-		  src/MatchLightning.cc \
 		  src/AdminComponent.cc
 
 

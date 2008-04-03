@@ -1,20 +1,31 @@
+/*
+ *   Copyright (c) 2007-2008 C3SL.
+ *
+ *   This file is part of Chessd.
+ *
+ *   Chessd is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Chessd is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ */
+
 #ifndef MATCHADJOURNFACTORY_HH
 #define MATCHADJOURNFACTORY_HH
 
-#include "MatchStandard.hh"
-#include "MatchBlitz.hh"
-#include "MatchLightning.hh"
+#include "MatchChess.hh"
 
 class MatchAdjournFactory {
 	public:
 		static Match* create(XML::Tag* history) {
-			if(history->getAttribute("category")=="standard")
-				return new MatchChessStandardAdjourn(history);
-			else if(history->getAttribute("category")=="blitz")
-				return new MatchChessBlitzAdjourn(history);
-			else if(history->getAttribute("category")=="lightning")
-				return new MatchChessLightningAdjourn(history);
-			return 0;
+			//TODO test if category exist
+			return new MatchChessAdjourn(history);
 		}
 	private:
 };
