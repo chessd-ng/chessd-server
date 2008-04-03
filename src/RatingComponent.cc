@@ -26,6 +26,8 @@
 
 #include "HistoryProcess.hh"
 
+#include "I18n.hh"
+
 using namespace std;
 using namespace XML;
 using namespace XMPP;
@@ -114,7 +116,6 @@ void RatingComponent::handleFetchGame(const Stanza& stanza) {
 }
 
 void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& database) {
-    GameDatabase& game_database = database.game_database;
     XML::TagGenerator generator;
     std::vector<string> players;
     int max_results = 50;
@@ -138,7 +139,7 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
     }
     
     /* Search in the database */
-    std::vector<PersistentGame> games = game_database.searchGames(players, offset, max_results);
+    std::vector<PersistentGame> games = database.searchGames(players, offset, max_results);
 
     /* Create result */
     generator.openTag("iq");
@@ -154,6 +155,8 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
         generator.addAttribute("id", Util::to_string(game->id));
         generator.addAttribute("category", game->category);
         generator.addAttribute("time_stamp", Util::ptime_to_xmpp_date_time(game->time_stamp));
+        generator.openTag("result");
+        generator.addCData(i18n.getText(game->result,stanza.lang()));
         foreach(player, game->players) {
             generator.openTag("player");
             generator.addAttribute("jid", player->jid.partial());
@@ -171,14 +174,13 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
 void RatingComponent::fetchGame(const Stanza& stanza, DatabaseInterface& database) {
     try {
         try {
-            GameDatabase& game_database = database.game_database;
             XML::TagGenerator generator;
 
             /* Parse request */
             const Tag& query = stanza.findChild("query");
             const Tag& game_tag = query.findChild("game");
             int game_id = Util::parse_string<int>(game_tag.getAttribute("id"));
-            std::string game_history = game_database.getGameHistory(game_id);
+            std::string game_history = database.getGameHistory(game_id);
 
             /* Create result */
             generator.openTag("iq");
@@ -203,7 +205,6 @@ void RatingComponent::fetchGame(const Stanza& stanza, DatabaseInterface& databas
 }
 
 void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& database) {
-    RatingDatabase& rating_database = database.rating_database;
     XML::TagGenerator generator;
     const Tag& query = stanza.findChild("query");
     std::string category, jid;
@@ -225,7 +226,7 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
             jid = tag->getAttribute("jid");
 
             /* consult the database */
-            std::vector<std::pair<std::string, PersistentRating> > ratings = rating_database.getRatings(
+            std::vector<std::pair<std::string, PersistentRating> > ratings = database.getRatings(
                         jid, category);
 
             /* add result to the message */
@@ -246,7 +247,7 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
             jid = tag->getAttribute("jid");
 
             /* consult the database */
-            std::string type = rating_database.getUserType(jid);
+            std::string type = database.getUserType(jid);
 
             /* create the tag */
             generator.openTag("type");

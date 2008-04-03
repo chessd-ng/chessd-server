@@ -374,64 +374,12 @@ void GameRoom::notifyMove(XML::Tag* move_tag) {
 }
 
 void storeResult(GameResult* result, DatabaseInterface& database) {
-    RatingDatabase& rating_database = database.rating_database;
-    GameDatabase& game_database = database.game_database;
-    std::string category = result->category();
-    PersistentGame game;
-    Rating tmp;
-    PersistentRating rating;
-
-    /* create a map with the player's rating */
-    std::map<Player, Rating> ratings;
-    std::map<Player, PersistentRating> pratings;
-    foreach(player, result->players()) {
-        std::string name = player->jid.partial();
-        rating = rating_database.getRatingForUpdate(name, category);
-        pratings.insert(std::make_pair(player->jid, rating));
-        tmp.rating() = rating.rating;
-        tmp.volatility() = rating.volatility;
-        tmp.wins() = rating.wins;
-        tmp.draws() = rating.draws;
-        tmp.losses() = rating.defeats;
-        tmp.last_game() = rating.last_game;
-        ratings.insert(std::make_pair(player->jid, tmp));
-    }
-    /* update ratings */
-    result->updateRating(ratings);
-    /* create vector of persistent ratings */
-    foreach(it, ratings) {
-        rating.rating = it->second.rating();
-        rating.volatility = it->second.volatility();
-        rating.wins = it->second.wins();
-        rating.draws = it->second.draws();
-        rating.defeats = it->second.losses();
-        rating.max_rating = pratings[it->first].max_rating;
-        rating.max_timestamp = pratings[it->first].max_timestamp;
-        rating.last_game = Util::ptime_to_time_t(boost::posix_time::second_clock::local_time());
-        if(rating.rating > rating.max_rating) {
-            rating.max_rating = rating.rating;
-            rating.max_timestamp = boost::posix_time::second_clock::local_time();
-        }
-        rating_database.setRating(it->first.partial(), category, rating);
-    }
-    
-    /* set game values */
-    game.players = result->players();
-    game.category = category;
-    game.time_stamp = boost::posix_time::second_clock::local_time();
-
-    /* get history */
-    std::auto_ptr<XML::Tag> history(result->history());
-    game.history = history->xml();
-
-    /* insert to the database */
-    game_database.insertGame(game);
+    database.insertGameResult(*result);
     delete result;
 }
 
 void storeAdjourned(AdjournedGame* adj_game, DatabaseInterface& database) {
-    AdjournedDatabase& game_database = database.adjourned_game_database;
-    PersistentAdjourned game;
+    PersistentAdjournedGame game;
     std::auto_ptr<XML::Tag> history(adj_game->history());
 
     /* set game values */
@@ -441,7 +389,7 @@ void storeAdjourned(AdjournedGame* adj_game, DatabaseInterface& database) {
     game.time_stamp = boost::posix_time::second_clock::local_time();
     
     /* insert game to the database */
-    game_database.insertGame(game);
+    database.insertAdjournedGame(game);
 
     delete adj_game;
 }

@@ -19,31 +19,9 @@
 #ifndef MATCHCHESS_HH
 #define MATCHCHESS_HH
 
-#include "MatchRule.hh"
+#include "MatchFactory.hh"
 #include "Match.hh"
-
-class MatchRuleChess : public MatchRule {
-	public:
-		MatchRuleChess(const std::string& __category);
-
-		virtual ~MatchRuleChess();
-
-		virtual const std::string& getCategory() const;
-
-		virtual Match* checkOffer(const XML::Tag& match_offer,
-				const TeamDatabase& teams) const =0;
-
-		std::vector<XML::Tag> getPlayersTag(const XML::Tag& match_offer) const;
-	protected:
-		StandardPlayerList getPlayersfromXML(const XML::Tag& _match_offer) const;
-
-	private:
-		std::string _category;
-
-		void validateXML(const XML::Tag& _match_offer) const ;
-
-		virtual bool isTimeValid(const XML::Tag& _player) const =0;
-};
+#include "XML/Xml.hh"
 
 struct MatchChess : public Match {
 	public:
@@ -55,33 +33,35 @@ struct MatchChess : public Match {
 
 		virtual const std::string& category() const;
 
-		virtual Game* createGame() const = 0;
+		virtual Game* createGame() const ;
 
 		/*! \brief The offer notification */
 		virtual XML::Tag* notification() const;
-	protected:
-		//this shouldn't be here
-		std::vector<XML::Tag> _match_players;
 
-		static StandardPlayerList getPlayersFromXML(const std::vector<XML::Tag>& players);
+	protected:
+		/*this is protected just only for MatchChessAdjourn*/
+		std::vector<XML::Tag> _match_players;
 
 	private:
 		std::string _category;
-		//These two player list is necessary because StandardPlayer does not inherit from Players
+
 		PlayerList _players;
+
+		static StandardPlayerList getPlayersFromXML(const std::vector<XML::Tag>& players);
+
 };
 
 struct MatchChessAdjourn : public MatchChess {
 	public:
 		MatchChessAdjourn(XML::Tag* _history) : MatchChess(this->getPlayersTag(*_history),_history->getAttribute("category")), history(_history) { }
 
-		virtual XML::Tag* notification() const;
-	protected:
-		XML::Tag* history;
+		virtual Game* createGame() const;
 
+		virtual XML::Tag* notification() const;
 	private:
 		static std::vector<XML::Tag> getPlayersTag(const XML::Tag& history_adjourn);
 
+		XML::Tag* history;
 };
 
 #endif

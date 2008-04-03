@@ -16,18 +16,25 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#include "GameLightning.hh"
+#ifndef MATCHFACTORY_HH
+#define MATCHFACTORY_HH
 
-GameLightning::GameLightning(const StandardPlayerList& _players) :
-	GameChess(_players,"lightning")
-{
-}
+#include "Match.hh"
+#include "TeamDatabase.hh"
 
-GameResult* GameLightning::result() const {
-	return new ChessLightningGameResult(this->doneEndReason(),this->donePlayerResultList(),this->generateHistoryTag());
-}
+class MatchFactory {
+	public:
+		static Match* create(const XML::Tag& match_offer,
+				const TeamDatabase& teams) ;
 
-ChessLightningGameResult::ChessLightningGameResult(const std::string &endreason, const PlayerResultList &l, XML::Tag* _hist) :
-	ChessGameResult(endreason,l,"lightning",_hist)
-{
-}
+	private:
+		static std::vector<XML::Tag> getPlayersTag(const XML::Tag& match_offer) ;
+
+		static StandardPlayerList getPlayersfromXML(const XML::Tag& _match_offer) ;
+
+		static void validateXML(const XML::Tag& _match_offer) ;
+
+		static bool isTimeValid(const XML::Tag& _player,const std::string& category) ;
+};
+
+#endif

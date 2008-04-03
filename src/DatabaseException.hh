@@ -1,3 +1,4 @@
+
 /*
  *   Copyright (c) 2007-2008 C3SL.
  *
@@ -16,30 +17,22 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef GAMESTANDARD_HH
-#define GAMESTANDARD_HH
+#ifndef DATABASEEXCEPTION_HH
+#define DATABASEEXCEPTION_HH
 
-#include "GameChess.hh"
-
-class GameStandard : public GameChess {
-	public:
-		GameStandard(const StandardPlayerList& _players);
-
-		GameStandard(XML::Tag* adjourned_game) : GameChess(adjourned_game) { };
-
-		virtual ~GameStandard() {};
-
-		virtual GameResult* result() const;
-
-	private:
+class database_exception : public std::runtime_error {
+    public:
+        explicit database_exception(const std::string& msg) : std::runtime_error(msg) { }
 };
 
-class ChessStandardGameResult : public ChessGameResult {
-	public:
-		ChessStandardGameResult(const std::string &endreason,const PlayerResultList &l,XML::Tag* _hist);
+class game_not_found : public database_exception {
+    public:
+        explicit game_not_found(const std::string& msg) : database_exception(msg) { }
+};
 
-//		virtual void updateRating(std::map<Player, Rating> &ratings) const;
-	private:
+class user_not_found : public database_exception {
+    public:
+        explicit user_not_found(const std::string& msg) : database_exception(msg) { }
 };
 
 #endif
