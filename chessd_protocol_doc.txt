@@ -282,7 +282,7 @@ Any date and time is in the format specified by the XEP-082.
 
 <iq from="rating.shiva" type="result" id="get_rating">
     <query xmlns="http://c3sl.ufpr.br/chessd#search_game">
-        <game time_stamp="1203599132" category="blitz" id="89" >
+        <game time_stamp="2008-01-25T20:10:20Z" category="blitz" id="89" >
             <player role="black" score="1" jid="ulyssesb@shiva" />
             <player role="white" score="0" jid="robofacilaaa@shiva" />
         </game>

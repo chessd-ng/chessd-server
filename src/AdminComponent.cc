@@ -161,7 +161,7 @@ void AdminComponent::onConnect() {
 
 void AdminComponent::loadAdmins(DatabaseInterface& database) {
     /* read from database */
-    std::vector<std::string> resp = database.rating_database.getAdmins();
+    std::vector<std::string> resp = database.getAdmins();
     std::set<XMPP::PartialJid> admins;
 
     /* convert types */

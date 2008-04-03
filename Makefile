@@ -1,64 +1,61 @@
 SOURCES = \
+		  src/AdminComponent.cc \
+		  src/Agreement.cc \
+		  src/ChessTourney.cc \
+		  src/ComponentBase.cc \
+		  src/Core.cc \
+		  src/DatabaseInterface.cc \
+		  src/DatabaseManager.cc \
+		  src/GameBlitz.cc \
+		  src/Game.cc \
+		  src/GameChess.cc \
+		  src/GameLightning.cc \
+		  src/GameManager.cc \
+		  src/GameRoom.cc \
+		  src/GameStandard.cc \
+		  src/GlickoSystem.cc \
+		  src/HistoryProcess.cc \
+		  src/I18n.cc \
+		  src/libchess/Board.cc \
+		  src/libchess/ChessBasedGame.cc \
+		  src/libchess/Chess.cc \
+		  src/libchess/ChessMove.cc \
+		  src/libchess/History.cc \
+		  src/libchess/Piece.cc \
+		  src/libchess/State.cc \
+		  src/main.cc \
+		  src/MatchBlitz.cc \
+		  src/MatchChess.cc \
+		  src/MatchDatabase.cc \
+		  src/MatchLightning.cc \
+		  src/MatchManager.cc \
+		  src/MatchStandard.cc \
 		  src/Pairing/Game.cc \
 		  src/Pairing/Player.cc \
-		  src/Pairing/TourneyPlayers.cc \
 		  src/Pairing/Tourney.cc \
+		  src/Pairing/TourneyPlayers.cc \
+		  src/RatingComponent.cc \
+		  src/Threads/Dispatcher.cc \
 		  src/Threads/Pool.cc \
 		  src/Threads/Task.cc \
-		  src/Threads/Dispatcher.cc \
-		  src/Util/IDSet.cc \
+		  src/TourneyTypes.cc \
 		  src/Util/Identifier.cc \
-		  src/Util/Timer.cc \
+		  src/Util/IDSet.cc \
 		  src/Util/Log.cc \
+		  src/Util/Timer.cc \
 		  src/XML/iksutil.cc \
 		  src/XML/Xml.cc \
 		  src/XMPP/Component.cc \
 		  src/XMPP/Disco.cc \
 		  src/XMPP/Jid.cc \
+		  src/XMPP/Muc.cc \
 		  src/XMPP/Node.cc \
+		  src/XMPP/PartialJid.cc \
 		  src/XMPP/RootNode.cc \
 		  src/XMPP/Roster.cc \
-		  src/XMPP/Stanza.cc \
 		  src/XMPP/StanzaBase.cc \
-		  src/XMPP/Muc.cc \
-		  src/XMPP/Stream.cc \
-		  src/libchess/History.cc \
-		  src/libchess/ChessMove.cc \
-		  src/libchess/State.cc \
-		  src/libchess/Chess.cc \
-		  src/libchess/Board.cc \
-		  src/libchess/Piece.cc \
-		  src/libchess/ChessBasedGame.cc \
-		  src/MatchManager.cc \
-		  src/ChessTourney.cc \
-		  src/Core.cc \
-		  src/RatingComponent.cc \
-		  src/GameChess.cc \
-		  src/TourneyTypes.cc \
-		  src/Game.cc \
-		  src/GameLightning.cc \
-		  src/GameRoom.cc \
-		  src/MatchChess.cc \
-		  src/MatchStandard.cc \
-		  src/ComponentBase.cc \
-		  src/MatchDatabase.cc \
-		  src/MatchBlitz.cc \
-		  src/RatingDatabase.cc \
-		  src/I18n.cc \
-		  src/GameStandard.cc \
-		  src/main.cc \
-		  src/Agreement.cc \
-		  src/DatabaseManager.cc \
-		  src/DatabaseInterface.cc \
-		  src/GlickoSystem.cc \
-		  src/GameBlitz.cc \
-		  src/HistoryProcess.cc \
-		  src/GameManager.cc \
-		  src/AdjournedDatabase.cc \
-		  src/GameDatabase.cc \
-		  src/MatchLightning.cc \
-		  src/AdminComponent.cc \
-		  src/XMPP/PartialJid.cc
+		  src/XMPP/Stanza.cc \
+		  src/XMPP/Stream.cc
 
 
 SRCDIR = src
@@ -86,7 +83,7 @@ ${TARGET}: ${OBJECTS}
 	@${CXX} -o ${TARGET} ${OBJECTS} ${CXXFLAGS} ${LDLIBS}
 
 .deps/%.d: ${SRCDIR}/%.cc
-	@echo "Checking denpendecies $<..."
+	@echo "Checking denpendencies $<..."
 	@mkdir -p $(dir $@)
 	@${CXX} ${CXXFLAGS} -MM $< | sed 's/^[^:]*:/$(subst /,\/,$(patsubst ${SRCDIR}/%.cc,${OBJDIR}/%.o,$<)) $(subst /,\/,$@):/' > $@
 
