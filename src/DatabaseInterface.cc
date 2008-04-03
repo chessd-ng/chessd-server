@@ -364,8 +364,10 @@ std::vector<PersistentGame> DatabaseInterface::searchGames(
             + ".game_id AND g" + id_str + ".user_id = '" + pqxx::to_string(user_id) + "' ";
     }
     std::string query = select + from + where +
-                           " limit " + pqxx::to_string(max_results) +
-                           " offset " + pqxx::to_string(offset);
+                           " ORDER BY game_id DESC " +
+                           " LIMIT " + pqxx::to_string(max_results) +
+                           " OFFSET " + pqxx::to_string(offset)
+                           ;
 
     /* execute query */
     pqxx::result result = this->work.exec(query);
