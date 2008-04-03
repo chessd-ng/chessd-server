@@ -16,13 +16,13 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#include "Jid.hh"
+#include "PartialJid.hh"
 
 using namespace std;
 
 namespace XMPP {
 
-    Jid::Jid(const string& jid) {
+    PartialJid::PartialJid(const string& jid) {
         size_t arroba = jid.find('@');
         if(arroba != string::npos) {
             this->node() = jid.substr(0, arroba);
@@ -31,37 +31,29 @@ namespace XMPP {
             arroba = 0;
         }
         size_t barra = jid.find('/', arroba);
-        if(barra != string::npos) {
-            this->resource() = jid.substr(barra + 1);
-        } else {
+        if(barra == string::npos) {
             barra = jid.size();
         }
         this->domain() = jid.substr(arroba, barra - arroba);
     }
 
-    Jid::Jid(const Jid& jid) : PartialJid(jid.node(), jid.domain()), _resource(jid.resource()) { }
+    PartialJid::PartialJid(const PartialJid& jid) : _node(jid.node()), _domain(jid.domain()) { }
 
-    Jid::Jid(const PartialJid& jid) : PartialJid(jid) { }
+    PartialJid::PartialJid(const std::string& node,
+                           const std::string& domain) :
+        _node(node),
+        _domain(domain) { }
 
-    Jid::Jid(const std::string& node,
-             const std::string& domain,
-             const std::string& resource) :
-        PartialJid(node, domain),
-        _resource(resource) { }
+    PartialJid::PartialJid() { }
 
-    Jid::Jid() { }
+    PartialJid::~PartialJid() { }
 
-    Jid::~Jid() { }
-
-    string Jid::full() const {
-        string resp = PartialJid::full();
-        if(not this->resource().empty())
-            resp += "/" + this->resource();
+    string PartialJid::full() const {
+        string resp;
+        if(not this->node().empty())
+            resp = this->node() + "@";
+        resp += this->domain();
         return resp;
-    }
-
-    string Jid::partial() const {
-        return PartialJid::full();
     }
 
 }

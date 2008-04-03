@@ -51,9 +51,11 @@ class AdminComponent : public ComponentBase {
 
 	private:
 
-        void onClose();
+        virtual void onClose();
 
-        void onError(const std::string& error);
+        virtual void onError(const std::string& error);
+
+        virtual void onConnect();
 
 		/* several Handlers for the incoming events. */
 
@@ -63,15 +65,33 @@ class AdminComponent : public ComponentBase {
         /*! \brief This is a transaction that reads user type. */
 		void fetchUserType(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
+        /*! \brief Load admins names from the database */
+        void loadAdmins(DatabaseInterface& database);
+
+        /*! \brief Set the admin list */
+        void setAdmins(const std::set<XMPP::PartialJid>& admins);
+
+        void setAccessRules();
+
+        void updateAcl();
+
         void execAdminCommand(const XMPP::Stanza& stanza, const std::string& user_type);
 
-        void kickUser(const XMPP::Jid& user);
+        void kickUser(const XMPP::PartialJid& user);
+
+        void banUser(const XMPP::PartialJid& user);
+
+        void unbanUser(const XMPP::PartialJid& user);
 
         XMPP::ErrorHandler error_handler;
 
         DatabaseManager& database;
 
         XMPP::Jid server_name;
+
+        std::set<XMPP::PartialJid> admins;
+
+        std::set<XMPP::PartialJid> baneds;
 };
 
 #endif

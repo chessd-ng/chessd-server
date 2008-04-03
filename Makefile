@@ -52,6 +52,8 @@ SOURCES = \
 		  src/AdjournedDatabase.cc \
 		  src/GameDatabase.cc \
 		  src/AdminComponent.cc
+		  src/AdminComponent.cc \
+		  src/XMPP/PartialJid.cc
 
 
 SRCDIR = src

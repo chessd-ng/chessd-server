@@ -55,33 +55,37 @@ void AdminComponent::handleAdmin(const Stanza& stanza) {
     try {
         const Tag& query = stanza.query();
 
-        /* check if the format is correct */
-        foreach(tag, query.tags()) {
-            if(tag->name() == "kick") {
-                if(not tag->hasAttribute("jid"))
-                    throw XMPP::bad_request("Invalid format");
-            } else {
-                throw XMPP::bad_request("invalid format");
-            }
+        /* check if the sender is an admin */
+        if(this->admins.find(stanza.from()) == this->admins.end()) {
+            throw XMPP::not_acceptable("You don't have admin privilegies");
         }
 
         /* We need to know the user type before proceeding */
-        this->database.queueTransaction(boost::bind(&AdminComponent::fetchUserType, this, stanza, _1));
+        /* parse message */
+        foreach(tag, query.tags()) {
+            XMPP::Jid target(tag->getAttribute("jid"));
+            if(tag->name() == "kick") {
+                this->kickUser(target);
+            } else if(tag->name() == "ban") {
+                this->banUser(target);
+            } else if(tag->name() == "unban") {
+                this->unbanUser(target);
+            } else {
+                throw XMPP::bad_request("Invalid format");
+            }
+        }
+
+        this->sendStanza(stanza.createIQResult());
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request("Invalid format");
     }
 }
 
-void AdminComponent::fetchUserType(const Stanza& stanza, DatabaseInterface& database) {
-    std::string user = stanza.from().partial();
-    std::string type = database.rating_database.getUserType(user);
-    this->dispatcher.queue(boost::bind(&AdminComponent::execAdminCommand, this, stanza, type));
-}
-
-void AdminComponent::kickUser(const XMPP::Jid& user) {
+void AdminComponent::kickUser(const XMPP::PartialJid& user) {
     std::auto_ptr<XMPP::Stanza> message(new XMPP::Stanza("iq"));
     XML::TagGenerator generator;
 
+    /* Create command message with the user name */
     message->subtype() = "set";
     message->to() = this->server_name;
     
@@ -95,33 +99,23 @@ void AdminComponent::kickUser(const XMPP::Jid& user) {
     generator.addAttribute("jid-single", "accountjid");
     generator.addAttribute("var", "accountjid");
     generator.openTag("value");
-    generator.addCData(user.partial());
+    generator.addCData(user.full());
 
     message->children().push_back(generator.getTag());
 
+    /* Send the message */
     this->root_node.sendIq(message.release());
 }
 
-void AdminComponent::execAdminCommand(const Stanza& stanza, const std::string& user_type) {
-    try {
-        /* check privilegies */
-        if(user_type != "admin") {
-            throw XMPP::not_acceptable("You don't have admin privilegies");
-        }
-        try {
-            /* parse message */
-            const Tag& query = stanza.query();
-            foreach(tag, query.tags()) {
-                if(tag->name() == "kick") {
-                    this->kickUser(XMPP::Jid(tag->getAttribute("jid")));
-                }
-            }
-        } catch (const XML::xml_error& error) {
-            throw XMPP::bad_request("Invalid format");
-        }
-    } catch(const XMPP::xmpp_exception& error) {
-        this->sendStanza(error.getErrorStanza(new Stanza(stanza)));
-    }
+void AdminComponent::banUser(const XMPP::PartialJid& user) {
+    this->kickUser(user);
+    this->baneds.insert(user);
+    this->updateAcl();
+}
+
+void AdminComponent::unbanUser(const XMPP::PartialJid& user) {
+    this->baneds.erase(user);
+    this->updateAcl();
 }
 
 void AdminComponent::onError(const std::string& error) {
@@ -129,4 +123,103 @@ void AdminComponent::onError(const std::string& error) {
 }
 
 void AdminComponent::onClose() {
+}
+
+void AdminComponent::setAccessRules() {
+    std::auto_ptr<XMPP::Stanza> message(new XMPP::Stanza("iq"));
+    XML::TagGenerator generator;
+
+    /* Create the command message */
+    message->subtype() = "set";
+    message->to() = this->server_name;
+    
+    generator.openTag("command");
+    generator.addAttribute("xmlns", "http://jabber.org/protocol/commands");
+    generator.addAttribute("node", "config/access");
+    generator.openTag("x");
+    generator.addAttribute("xmlns", "jabber:x:data");
+    generator.addAttribute("type", "submit");
+    generator.openTag("field");
+    generator.addAttribute("type", "text-multi");
+    generator.addAttribute("var", "access");
+    generator.openTag("value");
+    generator.addCData("[{access,muc_admin,[{allow,chessd_admin}]}].");
+
+    message->children().push_back(generator.getTag());
+
+    /* Send the message */
+    this->root_node.sendIq(message.release());
+}
+
+void AdminComponent::onConnect() {
+    /* Set ejabberd's access rules */
+    this->setAccessRules();
+
+    /* Load admin list from the database */
+    this->database.queueTransaction(boost::bind(&AdminComponent::loadAdmins, this, _1));
+}
+
+void AdminComponent::loadAdmins(DatabaseInterface& database) {
+    /* read from database */
+    std::vector<std::string> resp = database.rating_database.getAdmins();
+    std::set<XMPP::PartialJid> admins;
+
+    /* convert types */
+    foreach(admin, resp) {
+        admins.insert(XMPP::PartialJid(*admin));
+    }
+
+    /* update the list */
+    this->dispatcher.queue(boost::bind(&AdminComponent::setAdmins, this, admins));
+}
+
+void AdminComponent::setAdmins(const std::set<XMPP::PartialJid>& admins) {
+    /* set local list */
+    this->admins = admins;
+
+    /* update ejabberd's acl */
+    this->updateAcl();
+}
+
+void AdminComponent::updateAcl() {
+    std::auto_ptr<XMPP::Stanza> message(new XMPP::Stanza("iq"));
+    XML::TagGenerator generator;
+
+    /* Create the command message */
+    message->subtype() = "set";
+    message->to() = this->server_name;
+    
+    generator.openTag("command");
+    generator.addAttribute("xmlns", "http://jabber.org/protocol/commands");
+    generator.addAttribute("node", "config/acls");
+    generator.openTag("x");
+    generator.addAttribute("xmlns", "jabber:x:data");
+    generator.addAttribute("type", "submit");
+    generator.openTag("field");
+    generator.addAttribute("type", "text-multi");
+    generator.addAttribute("var", "acls");
+    generator.openTag("value");
+
+    /* build acl string */
+    std::string acl = "[";
+    /* put the admins in chessd_admin group */
+    foreach(admin, this->admins) {
+        acl += "{acl,chessd_admin,{user,\"" + admin->node() + "\",\"" + admin->domain() + "\"}},";
+    }
+    /* put baned users in the blocked group */
+    foreach(ban, this->baneds) {
+        acl += "{acl,blocked,{user,\"" + ban->node() + "\",\"" + ban->domain() + "\"}},";
+    }
+    /* remove extra comma */
+    if(acl.size() > 1) {
+        acl.erase(acl.end() - 1);
+    }
+    acl += "].";
+
+    generator.addCData(acl);
+
+    message->children().push_back(generator.getTag());
+
+    /* Send the message */
+    this->root_node.sendIq(message.release());
 }

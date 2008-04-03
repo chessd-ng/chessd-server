@@ -58,6 +58,9 @@ class RatingDatabase {
         /*! \brief Get the type of a user */
         std::string getUserType(const std::string& user);
 
+        /*! \brief Return a list of all admins */
+        std::vector<std::string> getAdmins();
+
     private:
 
         pqxx::work& work;
