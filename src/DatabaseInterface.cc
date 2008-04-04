@@ -44,14 +44,16 @@ int DatabaseInterface::getUserId(const std::string& _username) {
     if(result.empty()) {
         /* prepare query */
         query = "INSERT INTO users (user_name) "
-                "VALUES ('" + username + "') "
-                "RETURNING user_id";
+                "VALUES ('" + username + "') ";
         /* execute query */
-        result = this->work.exec(query);
-    }
+        this->work.exec(query);
 
-    /* get the user id from te result */
-    result[0]["user_id"].to(user_id);
+        /* get the id */
+        this->work.exec("SELECT lastval()")[0][0].to(user_id);
+    } else {
+        /* get the user id from te result */
+        result[0]["user_id"].to(user_id);
+    }
 
     return user_id;
 }
@@ -299,12 +301,12 @@ void DatabaseInterface::insertGame(const PersistentGame& game) {
             "   ('" + this->work.esc(game.category) + "'" +
             "   , " + pqxx::to_string(Util::ptime_to_time_t(game.time_stamp)) + "" +
             "   ,'" + this->work.esc(game.history) + "'"
-            "   ,'" + this->work.esc(game.result) + "')"
-            " RETURNING game_id";
-    pqxx::result r = this->work.exec(query);
+            "   ,'" + this->work.esc(game.result) + "')";
+    this->work.exec(query);
 
     /* get the game_id */
-    r[0]["game_id"].to(game_id);
+    this->work.exec("SELECT lastval()")[0][0].to(game_id);
+
  
     /* insert the players */
     foreach(player, game.players) {
@@ -407,19 +409,18 @@ void DatabaseInterface::insertAdjournedGame(const PersistentAdjournedGame& game)
 {
     int game_id;
 
-    /* get and id from the sequence */
-
     std::string query;
 
-    /* inert game */
+    /* insert game */
     query =
             " INSERT INTO adjourned_games (category, time_stamp, history) VALUES"
             "   ('" + this->work.esc(game.category) + "'" +
             "   , " + pqxx::to_string(Util::ptime_to_time_t(game.time_stamp)) + "" +
-            "   ,'" + this->work.esc(game.history) + "')"
-            " RETURNING game_id";
-    pqxx::result r = this->work.exec(query);
-    r[0]["game_id"].to(game_id);
+            "   ,'" + this->work.esc(game.history) + "')";
+    this->work.exec(query);
+
+    /* get the game id */
+    this->work.exec("SELECT lastval()")[0][0].to(game_id);
  
     /* insert players */
     foreach(player, game.players) {
