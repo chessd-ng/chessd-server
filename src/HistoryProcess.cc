@@ -46,6 +46,13 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 			int p=((it->getAttribute("color")==std::string("white"))?0:1);
 			players[p]=new XML::Tag(*it);
 			players[p]->attributes().erase("score");
+			//FIXME workarround
+			if(players[p]->hasAttribute("time")==false) {
+				std::stringstream s(history_tag->findChild("moves").getAttribute("movetext"));
+				std::string tmp;
+				s >> tmp >> tmp;
+				players[p]->attributes()["time"]=tmp;
+			}
 //			players[p]->attributes().erase("time");
 		}
 	}
