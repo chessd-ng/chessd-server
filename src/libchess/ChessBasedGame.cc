@@ -329,7 +329,7 @@ bool ChessBasedGame::verifyKingMove(const ChessMove& mv) const {
 					return false;
 				if(verifyCheck(mv.color())) //verify if the king is in check
 					return false;
-				else if(beingAttacked(Position(mv.from().x+mv.to().x/2,mv.to().y),mv.color()^1)) //if 1 after the king position is being atacked
+				else if(beingAttacked(Position((mv.from().x+mv.to().x)/2,mv.to().y),mv.color()^1)) //if 1 after the king position is being atacked
 					return false;
 				else if(beingAttacked(mv.to(),mv.color()^1)) //if 2 after the king position is being atacked
 					return false;
