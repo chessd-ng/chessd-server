@@ -62,6 +62,8 @@ class Chess : public ChessBasedGame {
 		static int countPieces(const std::string& fen);
 
 		bool hasThePawnPromoted() const;
+
+		const std::string& PGNOfLastMove() { return this->PGN_of_last_move;}
 	protected:
 		/*! \brief puts the new State on history*/
 		void updateHistory();
@@ -73,9 +75,11 @@ class Chess : public ChessBasedGame {
 
 	private:
 		/*! \brief Verify is a given move is valid. This is a high level function*/
-		bool verifyMove(const ChessMove& mv) const;
+		virtual bool verifyMove(const ChessMove& mv) const;
 
 		bool willBeInCheck(const ChessMove& mv) const;
+
+		bool madeCheckMate(const ChessMove& mv) const;
 
 		/*! \brief make a given move and does not verify anything, just makes the move*/
 		void makeMove(const ChessMove &mv) const; //FIXME this const is not good
@@ -98,9 +102,14 @@ class Chess : public ChessBasedGame {
 		/*! \brief Verify if the Game is Draw by impossibility of checkmate*/
 		bool verifyImpossibilityOfCheckmate() const;
 
-		//TODO
-		//ChessMove PGNtoChessMove(std::string);
-		//std::string ChessMovetoPGN(const ChessMove& c);
+		std::vector<Position> howmanyCanMove(const Position& where, const ChessPiece& p) const;
+
+		static bool differentColums(Position where, const std::vector<Position>& pos);
+
+		static bool differentRows(Position where, const std::vector<Position>& pos);
+
+		/*! \transform a move to PGN notation*/
+		std::string ChessMoveToPGN(const ChessMove& mv) const;
 
 		virtual void putPieces();
 
@@ -108,6 +117,7 @@ class Chess : public ChessBasedGame {
 
 		bool pawn_promoted;
 
+		std::string PGN_of_last_move;
 };
 
 #endif

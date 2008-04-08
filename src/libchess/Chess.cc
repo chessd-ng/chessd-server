@@ -20,6 +20,7 @@
 #include "Piece.hh"
 #include "ChessMove.hh"
 #include <vector>
+#include <string>
 #include <stdlib.h>
 
 Chess::Chess() : ChessBasedGame(8,8) {
@@ -153,7 +154,7 @@ bool Chess::verifyCheckMate(int player) const {
 
 bool Chess::verifyMove(const ChessMove &mv) const {
 	if(this->verifyPieceMove(mv))
-		return willBeInCheck(mv);
+		return willBeInCheck(mv)==false;
 
 	return false;
 }
@@ -165,9 +166,26 @@ bool Chess::willBeInCheck(const ChessMove& mv) const {
 	bool specialmv=this->verifyCastle(mv) or this->verifyEnPassant(mv);
 
 	this->makeMove(mv);
-	bool ans=true;
-	if(this->verifyCheck(mv.color()) == true)
-		ans=false;
+	bool ans=this->verifyCheck(mv.color());
+
+	if(specialmv)
+		this->setState(current_state->boardFEN());
+	else {
+		this->gameboard->createPiece(mv.from(),new ChessPiece(a));
+		this->gameboard->createPiece(mv.to(),new ChessPiece(b));
+	}
+	return ans;
+}
+
+bool Chess::madeCheckMate(const ChessMove& mv) const {
+	//TODO a better way to take out mutable from Board
+	char a=this->gameboard->getPieceReal(mv.from());
+	char b=this->gameboard->getPieceReal(mv.to());
+	bool specialmv=this->verifyCastle(mv) or this->verifyEnPassant(mv);
+
+	this->makeMove(mv);
+	bool ans = this->verifyCheckMate(mv.color()^1);
+
 	if(specialmv)
 		this->setState(current_state->boardFEN());
 	else {
@@ -215,6 +233,9 @@ void Chess::updateMove(const ChessMove &mv) {
 	if(this->gameboard->getType(mv.from()) == ChessPiece::PAWN)
 		if(mv.to().y == ( (mv.color() == 0) ? 7 : 0))
 			this->pawn_promoted=true;
+
+	//transform move to PGN before making the move
+	this->PGN_of_last_move=this->ChessMoveToPGN(mv);
 
 	this->makeMove(mv);
 	this->updateState(mv);
@@ -348,6 +369,86 @@ bool Chess::verifyImpossibilityOfCheckmate() const {
 							return true;
 	}
 	return false;
+}
+
+std::vector<Position> Chess::howmanyCanMove(const Position& where, const ChessPiece& p) const {
+	std::vector<Position> ans;
+	for(int i=0;i<this->nlines;i++)
+		for(int j=0;j<this->ncolums;j++) {
+			Position aux(j,i);
+			if(p==ChessPiece((char)this->gameboard->getPieceReal(aux))) {
+				if(this->verifyMove(ChessMove(aux,where,p.color()))==true)
+					ans.push_back(aux);
+			}
+		}
+	return ans;
+}
+
+bool Chess::differentColums(Position where, const std::vector<Position>& pos) {
+	for(unsigned int i=0;i<pos.size();i++)
+		if(where != pos[i])
+			if(where.x == pos[i].x)
+				return false;
+	return true;
+}
+
+bool Chess::differentRows(Position where, const std::vector<Position>& pos) {
+	for(unsigned int i=0;i<pos.size();i++)
+		if(where != pos[i])
+			if(where.y == pos[i].y)
+				return false;
+	return true;
+}
+
+std::string Chess::ChessMoveToPGN(const ChessMove& mv) const {
+	if(this->verifyCastle(mv)==true) {
+		//this difference in short castles is always > 0
+		if(mv.to().x - mv.from().x > 0)
+			return "O-O";
+		return "O-O-O";
+	}
+	std::string from,to,promotion,check;
+	std::vector<Position> pieces_positions;
+
+	//set to that is always present
+	to=mv.to().toStringNotation();
+
+	if(this->gameboard->getType(mv.from()) != ChessPiece::PAWN)
+		from=toupper(this->gameboard->getPieceReal(mv.from()));
+
+	//if more than one piece of the same type can go to that position
+	if((pieces_positions=howmanyCanMove(mv.to(),this->gameboard->getType(mv.from()))).size() > 1) {
+		/*if the piece going to position mv.to() is in a different
+		  column from the others*/
+		if(differentColums(mv.from(),pieces_positions)==true)
+			from+=char(mv.from().x+'a');
+		/*if the piece going to position mv.to() is in a different
+		  row from the others*/
+		else if(differentRows(mv.from(),pieces_positions)==true)
+			from+=char(mv.from().y+'0');
+		else /*need a full position*/
+			from+=mv.from().toStringNotation();
+	}
+
+	/*if a piece will be captured*/
+	if( (this->gameboard->getType(mv.to()) != ChessPiece::NOTYPE) or this->verifyEnPassant(mv)) {
+		if(this->gameboard->getType(mv.from()) == ChessPiece::PAWN)
+			from=char(mv.from().x+'a');
+		from+="x";
+	}
+
+	/*if the player made a check*/
+	if( willBeInCheck( ChessMove(mv.from(),mv.to(),mv.color()^1) ) ) {
+		check="+";
+		/*if it was checkmate*/
+		if( madeCheckMate(mv) == true)
+			check="#";
+	}
+
+	if(this->hasThePawnPromoted() == true)
+		promotion=(mv.move().size()==5)?(toupper(mv.move()[4])):('Q');
+
+	return from+to+promotion+check;
 }
 
 void Chess::putPieces() {
