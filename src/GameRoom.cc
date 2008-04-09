@@ -97,6 +97,12 @@ GameRoom::GameRoom(
     /* Set features */
     this->disco().features().insert(XMLNS_GAME);
 
+    /* Set extended info */
+    XML::TagGenerator generator;
+    generator.openTag("game");
+    generator.addAttribute("category", game->category());
+    this->disco().setExtendedInfo(generator.getTag());
+
     /* Set game iqs */
     this->setIqHandler(boost::bind(&GameRoom::handleGameIq, this, _1),
             XMLNS_GAME_MOVE);
