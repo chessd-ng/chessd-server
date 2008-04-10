@@ -45,21 +45,39 @@ class BugHouse {
 		/*! \brief returns the turn of game*/
 		int turn(int game) const;
 
+		/*! \brief verify if a checkmate has ocurred
+		 * \return false if a checkmate hasn't ocurred
+		 * \return true if a checkmate ocurred
+		*/
 		bool verifyCheckMate() const;
 
-		bool verifyDraw() const;
+		/*! \brief verify if a draw has ocurred
+		 * \return 0 if a checkmate hasn't ocurred
+		 * \return >1 if a checkmate has ocurred
+		*/
+		int verifyDraw() const;
 
-		const BugHouseState& getState() const;
+		/*! \brief get the current state of the game*/
+		const BugHouseState& getBugHouseState() const;
 
+		/*! \brief high-level function that executes a move
+		 * \return false if the move was invalid
+		 * \return true if the move was valid and the move was made
+		*/
 		bool verifyAndMakeMove(int player, const std::string& move);
 
 	private:
 
+		/*! \brief updates the state of the game, this function is
+		 * only called after making a move */
 		void updateState();
 
+		/*a list of chess games*/
 		std::vector<BugHouseChess> games;
 
+		/*map for player->team*/
 		std::map<int,int> playerteam;
 
+		/*state of the game*/
 		BugHouseState current_state;
 };

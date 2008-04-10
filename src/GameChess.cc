@@ -334,6 +334,7 @@ XML::Tag* GameChess::move(const Player& player, const std::string& movement, con
 	XML::TagGenerator move_tag;
 	move_tag.openTag("move");
 	move_tag.addAttribute("long",realmove);
+	move_tag.addAttribute("short",this->chess.PGNOfLastMove());
 	return move_tag.getTag();
 }
 

@@ -37,7 +37,7 @@ class ChessHistoryProcess : public HistoryProcess {
 
 		static XML::Tag* generate(XML::Tag* history);
 
-		static XML::Tag* generateStateTag(const ChessState& state,int time, const std::string& mv);
+		static XML::Tag* generateStateTag(const ChessState& state,int time, const std::string& long_mv);
 	private:
 };
 

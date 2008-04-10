@@ -65,7 +65,6 @@ ChessBoard::~ChessBoard() {
 			delete board[i][j];
 }
 
-
 void ChessBoard::makeMove(const ChessMove& j)
 {
 	int tox=j.to().x,toy=j.to().y;
