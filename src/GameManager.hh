@@ -77,13 +77,25 @@ class GameManager : public ComponentBase {
          *
          * This is a tunnel.
          * */
-		void closeGameRoom(GameId game_id);
+		void closeGame(GameId game_id);
 
 		/*! \brief close a game room.
          *
          * This is the real one.
          * */
-		void _closeGameRoom(GameId game_id);
+		void _closeGame(GameId game_id);
+
+		/*! \brief Hide a game room.
+         *
+         * This is a tunnel.
+         * */
+		void hideGame(GameId game_id);
+
+		/*! \brief Hide a game room.
+         *
+         * This is the real one.
+         * */
+		void _hideGame(GameId game_id);
 
         /*! \brief handle an error */
 		void handleError(const std::string& error);

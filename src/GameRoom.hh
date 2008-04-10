@@ -33,12 +33,16 @@ enum GameStatus {
 };
 
 struct GameRoomHandlers {
-	typedef boost::function<void ()> CloseGame;
+	typedef boost::function<void ()> callback;
 	XMPP::StanzaHandler send_stanza;
-	CloseGame close_game;
-	GameRoomHandlers(const XMPP::StanzaHandler& send_stanza, const CloseGame& close_game):
-		send_stanza(send_stanza),
-		close_game(close_game) { }
+	callback close_game;
+	callback hide_game;
+	GameRoomHandlers(const XMPP::StanzaHandler& send_stanza,
+                     const callback& close_game,
+                     const callback& hide_game) :
+        send_stanza(send_stanza),
+        close_game(close_game),
+        hide_game(hide_game) { }
 };
 
 /*! \brief A game room. */
@@ -120,14 +124,8 @@ class GameRoom : public XMPP::Muc {
         /*! \brief Notify a move to the users. */
 		void notifyMove(XML::Tag* long_tag);
 
-        /*! \brief Cancel the game. */
-		void cancelGame();
-
-        /*! \brief Adjourn the game. */
-		void adjournGame();
-
         /*! \brief End the game. */
-        void endGame();
+        void endGame(GameEndType type);
 
         /*! \brief Receive a notification of a user in the muc. */
         void notifyUserStatus(const XMPP::Jid& jid, const std::string& nick, bool available);

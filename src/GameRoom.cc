@@ -142,12 +142,12 @@ void GameRoom::checkTime() {
     /* cancel games for inactivity */
     if(this->game_active and this->move_count <= 1 and this->currentTime() > (5 * Util::Minutes)) {
         /* FIXME */
-        this->cancelGame();
+        this->endGame(END_TYPE_CANCELED);
     }
     
     /* check whether the time is over */
     if(this->game_active and this->game->done(this->currentTime())) {
-        this->endGame();
+        this->endGame(END_TYPE_NORMAL);
     }
     if(not this->game_active and this->occupants().size() == 0) {
         this->handlers.close_game();
@@ -219,7 +219,7 @@ void GameRoom::handleGameIq(const XMPP::Stanza& stanza) {
 
     /* check if the game is over */
     if(this->game->done(this->currentTime())) {
-        this->endGame();
+        this->endGame(END_TYPE_NORMAL);
     }
 }
 
@@ -247,10 +247,10 @@ void GameRoom::handleMove(const XMPP::Stanza& stanza) {
         /* send the iq result */
         this->sendStanza(stanza.createIQResult());
 
-        /* notifythe players */
+        /* notify the players */
         this->notifyMove(move_notification.release());
     } catch (const time_over& error) {
-        this->endGame();
+        this->endGame(END_TYPE_NORMAL);
         throw xmpp_game_over("Time over");
     } catch (const game_exception& error) {
         throw xmpp_invalid_move(error.what());
@@ -287,7 +287,7 @@ void GameRoom::handleCancelAccept(const XMPP::Stanza& stanza) {
 
     /* check if all players agreed on canceling the game */
     if(this->cancel_agreement.left_count()==0) {
-        this->cancelGame();
+        this->endGame(END_TYPE_CANCELED);
     } else if(this->cancel_agreement.agreed_count() == 1) {
         this->notifyRequest(REQUEST_CANCEL, stanza.from());
     }
@@ -303,9 +303,9 @@ void GameRoom::handleAdjournAccept(const XMPP::Stanza& stanza) {
     this->adjourn_agreement.agreed(stanza.from());
     this->sendStanza(stanza.createIQResult());
 
-    /* check whether all players accepted on adjourning the game */
+    /* check whether all players agreed on adjourning the game */
     if(this->adjourn_agreement.left_count()==0) {
-        this->adjournGame();
+        this->endGame(END_TYPE_ADJOURNED);
     } else if(this->adjourn_agreement.agreed_count() == 1) {
         this->notifyRequest(REQUEST_ADJOURN, stanza.from());
     }
@@ -411,44 +411,36 @@ void GameRoom::broadcastResultStanza() {
     }
 }
 
-void GameRoom::endGame() {
-    /* take the game result */
-    std::auto_ptr<GameResult> result(this->game->result());
-
+void GameRoom::endGame(GameEndType type) {
     /* set game status */
     this->game_active = false;
-    this->end_type = END_TYPE_NORMAL;
-    this->setResult(*result);
+    this->end_type = type;
 
-    /* notify result */
-    this->broadcastResultStanza();
+    /* hide the game from other users */
+    this->handlers.hide_game();
 
-    /* store game in the database */
-    this->database_manager.queueTransaction(boost::bind(storeResult, result.release(), _1));
-}
+    if(type == END_TYPE_NORMAL) {
+        /* take the game result */
+        std::auto_ptr<GameResult> result(this->game->result());
 
-void GameRoom::adjournGame() {
-    /* get the adjourned game */
-    AdjournedGame* adj_game = this->game->adjourn(this->currentTime());
+        /* set result */
+        this->setResult(*result);
 
-    /* set game status */
-    this->game_active = false;
-    this->end_type = END_TYPE_ADJOURNED;
-    this->result_reason = "The game was adjourned";
+        /* store game in the database */
+        this->database_manager.queueTransaction(boost::bind(storeResult, result.release(), _1));
+    } else if(type == END_TYPE_CANCELED) {
+        /* set result */
+        this->result_reason = "The game was canceled";
+    } else if(type == END_TYPE_ADJOURNED) {
+        /* get the adjourned game */
+        std::auto_ptr<AdjournedGame> adj_game(this->game->adjourn(this->currentTime()));
 
-    /* notify result */
-    this->broadcastResultStanza();
+        /* set result */
+        this->result_reason = "The game was adjourned";
 
-    /* store game in the database */
-    this->database_manager.queueTransaction(boost::bind(storeAdjourned, adj_game, _1));
-}
-
-void GameRoom::cancelGame() {
-
-    /* set game status */
-    this->game_active = false;
-    this->end_type = END_TYPE_CANCELED;
-    this->result_reason = "The game was canceled";
+        /* store game */
+        this->database_manager.queueTransaction(boost::bind(storeAdjourned, adj_game.release(), _1));
+    }
 
     /* notify result */
     this->broadcastResultStanza();
