@@ -31,6 +31,7 @@
 using namespace std;
 using namespace XML;
 using namespace XMPP;
+using namespace boost::posix_time;
 
 #define XMLNS_CHESSD_INFO "http://c3sl.ufpr.br/chessd#info"
 #define XMLNS_CHESSD_PROFILE "http://c3sl.ufpr.br/chessd#profile"
@@ -59,6 +60,9 @@ RatingComponent::RatingComponent(
             XMLNS_CHESSD_GAME_FETCH);
     this->root_node.setIqHandler(boost::bind(&RatingComponent::handleProfile, this, _1),
             XMLNS_CHESSD_PROFILE);
+
+    /* Set presence handler */
+    this->root_node.setPresenceHandler(boost::bind(&RatingComponent::handlePresence, this, _1));
 }
 
 RatingComponent::~RatingComponent() {
@@ -294,3 +298,36 @@ void RatingComponent::onError(const std::string& error) {
 
 void RatingComponent::onClose() {
 }
+
+void RatingComponent::handlePresence(const XMPP::Stanza& stanza) {
+    XMPP::PartialJid user = stanza.from();
+
+    if(stanza.subtype().empty()) {
+        /* the user is online */
+        if(this->last_logons.find(user) == this->last_logons.end()) {
+            this->last_logons.insert(
+                make_pair(user,
+                          second_clock::local_time()));
+        }
+    } else if(stanza.subtype() == "unavailable") {
+        /* the user went offline */
+        if(this->last_logons.find(user) != this->last_logons.end()) {
+            this->database.queueTransaction(
+                boost::bind(
+                    &RatingComponent::updateOnlineTime,
+                    this,
+                    user,
+                    (second_clock::local_time() -
+                     this->last_logons.find(user)->second).seconds(),
+                    _1));
+            this->last_logons.erase(user);
+        }
+    }
+}
+
+void RatingComponent::updateOnlineTime(const XMPP::PartialJid& user,
+                                       int increment,
+                                       DatabaseInterface& database) {
+    database.updateOnlineTime(user.full(), increment);
+}
+

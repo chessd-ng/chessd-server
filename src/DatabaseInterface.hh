@@ -130,6 +130,9 @@ class DatabaseInterface : public pqxx::transactor<>
         /*! \brief Set user info */
         void setUserEmail(const std::string& username, const std::string& email);
 
+        /*! \brief incremnte the user's online time */
+        void updateOnlineTime(const std::string& user, int increment);
+
     private:
 
         /*! \brief Get the user's id by his name */

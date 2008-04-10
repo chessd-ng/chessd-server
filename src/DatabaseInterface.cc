@@ -547,3 +547,17 @@ void DatabaseInterface::setUserEmail(const std::string& username, const std::str
 
     this->work.exec(query);
 }
+
+void DatabaseInterface::updateOnlineTime(const std::string& username,
+                                         int increment) {
+    std::string query;
+
+    /* update info game */
+    query =
+            " UPDATE users SET online_time=online_time+" + pqxx::to_string(increment) + " WHERE "
+            "   user_name='" + this->work.esc(username) + "'";
+
+    this->work.exec(query);
+    
+
+}

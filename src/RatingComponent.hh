@@ -25,6 +25,7 @@
 
 #include "ComponentBase.hh"
 #include "DatabaseManager.hh"
+#include "Util/Date.hh"
 
 /*! \brief This is the component that handles user info requests */
 class RatingComponent : public ComponentBase {
@@ -58,7 +59,7 @@ class RatingComponent : public ComponentBase {
 		/* several Handlers for the incoming events. */
 
 		/*! \brief Handle an incoming rating iq. */
-		void handleRating(const XMPP::Stanza& stanza);
+        void handleRating(const XMPP::Stanza& stanza);
 
 		/*! \brief Handle an incoming game search iq. */
 		void handleSearchGame(const XMPP::Stanza& stanza);
@@ -70,20 +71,34 @@ class RatingComponent : public ComponentBase {
         void handleProfile(const XMPP::Stanza& stanza);
 
         /*! \brief This is a transaction that reads users ratings. */
-		void fetchRating(const XMPP::Stanza& stanza, DatabaseInterface& database);
+		void fetchRating(const XMPP::Stanza& stanza,
+                         DatabaseInterface& database);
 
         /*! \brief This is a transaction that search for games. */
-        void searchGame(const XMPP::Stanza& stanza, DatabaseInterface& database);
+        void searchGame(const XMPP::Stanza& stanza,
+                        DatabaseInterface& database);
 
         /*! \brief This is a transaction that fetch a requested game. */
-        void fetchGame(const XMPP::Stanza& stanza, DatabaseInterface& database);
+        void fetchGame(const XMPP::Stanza& stanza,
+                       DatabaseInterface& database);
 
         /*! \brief Update the user's profile in the database */
-        void updateProfile(const XMPP::Stanza& stanza, DatabaseInterface& database);
+        void updateProfile(const XMPP::Stanza& stanza,
+                           DatabaseInterface& database);
+
+        /*! \brief Handle an incoming presence */
+        void handlePresence(const XMPP::Stanza& stanza);
+
+        /*! \brief Update online time */
+        void updateOnlineTime(const XMPP::PartialJid& user,
+                              int increment,
+                              DatabaseInterface& database);
 
         XMPP::ErrorHandler error_handler;
 
         DatabaseManager& database;
+
+        std::map<XMPP::PartialJid, boost::posix_time::ptime> last_logons;
 };
 
 #endif
