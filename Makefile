@@ -49,7 +49,8 @@ SOURCES = \
 		  src/XMPP/StanzaBase.cc \
 		  src/XMPP/Stanza.cc \
 		  src/XMPP/Stream.cc \
-		  src/MatchFactory.cc
+		  src/MatchFactory.cc \
+		  src/Util/Socket.cc
 
 
 SRCDIR = src

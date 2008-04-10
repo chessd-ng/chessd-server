@@ -60,14 +60,26 @@ namespace XMPP {
 	Stream::Stream(const string& ns) :
 			hinfo(new HookInfo),
 			ns(strdup(ns.c_str())),
-			active(false)  {
+			active(false), 
+            _socket_fd(-1) {
 		this->hinfo->parser = iks_stream_new(this->ns, this->hinfo, hook);
 		//iks_set_log_hook(this->hinfo->parser, log);
 	}
 
+	Stream::Stream(int socket_fd) :
+			hinfo(new HookInfo),
+			ns(strdup("")),
+			active(true),
+            _socket_fd(socket_fd) {
+		this->hinfo->parser = iks_stream_new(this->ns, this->hinfo, hook);
+        iks_connect_fd(this->hinfo->parser, socket_fd);
+		//iks_set_log_hook(this->hinfo->parser, log);
+	}
+
 	Stream::~Stream() {
-		if(this->active)
-			iks_disconnect(this->hinfo->parser);
+		if(this->active) {
+            this->close();
+        }
 		iks_parser_delete(this->hinfo->parser);
 		delete this->hinfo;
 		free(this->ns);
@@ -85,6 +97,10 @@ namespace XMPP {
 	void Stream::close() {
 		iks_disconnect(this->hinfo->parser);
 		this->active = false;
+        if(this->_socket_fd != -1) {
+            ::close(this->_socket_fd);
+            this->_socket_fd = -1;
+        }
 	}
 
 	Tag* Stream::recvTag(int timeout) {

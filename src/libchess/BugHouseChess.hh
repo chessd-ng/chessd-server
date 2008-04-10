@@ -26,7 +26,7 @@ class BugHouseChess : public Chess{
 	public:
 		BugHouseChess();
 
-		virtual bool verifyDraw() const;
+		virtual int verifyDraw() const;
 
 		virtual bool verifyAndMakeMove(const std::string& move);
 

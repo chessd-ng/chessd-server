@@ -35,11 +35,14 @@ namespace XMPP {
 	class Stream {
 		public:
 
-			/*! \brief Contructor
+			/*! \brief Constructor
 			 *
 			 * \param ns is the stream's namespace
 			 */
 			Stream(const std::string& ns);
+
+            /*! \brief Create a stream with an already stabilished connection */
+            Stream(int socket_fd);
 
 			/*! \brief Destructor
 			 *
@@ -96,6 +99,8 @@ namespace XMPP {
 
 			/*! \brief Hold connection status */
 			bool active;
+
+            int _socket_fd;
 
 	};
 

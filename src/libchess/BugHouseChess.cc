@@ -24,8 +24,9 @@ BugHouseChess::BugHouseChess() : Chess()
 	this->_pieces=std::vector<std::vector<ChessPiece> >(2);
 }
 
-bool BugHouseChess::verifyDraw() const {
-	return false;
+int BugHouseChess::verifyDraw() const {
+	//TODO
+	return 0;
 }
 
 bool BugHouseChess::verifyAndMakeMove(const std::string& move) {
@@ -132,7 +133,7 @@ void BugHouseChess::updateMove(const BugHouseMove& mv) {
 		this->eaten_piece=*(static_cast<ChessPiece*>((*this->gameboard)[mv.to().y][mv.to().x]));
 		this->makeMove(mv);
 		this->updateState(mv);
-		Chess::updateHistory;
+		Chess::updateHistory();
 		Chess::updateTurn();
 	} else {
 		throw "this should not happen";

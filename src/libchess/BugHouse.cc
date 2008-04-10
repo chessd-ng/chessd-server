@@ -49,14 +49,15 @@ bool BugHouse::verifyCheckMate() const {
 	return false;
 }
 
-bool BugHouse::verifyDraw() const {
+int BugHouse::verifyDraw() const {
+	//TODO
 //	for(int i=0;i<games.size();i++)
 //		if(this->games[i].verifyDraw())
 //			return true;
-	return false;
+	return 0;
 }
 
-const BugHouseState& BugHouse::getState() const {
+const BugHouseState& BugHouse::getBugHouseState() const {
 	return this->current_state;
 }
 
@@ -74,6 +75,6 @@ bool BugHouse::verifyAndMakeMove(int player, const std::string& move) {
 }
 
 void BugHouse::updateState() {
-	current_state[0]=games[0].getState();
-	current_state[1]=games[1].getState();
+	current_state[0]=games[0].getChessState();
+	current_state[1]=games[1].getChessState();
 }

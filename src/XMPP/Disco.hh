@@ -137,8 +137,16 @@ namespace XMPP {
 
 			/*! \brief The node's items */
 			const DiscoItemSet& items() const { return this->_items; }
+
 			/*! \brief The node's items */
 			DiscoItemSet& items() { return this->_items; }
+
+
+            /*! \brief Set the disco extension */
+            void setExtendedInfo(XML::Tag* info) { this->_ext_info = std::auto_ptr<XML::Tag>(info); }
+
+            /*! \brief Get the disco extension */
+            XML::Tag& getExtendedInfo() { return *this->_ext_info; }
 
 		private:
 
@@ -149,6 +157,8 @@ namespace XMPP {
 			StringSet _features;
 
 			DiscoItemSet _items;
+
+            std::auto_ptr<XML::Tag> _ext_info;
 
 	};
 
