@@ -33,6 +33,7 @@ using namespace XML;
 using namespace XMPP;
 
 #define XMLNS_CHESSD_INFO "http://c3sl.ufpr.br/chessd#info"
+#define XMLNS_CHESSD_PROFILE "http://c3sl.ufpr.br/chessd#profile"
 #define XMLNS_CHESSD_GAME_SEARCH "http://c3sl.ufpr.br/chessd#search_game"
 #define XMLNS_CHESSD_GAME_FETCH "http://c3sl.ufpr.br/chessd#fetch_game"
 
@@ -56,6 +57,8 @@ RatingComponent::RatingComponent(
             XMLNS_CHESSD_GAME_SEARCH);
     this->root_node.setIqHandler(boost::bind(&RatingComponent::handleFetchGame, this, _1),
             XMLNS_CHESSD_GAME_FETCH);
+    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleProfile, this, _1),
+            XMLNS_CHESSD_PROFILE);
 }
 
 RatingComponent::~RatingComponent() {
@@ -112,6 +115,30 @@ void RatingComponent::handleFetchGame(const Stanza& stanza) {
         this->database.queueTransaction(boost::bind(&RatingComponent::fetchGame, this, stanza, _1));
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request("Invalid format");
+    }
+}
+
+void RatingComponent::handleProfile(const Stanza& stanza) {
+    this->database.queueTransaction(boost::bind(&RatingComponent::updateProfile, this, stanza, _1));
+}
+
+void RatingComponent::updateProfile(const Stanza& stanza, DatabaseInterface& database) {
+    try{
+        try {
+            std::string user = stanza.from().partial();
+
+            const Tag& query = stanza.query();
+
+            foreach(tag, query.tags()) {
+                if(tag->name() == "email") {
+                    database.setUserEmail(user, tag->findCData().data());
+                }
+            }
+        } catch (const XML::xml_error& error) {
+            throw XMPP::bad_request("Invalid format");
+        }
+    } catch (const XMPP::xmpp_exception& error) {
+        this->sendStanza(error.getErrorStanza(new Stanza(stanza)));
     }
 }
 

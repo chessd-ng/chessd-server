@@ -4,6 +4,7 @@ BEGIN;
         user_id serial PRIMARY KEY,
         user_name varchar NOT NULL,
         user_type varchar NOT NULL DEFAULT 'user',
+        email     varchar,
         UNIQUE(user_name)
     );
 

@@ -127,6 +127,9 @@ class DatabaseInterface : public pqxx::transactor<>
         /*! \brief Erase game from the database */
         void eraseAdjournedGame(int game_id);
 
+        /*! \brief Set user info */
+        void setUserEmail(const std::string& username, const std::string& email);
+
     private:
 
         /*! \brief Get the user's id by his name */

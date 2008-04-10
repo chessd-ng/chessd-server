@@ -66,6 +66,9 @@ class RatingComponent : public ComponentBase {
 		/*! \brief Handle an incoming game fetch iq. */
         void handleFetchGame(const XMPP::Stanza& stanza);
 
+        /*! \brief Handle profile retrive or update */
+        void handleProfile(const XMPP::Stanza& stanza);
+
         /*! \brief This is a transaction that reads users ratings. */
 		void fetchRating(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
@@ -74,6 +77,9 @@ class RatingComponent : public ComponentBase {
 
         /*! \brief This is a transaction that fetch a requested game. */
         void fetchGame(const XMPP::Stanza& stanza, DatabaseInterface& database);
+
+        /*! \brief Update the user's profile in the database */
+        void updateProfile(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
         XMPP::ErrorHandler error_handler;
 
