@@ -30,43 +30,43 @@
 
 /*! \brief A base implementation for components. */
 class ComponentBase {
-	public:
-		/*! \brief Constructor
-		 *
-		 * \param core_interface is the interface to the core.
-		 * \param config is the configuration for this component.
-		 */
-		ComponentBase(const XML::Tag& config,
-				const std::string& component_name);
+    public:
+        /*! \brief Constructor
+         *
+         * \param core_interface is the interface to the core.
+         * \param config is the configuration for this component.
+         */
+        ComponentBase(const XML::Tag& config,
+                      const std::string& component_name);
 
-		/*! \brief Destructor
-		 *
-		 * Closes server connection if available
-		 */
-		virtual ~ComponentBase();
+        /*! \brief Destructor
+         *
+         * Closes server connection if available
+         */
+        virtual ~ComponentBase();
 
-		/*! \brief Connect to the server.
-		 *
-		 * \throw Throws an exception on error.
-		 */
-		void connect();
+        /*! \brief Connect to the server.
+         *
+         * \throw Throws an exception on error.
+         */
+        void connect();
 
-		/*! \brief Closes the conxection to the server.
+        /*! \brief Closes the conxection to the server.
          *
          * This is a tunnel to the real one.*/
-		void close();
+        void close();
 
         /*! \brief send s stanza to the server */
         void sendStanza(XMPP::Stanza* stanza);
 
     private:
 
-		XMPP::Component component;
+        XMPP::Component component;
 
-	protected:
+    protected:
 
         /*! \brief Real close */
-		void _close();
+        void _close();
 
         /*! \brief Close notification.
          *
@@ -86,52 +86,52 @@ class ComponentBase {
          *
          * This is a tunnel to the real one.
          */
-		void handleError(const std::string& error);
+        void handleError(const std::string& error);
 
         /*! \brief Handle a connection error
          *
          * The real one.
          */
-		void _handleError(const std::string& error);
+        void _handleError(const std::string& error);
 
-		/*! \brief We run in a separated thread as a dispatcher */
-		Threads::Dispatcher dispatcher;
+        /*! \brief We run in a separated thread as a dispatcher */
+        Threads::Dispatcher dispatcher;
 
-		/*! \brief Is it running? */
-		bool running;
+        /*! \brief Is it running? */
+        bool running;
 
-		/*! \brief A XMPP node*/
-		XMPP::RootNode root_node;
+        /*! \brief A XMPP node*/
+        XMPP::RootNode root_node;
 
-	private:
+    private:
 
         /*! \brief Receive messages from the server.
          *
          * This method is executed in a separated thread.
          */
-		void run_recv();
+        void run_recv();
 
         /*! \brief Send messages to the server.
          *
          * This method is executed in a separated thread.
          */
-		void run_send();
+        void run_send();
 
         /*! \brief Handle an incoming stanza.
          *
          * This is a tunnel to RootNode::handleStanza
          * */
-		void handleStanza(XMPP::Stanza* stanza);
+        void handleStanza(XMPP::Stanza* stanza);
 
         std::string server_address;
         int server_port;
         std::string server_password;
 
-		Threads::Task task_recv;
+        Threads::Task task_recv;
 
-		Threads::Task task_send;
+        Threads::Task task_send;
 
-		Threads::Queue<XMPP::Stanza*> stanza_queue;
+        Threads::Queue<XMPP::Stanza*> stanza_queue;
 
 
 };
