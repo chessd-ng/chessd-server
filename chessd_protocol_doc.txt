@@ -271,8 +271,9 @@ Any date and time is in the format specified by the XEP-082.
 <iq type='get' to='rating.shiva' id='get_rating'>
     <query xmlns='http://c3sl.ufpr.br/chessd#search_game'>
         <search results='10' offset='0'>
-            <player jid='robofacilaaa@shiva'/>
+            <player jid='robofacilaaa@shiva' role='white'/>
             <player jid='ulyssesb@shiva'/>
+            <date begin='2008-03-06T23:21:12Z' end='2008-03-06T23:21:12Z'/>
         </search>
     </query>
 </iq>

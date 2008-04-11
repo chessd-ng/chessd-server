@@ -345,9 +345,10 @@ std::string DatabaseInterface::getGameHistory(int game_id) {
 }
 
 std::vector<PersistentGame> DatabaseInterface::searchGames(
-                const std::vector<std::string> players,
-                int offset,
-                int max_results)
+        const std::vector<std::pair<std::string, std::string> > players,
+        int time_begin, int time_end,
+        int offset,
+        int max_results)
 {
     std::vector<PersistentGame> games;
     time_t t;
@@ -363,21 +364,44 @@ std::vector<PersistentGame> DatabaseInterface::searchGames(
         /* XXX this is necessary in order to
          * accept an arbitrary number of players */
         for(int i=0;i<int(players.size());++i) {
-            int user_id = this->getUserId(players[i], false);
+            int user_id = this->getUserId(players[i].first, false);
             std::string id_str = Util::to_string(i);
             from += ", game_players g" + id_str + " ";
-            if(where.empty())
-                where = " WHERE ";
-            else
+            if(not where.empty())
                 where += " AND ";
-            where += " games.game_id = g" + id_str
-                + ".game_id AND g" + id_str + ".user_id = '" + pqxx::to_string(user_id) + "' ";
+            where += " games.game_id = g" + id_str + ".game_id AND g" +
+                id_str + ".user_id = " + pqxx::to_string(user_id) + " ";
+            if(not players[i].second.empty()) {
+                where += " AND g" + id_str + ".role = '"
+                    + this->work.esc(players[i].second) + "' ";
+            }
+
         }
+        /* set time interval search */
+        if(time_begin != -1) {
+            if(not where.empty())
+                where += " AND ";
+            where += " games.time_stamp >= " +
+                pqxx::to_string(time_begin) + " ";
+        }
+
+        /* set time interval search */
+        if(time_end != -1) {
+            if(not where.empty())
+                where += " AND ";
+            where += " games.time_stamp <= " +
+                pqxx::to_string(time_end) + " ";
+        }
+
+        if(not where.empty()) {
+            where = " WHERE " + where;
+        }
+
+
         std::string query = select + from + where +
             " ORDER BY game_id DESC " +
             " LIMIT " + pqxx::to_string(max_results) +
-            " OFFSET " + pqxx::to_string(offset)
-            ;
+            " OFFSET " + pqxx::to_string(offset);
 
         /* execute query */
         pqxx::result result = this->work.exec(query);
@@ -589,7 +613,8 @@ int DatabaseInterface::getOnlineTime(const std::string& user) {
     
     /* get result */
     if(result.empty()) {
-        throw user_not_found("User not found");
+        //throw user_not_found("User not found");
+        return 0;
     } else {
         result[0]["online_time"].to(time);
     }

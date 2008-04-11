@@ -95,18 +95,6 @@ void RatingComponent::handleRating(const Stanza& stanza) {
 
 void RatingComponent::handleSearchGame(const Stanza& stanza) {
     try {
-        const Tag& query = stanza.query();
-
-        /* check if the format is correct */
-        const Tag& search_tag = query.findChild("search");
-        foreach(child, search_tag.tags()) {
-            if(child->name() == "player") {
-                if(not child->hasAttribute("jid"))
-                    throw XMPP::bad_request("Invalid format");
-            } else {
-                throw XMPP::bad_request("Invalid format");
-            }
-        }
         /* execute the transaction */
         this->database.queueTransaction(boost::bind(&RatingComponent::searchGame, this, stanza, _1));
     } catch (const XML::xml_error& error) {
@@ -152,59 +140,84 @@ void RatingComponent::updateProfile(const Stanza& stanza, DatabaseInterface& dat
 }
 
 void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& database) {
-    XML::TagGenerator generator;
-    std::vector<string> players;
-    int max_results = 50;
-    int offset = 0;
+    try  {
+        try {
+            XML::TagGenerator generator;
+            std::vector<std::pair<std::string, std::string> > players;
+            int max_results = 50;
+            int offset = 0;
+            int time_begin = -1, time_end = -1;
 
-    /* Parse request */
-    const Tag& query = stanza.findChild("query");
-    const Tag& search_tag = query.findChild("search");
-    if(search_tag.hasAttribute("offset")) {
-        offset = Util::parse_string<int>(search_tag.getAttribute("offset"));
-    }
-    if(search_tag.hasAttribute("results")) {
-        max_results = min(50, Util::parse_string<int>(search_tag.getAttribute("results")));
-    }
-    foreach(field, search_tag.tags()) {
-        if(field->name() == "player") {
-            players.push_back(field->getAttribute("jid"));
-        } else {
-            /* for later use */
+            /* Parse request */
+            const Tag& query = stanza.findChild("query");
+            const Tag& search_tag = query.findChild("search");
+            if(search_tag.hasAttribute("offset")) {
+                offset = Util::parse_string<int>(search_tag.getAttribute("offset"));
+            }
+            if(search_tag.hasAttribute("results")) {
+                max_results = min(50, Util::parse_string<int>(search_tag.getAttribute("results")));
+            }
+            foreach(field, search_tag.tags()) {
+                if(field->name() == "player") {
+                    std::string username = field->getAttribute("jid");
+                    std::string role = field->getAttribute("role", "");
+                    players.push_back(make_pair(username, role));
+                } else if (field->name() == "date") {
+                    std::string begin = field->getAttribute("begin", "");
+                    std::string end = field->getAttribute("end", "");
+                    if(not begin.empty()) {
+                        time_begin = Util::xmpp_date_time_to_time_t(begin);
+                    }
+                    if(not end.empty()) {
+                        time_end = Util::xmpp_date_time_to_time_t(end);
+                    }
+                }
+            }
+
+            /* Search in the database */
+            std::vector<PersistentGame> games =
+                database.searchGames(players, time_begin, time_end,
+                        offset, max_results);
+
+            /* Create result */
+            generator.openTag("iq");
+            generator.addAttribute("to", stanza.from().full());
+            generator.addAttribute("from", stanza.to().full());
+            generator.addAttribute("id", stanza.id());
+            generator.addAttribute("type", "result");
+            generator.openTag("query");
+            generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_SEARCH);
+
+            foreach(game, games) {
+                generator.openTag("game");
+                generator.addAttribute("id", Util::to_string(game->id));
+                generator.addAttribute("category", game->category);
+                generator.addAttribute("time_stamp", Util::ptime_to_xmpp_date_time(game->time_stamp));
+
+                generator.openTag("result");
+                generator.addCData(i18n.getText(game->result,stanza.lang()));
+                generator.closeTag();
+
+                foreach(player, game->players) {
+                    generator.openTag("player");
+                    generator.addAttribute("jid", player->jid.partial());
+                    generator.addAttribute("role", player->role);
+                    generator.addAttribute("score", player->score);
+                    generator.closeTag();
+                }
+                generator.closeTag();
+            }
+
+            /* Send result */
+            this->sendStanza(new XMPP::Stanza(generator.getTag()));
+        } catch (const XML::xml_error& error) {
+            throw XMPP::xmpp_exception("Bad format");
+        } catch (const boost::bad_lexical_cast& error) {
+            throw XMPP::xmpp_exception("Bad format");
         }
+    } catch (const XMPP::xmpp_exception& error) {
+        this->sendStanza(error.getErrorStanza(new Stanza(stanza)));
     }
-    
-    /* Search in the database */
-    std::vector<PersistentGame> games = database.searchGames(players, offset, max_results);
-
-    /* Create result */
-    generator.openTag("iq");
-    generator.addAttribute("to", stanza.from().full());
-    generator.addAttribute("from", stanza.to().full());
-    generator.addAttribute("id", stanza.id());
-    generator.addAttribute("type", "result");
-    generator.openTag("query");
-    generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_SEARCH);
-
-    foreach(game, games) {
-        generator.openTag("game");
-        generator.addAttribute("id", Util::to_string(game->id));
-        generator.addAttribute("category", game->category);
-        generator.addAttribute("time_stamp", Util::ptime_to_xmpp_date_time(game->time_stamp));
-        generator.openTag("result");
-        generator.addCData(i18n.getText(game->result,stanza.lang()));
-        foreach(player, game->players) {
-            generator.openTag("player");
-            generator.addAttribute("jid", player->jid.partial());
-            generator.addAttribute("role", player->role);
-            generator.addAttribute("score", player->score);
-            generator.closeTag();
-        }
-        generator.closeTag();
-    }
-
-    /* Send result */
-    this->sendStanza(new XMPP::Stanza(generator.getTag()));
 }
 
 void RatingComponent::fetchGame(const Stanza& stanza, DatabaseInterface& database) {
