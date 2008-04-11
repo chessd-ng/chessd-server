@@ -352,6 +352,16 @@ Any date and time is in the format specified by the XEP-082.
 </iq>
 
 <!--
+    To retrieve the profile in the chess server
+--!>
+
+<iq type='get' to='rating.shiva' id='12345'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#profile'>
+        <profile jid='fulano@shiva'/>
+    </query>
+</iq>
+
+<!--
     History.
 --!>
 
