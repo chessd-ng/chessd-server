@@ -35,7 +35,7 @@ int DatabaseInterface::getUserId(const std::string& _username, bool create) {
     /* prepare the query */
     std::string query = "SELECT user_id "
                         "FROM users "
-                        "WHERE user_name ='" + username + "'";
+                        "WHERE user_name ='" + this->work.esc(username) + "'";
     
     /* execute te query */
     result = this->work.exec(query);
