@@ -505,7 +505,6 @@ std::vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
 }
 
 void DatabaseInterface::eraseAdjournedGame(int game_id) {
-
     std::string query;
 
     /* erase game */
@@ -536,4 +535,15 @@ std::vector<std::string> DatabaseInterface::getAdmins() {
     }
     
     return admins;
+}
+
+void DatabaseInterface::setUserEmail(const std::string& username, const std::string& email) {
+    std::string query;
+
+    /* update info game */
+    query =
+            " UPDATE users SET email='" + this->work.esc(email) + "' WHERE "
+            "   user_name='" + this->work.esc(username) + "'";
+
+    this->work.exec(query);
 }

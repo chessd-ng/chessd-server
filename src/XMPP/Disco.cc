@@ -64,6 +64,9 @@ namespace XMPP {
             generator.addAttribute("var", *feature);
             generator.closeTag();
 		}
+        if(this->_ext_info.get() != 0) {
+            generator.addChild(this->_ext_info->clone());
+        }
         result->children().push_back(generator.getTag());
 		this->stanza_sender(result);
 	}

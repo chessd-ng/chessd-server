@@ -119,7 +119,7 @@ namespace XML {
                 throw (child_not_found("CData not found"));
             }
 
-			const CData& findChild() const {
+			const CData& findCData() const {
                 foreach(child, this->children()) {
                     if(typeid(*child) == typeid(CData))
                         return static_cast<const CData&>(*child);

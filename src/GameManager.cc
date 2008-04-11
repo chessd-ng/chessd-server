@@ -57,7 +57,8 @@ void GameManager::_createGame(Game* game, const OnGameStart& on_game_start) {
 	GameRoom* game_room = new GameRoom(game, room_jid, this->database_manager,
             this->dispatcher,
 			GameRoomHandlers(boost::bind(&ComponentBase::sendStanza, this, _1),
-				boost::bind(&GameManager::closeGameRoom, this, game_id)));
+				boost::bind(&GameManager::closeGame, this, game_id),
+                boost::bind(&GameManager::hideGame, this, game_id)));
     /* Register the node */
     this->root_node.setNodeHandler(room_jid.node(),
             boost::bind(&GameRoom::handleStanza, game_room, _1));
@@ -70,11 +71,22 @@ void GameManager::_createGame(Game* game, const OnGameStart& on_game_start) {
         on_game_start(room_jid);
 }
 
-void GameManager::closeGameRoom(GameId room_id) {
-	this->dispatcher.queue(boost::bind(&GameManager::_closeGameRoom, this, room_id));
+void GameManager::hideGame(GameId room_id) {
+	this->dispatcher.queue(boost::bind(&GameManager::_hideGame, this, room_id));
 }
 
-void GameManager::_closeGameRoom(GameId room_id) {
+void GameManager::_hideGame(GameId room_id) {
+	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
+    /* erase the room from the disco items
+     * so it is not visible anymore */
+	this->root_node.disco().items().erase(room_jid);
+}
+
+void GameManager::closeGame(GameId room_id) {
+	this->dispatcher.queue(boost::bind(&GameManager::_closeGame, this, room_id));
+}
+
+void GameManager::_closeGame(GameId room_id) {
 	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
 	this->root_node.removeNodeHandler(room_jid.node());
 	this->root_node.disco().items().erase(room_jid);

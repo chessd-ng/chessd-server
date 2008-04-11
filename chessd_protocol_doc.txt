@@ -340,6 +340,17 @@ Any date and time is in the format specified by the XEP-082.
     </query>
 </iq>
 
+
+<!--
+    To update the profile in the chess server
+--!>
+
+<iq type='set' to='rating.shiva' id='12345'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#profile'>
+        <email>user@shiva.com</email>
+    </query>
+</iq>
+
 <!--
     History.
 --!>
