@@ -390,13 +390,13 @@ Any date and time is in the format specified by the XEP-082.
 <history category='standard'>
 	<player color='white' jid='Link@Hyrule/psi' time='660'/>
 	<player color='black' jid='Sonic@ChaosEmeralds/psi' time='660'/>
-	<state board='rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR' move='e4' time='660' turn='black'/>
-	<state board='rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR' move='e5' time='660' turn='white'/>
-	<state board='rnbqkbnr/pppp1ppp/8/4p3/4P3/5Q2/PPPP1PPP/RNB1KBNR' move='Qf3' time='661' turn='black'/>
-	<state board='rnbqkbnr/1ppp1ppp/p7/4p3/4P3/5Q2/PPPP1PPP/RNB1KBNR' move='a6' time='661' turn='white'/>
-	<state board='rnbqkbnr/1ppp1ppp/p7/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR' move='Bc4' time='662' turn='black'/>
-	<state board='rnbqkbnr/1ppp1ppp/8/p3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR' move='a5' time='662' turn='white'/>
-	<state board='rnbqkbnr/1ppp1Qpp/8/p3p3/2B1P3/8/PPPP1PPP/RNB1K1NR' move='Qxf7#' time='663' turn='black'/>
+	<state board='rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR' move='e2e4' short='e4' time='660' turn='black'/>
+	<state board='rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR' move='e7e5' short='e5' time='660' turn='white'/>
+	<state board='rnbqkbnr/pppp1ppp/8/4p3/4P3/5Q2/PPPP1PPP/RNB1KBNR' move='d1f3' short='Qf3' time='661' turn='black'/>
+	<state board='rnbqkbnr/1ppp1ppp/p7/4p3/4P3/5Q2/PPPP1PPP/RNB1KBNR' move='a7a6' short='a6' time='661' turn='white'/>
+	<state board='rnbqkbnr/1ppp1ppp/p7/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR' move='f1c4' short='Bc4' time='662' turn='black'/>
+	<state board='rnbqkbnr/1ppp1ppp/8/p3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR' move='a6a5' short='a5' time='662' turn='white'/>
+	<state board='rnbqkbnr/1ppp1Qpp/8/p3p3/2B1P3/8/PPPP1PPP/RNB1K1NR' move='f3f7' short='Qxf7#' time='663' turn='black'/>
 </history>
 
 
