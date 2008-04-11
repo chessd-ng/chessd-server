@@ -70,7 +70,7 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 
 			s >> new_time;
 
-			new_history.addChild(generateStateTag(chess.getChessState(),new_time,chess.PGNOfLastMove()));
+			new_history.addChild(generateStateTag(chess.getChessState(),new_time,move,chess.PGNOfLastMove()));
 		}
 		new_history.closeTag();
 	}
@@ -78,7 +78,7 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 	return new_history.getTag();
 }
 
-XML::Tag* ChessHistoryProcess::generateStateTag(const ChessState& state, int time, const std::string& mv) {
+XML::Tag* ChessHistoryProcess::generateStateTag(const ChessState& state, int time, const std::string& mv, const std::string& short_mv) {
 	XML::TagGenerator new_state;
 	new_state.openTag("state");
 	{
@@ -92,6 +92,7 @@ XML::Tag* ChessHistoryProcess::generateStateTag(const ChessState& state, int tim
 		new_state.addAttribute("halfmoves",Util::to_string(state.halfmoves));
 		new_state.addAttribute("fullmoves",Util::to_string(state.fullmoves));*/
 		new_state.addAttribute("move",mv);
+		new_state.addAttribute("short",short_mv);
 		new_state.addAttribute("time",Util::to_string(time));
 		new_state.closeTag();
 	}

@@ -49,7 +49,8 @@ SOURCES = \
 		  src/XMPP/StanzaBase.cc \
 		  src/XMPP/Stanza.cc \
 		  src/XMPP/Stream.cc \
-		  src/MatchFactory.cc
+		  src/MatchFactory.cc \
+		  src/Util/Date.cc
 
 
 SRCDIR = src
@@ -59,7 +60,7 @@ DEPSDIR = .deps
 #CXXFLAGS+=-Wall -O2 -pg -march=native
 CXXFLAGS+=-Wall -O3 -fomit-frame-pointer -march=native -funroll-loops
 CXXFLAGS+=-I${SRCDIR} `pkg-config --cflags iksemel` `pkg-config --cflags libpqxx`
-LDLIBS+=-lrt -lpthread `pkg-config --libs iksemel` `pkg-config --libs libpqxx`
+LDLIBS+=-lrt -lpthread `pkg-config --libs iksemel` `pkg-config --libs libpqxx` -lboost_date_time
 TARGET=chessd
 CC=gcc
 CXX=g++
