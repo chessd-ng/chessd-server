@@ -31,6 +31,7 @@
 using namespace std;
 using namespace XML;
 using namespace XMPP;
+using namespace Threads;
 using namespace boost::posix_time;
 
 #define XMLNS_CHESSD_INFO "http://c3sl.ufpr.br/chessd#info"
@@ -123,7 +124,11 @@ void RatingComponent::handleFetchGame(const Stanza& stanza) {
 }
 
 void RatingComponent::handleProfile(const Stanza& stanza) {
-    this->database.queueTransaction(boost::bind(&RatingComponent::updateProfile, this, stanza, _1));
+    if(stanza.subtype() == "set") {
+        this->database.queueTransaction(boost::bind(&RatingComponent::updateProfile, this, stanza, _1));
+    } else {
+        this->database.queueTransaction(boost::bind(&RatingComponent::fetchProfile, this, stanza, _1));
+    }
 }
 
 void RatingComponent::updateProfile(const Stanza& stanza, DatabaseInterface& database) {
@@ -292,6 +297,81 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
     this->sendStanza(new XMPP::Stanza(generator.getTag()));
 }
 
+void RatingComponent::fetchProfile(const Stanza& stanza, DatabaseInterface& database) {
+    XML::TagGenerator generator;
+    const Tag& query = stanza.findChild("query");
+    std::string category, user;
+
+    ReadLock<map<PartialJid, ptime> > logons(this->last_logons);
+
+    /* create message */
+    generator.openTag("iq");
+    generator.addAttribute("to", stanza.from().full());
+    generator.addAttribute("from", stanza.to().full());
+    generator.addAttribute("id", stanza.id());
+    generator.addAttribute("type", "result");
+    generator.openTag("query");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_INFO);
+
+    /* for each requested info, consult the database */
+    foreach(tag, query.tags()) {
+        if(tag->name() == "profile") {
+            /* parse tag */
+            user = tag->getAttribute("jid");
+
+            /* get the user ratings */
+            std::vector<std::pair<std::string, PersistentRating> > ratings = database.getRatings(
+                        user, category);
+
+            /* create the tag */
+            generator.openTag("profile");
+            generator.addAttribute("jid", user);
+
+            /* add result to the message */
+            foreach(rating, ratings) {
+                generator.openTag("rating");
+                generator.addAttribute("category", rating->first);
+                generator.addAttribute("rating", Util::to_string(rating->second.rating));
+                generator.addAttribute("wins", Util::to_string(rating->second.wins));
+                generator.addAttribute("draws", Util::to_string(rating->second.draws));
+                generator.addAttribute("losses", Util::to_string(rating->second.defeats));
+                generator.addAttribute("max_rating", Util::to_string(rating->second.max_rating));
+                generator.addAttribute("max_timestamp", Util::ptime_to_xmpp_date_time(rating->second.max_timestamp));
+                generator.closeTag();
+            }
+
+            /* get the user type */
+            std::string type = database.getUserType(user);
+
+            /* add the type to the message */
+            generator.openTag("type");
+            generator.addAttribute("type", type);
+            generator.closeTag();
+
+            /* get the user's online time */
+            int online_time = database.getOnlineTime(user);
+
+            generator.openTag("online_time");
+            generator.addAttribute("seconds", Util::to_string(online_time));
+            generator.closeTag();
+
+            /* get the user's uptime */
+            if_find(it, PartialJid(user), *logons) {
+                int uptime = (second_clock::local_time() - 
+                              it->second).total_seconds();
+                generator.openTag("uptime");
+                generator.addAttribute("seconds", Util::to_string(uptime));
+                generator.closeTag();
+            }
+
+            generator.closeTag(); // profile
+        }
+    }
+    generator.closeTag();
+    generator.closeTag();
+    this->sendStanza(new XMPP::Stanza(generator.getTag()));
+}
+
 void RatingComponent::onError(const std::string& error) {
     this->error_handler(error);
 }
@@ -302,25 +382,27 @@ void RatingComponent::onClose() {
 void RatingComponent::handlePresence(const XMPP::Stanza& stanza) {
     XMPP::PartialJid user = stanza.from();
 
+    WriteLock<map<PartialJid, ptime> > logons(this->last_logons);
+
     if(stanza.subtype().empty()) {
         /* the user is online */
-        if(this->last_logons.find(user) == this->last_logons.end()) {
-            this->last_logons.insert(
+        if(logons->find(user) == logons->end()) {
+            logons->insert(
                 make_pair(user,
                           second_clock::local_time()));
         }
     } else if(stanza.subtype() == "unavailable") {
         /* the user went offline */
-        if(this->last_logons.find(user) != this->last_logons.end()) {
+        if(logons->find(user) != logons->end()) {
             this->database.queueTransaction(
                 boost::bind(
                     &RatingComponent::updateOnlineTime,
                     this,
                     user,
                     (second_clock::local_time() -
-                     this->last_logons.find(user)->second).seconds(),
+                     logons->find(user)->second).total_seconds(),
                     _1));
-            this->last_logons.erase(user);
+            logons->erase(user);
         }
     }
 }

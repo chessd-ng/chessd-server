@@ -27,6 +27,8 @@
 #include "DatabaseManager.hh"
 #include "Util/Date.hh"
 
+#include "Threads/SafeObject.hh"
+
 /*! \brief This is the component that handles user info requests */
 class RatingComponent : public ComponentBase {
 	public:
@@ -82,6 +84,9 @@ class RatingComponent : public ComponentBase {
         void fetchGame(const XMPP::Stanza& stanza,
                        DatabaseInterface& database);
 
+        void fetchProfile(const XMPP::Stanza& stanza,
+                          DatabaseInterface& database);
+
         /*! \brief Update the user's profile in the database */
         void updateProfile(const XMPP::Stanza& stanza,
                            DatabaseInterface& database);
@@ -98,7 +103,7 @@ class RatingComponent : public ComponentBase {
 
         DatabaseManager& database;
 
-        std::map<XMPP::PartialJid, boost::posix_time::ptime> last_logons;
+        Threads::SafeObject<std::map<XMPP::PartialJid, boost::posix_time::ptime> > last_logons;
 };
 
 #endif

@@ -558,6 +558,26 @@ void DatabaseInterface::updateOnlineTime(const std::string& username,
             "   user_name='" + this->work.esc(username) + "'";
 
     this->work.exec(query);
-    
+}
 
+int DatabaseInterface::getOnlineTime(const std::string& user) {
+    int time;
+
+    /* prepare query */
+    std::string query =
+        " SELECT online_time"
+        " FROM users "
+        " WHERE user_name='" + this->work.esc(user) + "'";
+
+    /* execute query */
+    pqxx::result result = work.exec(query);
+    
+    /* get result */
+    if(result.empty()) {
+        throw user_not_found("User not found");
+    } else {
+        result[0]["online_time"].to(time);
+    }
+    
+    return time;
 }
