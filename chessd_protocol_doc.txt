@@ -1,4 +1,4 @@
-This document assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
+his document assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
 The protocol described here is in development and will suffer changes in the future that
 may my break compatibility with previous versions.
 
@@ -288,6 +288,7 @@ Any date and time is in the format specified by the XEP-082.
             <player role="black" score="1" jid="ulyssesb@shiva" />
             <player role="white" score="0" jid="robofacilaaa@shiva" />
         </game>
+        <more/>
     </query>
 </iq>
 

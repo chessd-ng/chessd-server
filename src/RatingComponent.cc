@@ -147,6 +147,7 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
             int max_results = 50;
             int offset = 0;
             int time_begin = -1, time_end = -1;
+            bool has_more = false;
 
             /* Parse request */
             const Tag& query = stanza.findChild("query");
@@ -177,7 +178,12 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
             /* Search in the database */
             std::vector<PersistentGame> games =
                 database.searchGames(players, time_begin, time_end,
-                        offset, max_results);
+                        offset, max_results + 1);
+
+            if(games.size() > max_results) {
+                has_more = true;
+                games.pop_back();
+            }
 
             /* Create result */
             generator.openTag("iq");
@@ -205,6 +211,11 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
                     generator.addAttribute("score", player->score);
                     generator.closeTag();
                 }
+                generator.closeTag();
+            }
+
+            if(has_more) {
+                generator.openTag("more");
                 generator.closeTag();
             }
 
