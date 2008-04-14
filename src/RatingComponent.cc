@@ -144,8 +144,8 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
         try {
             XML::TagGenerator generator;
             std::vector<std::pair<std::string, std::string> > players;
-            int max_results = 50;
-            int offset = 0;
+            unsigned int max_results = 50;
+            unsigned int offset = 0;
             int time_begin = -1, time_end = -1;
             bool has_more = false;
 
