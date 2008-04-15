@@ -1,4 +1,4 @@
-This document assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
+his document assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
 The protocol described here is in development and will suffer changes in the future that
 may my break compatibility with previous versions.
 
@@ -271,8 +271,9 @@ Any date and time is in the format specified by the XEP-082.
 <iq type='get' to='rating.shiva' id='get_rating'>
     <query xmlns='http://c3sl.ufpr.br/chessd#search_game'>
         <search results='10' offset='0'>
-            <player jid='robofacilaaa@shiva'/>
+            <player jid='robofacilaaa@shiva' role='white'/>
             <player jid='ulyssesb@shiva'/>
+            <date begin='2008-03-06T23:21:12Z' end='2008-03-06T23:21:12Z'/>
         </search>
     </query>
 </iq>
@@ -287,6 +288,7 @@ Any date and time is in the format specified by the XEP-082.
             <player role="black" score="1" jid="ulyssesb@shiva" />
             <player role="white" score="0" jid="robofacilaaa@shiva" />
         </game>
+        <more/>
     </query>
 </iq>
 
@@ -348,6 +350,28 @@ Any date and time is in the format specified by the XEP-082.
 <iq type='set' to='rating.shiva' id='12345'>
     <query xmlns='http://c3sl.ufpr.br/chessd#profile'>
         <email>user@shiva.com</email>
+    </query>
+</iq>
+
+<!--
+    To retrieve the profile in the chess server
+--!>
+
+<iq type='get' to='rating.shiva' id='12345'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#profile'>
+        <profile jid='fulano@shiva'/>
+    </query>
+</iq>
+
+<iq type='result' to='rating.shiva' id='12345'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#profile'>
+        <profile jid='fulano@shiva'>
+            <rating cateogry='xxx' rating='1234'/>
+            <rating cateogry='yyy' rating='1234'/>
+            <type type='admin'/>
+            <uptime seconds='789'/>
+            <online_time seconds='1234567'/>
+        </profile>
     </query>
 </iq>
 

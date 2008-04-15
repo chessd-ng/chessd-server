@@ -27,7 +27,7 @@ using namespace boost::posix_time;
 DatabaseInterface::DatabaseInterface(pqxx::work& work) :
     work(work) { }
 
-int DatabaseInterface::getUserId(const std::string& _username) {
+int DatabaseInterface::getUserId(const std::string& _username, bool create) {
     int user_id;
     pqxx::result result;
     std::string username = this->work.esc(_username);
@@ -35,24 +35,25 @@ int DatabaseInterface::getUserId(const std::string& _username) {
     /* prepare the query */
     std::string query = "SELECT user_id "
                         "FROM users "
-                        "WHERE user_name ='" + username + "'";
+                        "WHERE user_name ='" + this->work.esc(username) + "'";
     
     /* execute te query */
     result = this->work.exec(query);
 
     /* if user is not in the database, create it */
-    if(result.empty()) {
+    if(not result.empty()) {
+        /* get the user id from te result */
+        result[0]["user_id"].to(user_id);
+    } else if(result.empty() and create) {
         /* prepare query */
         query = "INSERT INTO users (user_name) "
-                "VALUES ('" + username + "') ";
+            "VALUES ('" + username + "') ";
         /* execute query */
         this->work.exec(query);
-
         /* get the id */
         this->work.exec("SELECT lastval()")[0][0].to(user_id);
     } else {
-        /* get the user id from te result */
-        result[0]["user_id"].to(user_id);
+        throw user_not_found("User id not found");
     }
 
     return user_id;
@@ -88,42 +89,48 @@ std::vector<std::pair<std::string, PersistentRating> >
 {
     std::string query;
     std::vector<std::pair<std::string, PersistentRating> > ratings;
-    int user_id = this->getUserId(username);
+    int user_id;
 
-    /* prepare SQL query */
-    /* if no category is given, take all of them */
-    if(category.empty()) {
-        query =
-            "SELECT * "
-            " FROM player_rating "
-            " WHERE user_id='" + pqxx::to_string(user_id) + "'";
-    } else {
-        query = 
-            "SELECT * "
-            " FROM player_rating "
-            " WHERE user_id='" + pqxx::to_string(user_id) + "' AND";
+    try {
+        user_id = this->getUserId(username, false);
+
+        /* prepare SQL query */
+        /* if no category is given, take all of them */
+        if(category.empty()) {
+            query =
+                "SELECT * "
+                " FROM player_rating "
+                " WHERE user_id='" + pqxx::to_string(user_id) + "'";
+        } else {
+            query = 
+                "SELECT * "
+                " FROM player_rating "
+                " WHERE user_id='" + pqxx::to_string(user_id) + "' AND";
             "       category='" + this->work.esc(category) + "'";
-    }
-    
-    /* execute query */
-    pqxx::result result = work.exec(query);
+        }
 
-    /* read results */
-    foreach(r, result) {
-        PersistentRating rating;
-        std::string category;
-        time_t t;
-        r->at("category").to(category);
-        r->at("rating").to(rating.rating);
-        r->at("volatility").to(rating.volatility);
-        r->at("wins").to(rating.wins);
-        r->at("defeats").to(rating.defeats);
-        r->at("draws").to(rating.draws);
-        r->at("max_rating").to(rating.max_rating);
-        r->at("max_timestamp").to(t);
-        r->at("last_game").to(rating.last_game);
-        rating.max_timestamp = from_time_t(t);
-        ratings.push_back(std::make_pair(category, rating));
+        /* execute query */
+        pqxx::result result = work.exec(query);
+
+        /* read results */
+        foreach(r, result) {
+            PersistentRating rating;
+            std::string category;
+            time_t t;
+            r->at("category").to(category);
+            r->at("rating").to(rating.rating);
+            r->at("volatility").to(rating.volatility);
+            r->at("wins").to(rating.wins);
+            r->at("defeats").to(rating.defeats);
+            r->at("draws").to(rating.draws);
+            r->at("max_rating").to(rating.max_rating);
+            r->at("max_timestamp").to(t);
+            r->at("last_game").to(rating.last_game);
+            rating.max_timestamp = from_time_t(t);
+            ratings.push_back(std::make_pair(category, rating));
+        }
+    } catch (const user_not_found&) {
+        /* if the user is not found return an empty list */
     }
     return ratings;
 }
@@ -152,7 +159,7 @@ PersistentRating
 DatabaseInterface::getRatingForUpdate(const std::string& username,
                                    const std::string& category)
 {
-    int user_id = this->getUserId(username);
+    int user_id = this->getUserId(username, true);
 
     /* prepare query */
     std::string query =
@@ -190,7 +197,7 @@ void DatabaseInterface::setRating(const std::string& username,
                                const std::string& category,
                                const PersistentRating& rating)
 {
-    int user_id = this->getUserId(username);
+    int user_id = this->getUserId(username, true);
 
     /* prepare query */
     std::string query =
@@ -310,7 +317,7 @@ void DatabaseInterface::insertGame(const PersistentGame& game) {
  
     /* insert the players */
     foreach(player, game.players) {
-        int user_id = this->getUserId(player->jid.partial());
+        int user_id = this->getUserId(player->jid.partial(), true);
         query =
             " INSERT INTO game_players VALUES"
             "   ( " + pqxx::to_string(game_id) + "" +
@@ -338,69 +345,98 @@ std::string DatabaseInterface::getGameHistory(int game_id) {
 }
 
 std::vector<PersistentGame> DatabaseInterface::searchGames(
-                const std::vector<std::string> players,
-                int offset,
-                int max_results)
+        const std::vector<std::pair<std::string, std::string> > players,
+        int time_begin, int time_end,
+        int offset,
+        int max_results)
 {
     std::vector<PersistentGame> games;
     time_t t;
 
-    /* prepare sql query */
-    std::string select =
-            " SELECT games.game_id, category, time_stamp ";
-    std::string from =
+    try {
+        /* prepare sql query */
+        std::string select =
+            " SELECT games.game_id, category, time_stamp, result ";
+        std::string from =
             " FROM games ";
-    std::string where;
+        std::string where;
 
-    /* XXX this is necessary in order to
-     * accept an arbitrary number of players */
-    for(int i=0;i<int(players.size());++i) {
-        int user_id = this->getUserId(players[i]);
-        std::string id_str = Util::to_string(i);
-        from += ", game_players g" + id_str + " ";
-        if(where.empty())
-            where = " WHERE ";
-        else
-            where += " AND ";
-        where += " games.game_id = g" + id_str
-            + ".game_id AND g" + id_str + ".user_id = '" + pqxx::to_string(user_id) + "' ";
-    }
-    std::string query = select + from + where +
-                           " ORDER BY game_id DESC " +
-                           " LIMIT " + pqxx::to_string(max_results) +
-                           " OFFSET " + pqxx::to_string(offset)
-                           ;
+        /* XXX this is necessary in order to
+         * accept an arbitrary number of players */
+        for(int i=0;i<int(players.size());++i) {
+            int user_id = this->getUserId(players[i].first, false);
+            std::string id_str = Util::to_string(i);
+            from += ", game_players g" + id_str + " ";
+            if(not where.empty())
+                where += " AND ";
+            where += " games.game_id = g" + id_str + ".game_id AND g" +
+                id_str + ".user_id = " + pqxx::to_string(user_id) + " ";
+            if(not players[i].second.empty()) {
+                where += " AND g" + id_str + ".role = '"
+                    + this->work.esc(players[i].second) + "' ";
+            }
 
-    /* execute query */
-    pqxx::result result = this->work.exec(query);
-
-    /* list results */
-    foreach(r, result) {
-        PersistentGame game;
-
-        /*  parse values */
-        r->at("game_id").to(game.id);
-        r->at("time_stamp").to(t);
-        game.time_stamp = boost::posix_time::from_time_t(t);
-        game.category = r->at("category").c_str();
-
-        /* get players */
-        std::string query =
-            "SELECT user_id, role, score FROM game_players WHERE game_id = "
-            + Util::to_string(game.id);
-        pqxx::result result = this->work.exec(query);
-        foreach(r, result) {
-            PlayerResult player;
-            int user_id;
-            r->at("user_id").to(user_id);
-            player.jid = XMPP::Jid(this->getUsername(user_id));
-            player.role = r->at("role").c_str();
-            player.score = r->at("score").c_str();
-            game.players.push_back(player);
+        }
+        /* set time interval search */
+        if(time_begin != -1) {
+            if(not where.empty())
+                where += " AND ";
+            where += " games.time_stamp >= " +
+                pqxx::to_string(time_begin) + " ";
         }
 
-        /* store game */
-        games.push_back(game);
+        /* set time interval search */
+        if(time_end != -1) {
+            if(not where.empty())
+                where += " AND ";
+            where += " games.time_stamp <= " +
+                pqxx::to_string(time_end) + " ";
+        }
+
+        if(not where.empty()) {
+            where = " WHERE " + where;
+        }
+
+
+        std::string query = select + from + where +
+            " ORDER BY game_id DESC " +
+            " LIMIT " + pqxx::to_string(max_results) +
+            " OFFSET " + pqxx::to_string(offset);
+
+        /* execute query */
+        pqxx::result result = this->work.exec(query);
+
+        /* list results */
+        foreach(r, result) {
+            PersistentGame game;
+
+            /*  parse values */
+            r->at("game_id").to(game.id);
+            r->at("result").to(game.result);
+            r->at("time_stamp").to(t);
+            game.time_stamp = boost::posix_time::from_time_t(t);
+            game.category = r->at("category").c_str();
+
+            /* get players */
+            std::string query =
+                "SELECT user_id, role, score FROM game_players WHERE game_id = "
+                + Util::to_string(game.id);
+            pqxx::result result = this->work.exec(query);
+            foreach(r, result) {
+                PlayerResult player;
+                int user_id;
+                r->at("user_id").to(user_id);
+                player.jid = XMPP::Jid(this->getUsername(user_id));
+                player.role = r->at("role").c_str();
+                player.score = r->at("score").c_str();
+                game.players.push_back(player);
+            }
+
+            /* store game */
+            games.push_back(game);
+        }
+    } catch (const user_not_found&) {
+        /* ifthe user does not exists return an empty list */
     }
     return games;
 }
@@ -424,7 +460,7 @@ void DatabaseInterface::insertAdjournedGame(const PersistentAdjournedGame& game)
  
     /* insert players */
     foreach(player, game.players) {
-        int user_id = this->getUserId(player->partial());
+        int user_id = this->getUserId(player->partial(), true);
         query =
             " INSERT INTO adjourned_game_players VALUES"
             "   ( " + pqxx::to_string(game_id) + "" +
@@ -454,52 +490,56 @@ std::vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
 {
     std::vector<PersistentAdjournedGame> games;
 
-    std::string select =
+    try {
+        std::string select =
             " SELECT adjourned_games.game_id, category, time_stamp ";
-    std::string from =
+        std::string from =
             " FROM adjourned_games ";
-    std::string where;
+        std::string where;
 
-    /* prepare sql query */
-    for(int i=0;i<int(players.size());++i) {
-        int user_id = this->getUserId(players[i]);
-        std::string id_str = Util::to_string(i);
-        from += ", adjourned_game_players g" + id_str + " ";
-        if(i > 0)
-            where += " AND ";
-        else
-            where = " WHERE ";
-        where += " adjourned_games.game_id = g" + id_str
-            + ".game_id AND g" + id_str + ".user_id = '"
-            + pqxx::to_string(user_id) + "' ";
-    }
-    std::string query = select + from + where + " limit " + Util::to_string(max_results) + " offset " + Util::to_string(offset);
-
-    /* search games */
-    pqxx::result result = this->work.exec(query);
-
-
-    /* chek each result */
-    foreach(r, result) {
-        PersistentAdjournedGame game;
-        time_t t;
-        r->at("game_id").to(game.id);
-        r->at("time_stamp").to(t);
-        game.time_stamp = boost::posix_time::from_time_t(t);
-        game.category = r->at("category").c_str();
-
-        /* get players */
-        std::string query =
-            "SELECT user_id FROM adjourned_game_players WHERE game_id = "
-            + pqxx::to_string(game.id);
-        pqxx::result result = this->work.exec(query);
-        foreach(r, result) {
-            int user_id;
-            r->at("user_id").to(user_id);
-            Player player = XMPP::Jid(this->getUsername(user_id));
-            game.players.push_back(player);
+        /* prepare sql query */
+        for(int i=0;i<int(players.size());++i) {
+            int user_id = this->getUserId(players[i], false);
+            std::string id_str = Util::to_string(i);
+            from += ", adjourned_game_players g" + id_str + " ";
+            if(i > 0)
+                where += " AND ";
+            else
+                where = " WHERE ";
+            where += " adjourned_games.game_id = g" + id_str
+                + ".game_id AND g" + id_str + ".user_id = '"
+                + pqxx::to_string(user_id) + "' ";
         }
-        games.push_back(game);
+        std::string query = select + from + where + " limit " + Util::to_string(max_results) + " offset " + Util::to_string(offset);
+
+        /* search games */
+        pqxx::result result = this->work.exec(query);
+
+
+        /* chek each result */
+        foreach(r, result) {
+            PersistentAdjournedGame game;
+            time_t t;
+            r->at("game_id").to(game.id);
+            r->at("time_stamp").to(t);
+            game.time_stamp = boost::posix_time::from_time_t(t);
+            game.category = r->at("category").c_str();
+
+            /* get players */
+            std::string query =
+                "SELECT user_id FROM adjourned_game_players WHERE game_id = "
+                + pqxx::to_string(game.id);
+            pqxx::result result = this->work.exec(query);
+            foreach(r, result) {
+                int user_id;
+                r->at("user_id").to(user_id);
+                Player player = XMPP::Jid(this->getUsername(user_id));
+                game.players.push_back(player);
+            }
+            games.push_back(game);
+        }
+    } catch(const user_not_found&) {
+        /* if a user is not fiund, just return an empty list */
     }
     return games;
 }
@@ -546,4 +586,39 @@ void DatabaseInterface::setUserEmail(const std::string& username, const std::str
             "   user_name='" + this->work.esc(username) + "'";
 
     this->work.exec(query);
+}
+
+void DatabaseInterface::updateOnlineTime(const std::string& username,
+                                         int increment) {
+    std::string query;
+
+    /* update info game */
+    query =
+            " UPDATE users SET online_time=online_time+" + pqxx::to_string(increment) + " WHERE "
+            "   user_name='" + this->work.esc(username) + "'";
+
+    this->work.exec(query);
+}
+
+int DatabaseInterface::getOnlineTime(const std::string& user) {
+    int time;
+
+    /* prepare query */
+    std::string query =
+        " SELECT online_time"
+        " FROM users "
+        " WHERE user_name='" + this->work.esc(user) + "'";
+
+    /* execute query */
+    pqxx::result result = work.exec(query);
+    
+    /* get result */
+    if(result.empty()) {
+        //throw user_not_found("User not found");
+        return 0;
+    } else {
+        result[0]["online_time"].to(time);
+    }
+    
+    return time;
 }

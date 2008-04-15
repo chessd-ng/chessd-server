@@ -85,7 +85,8 @@ class DatabaseInterface : public pqxx::transactor<>
 
         /*! \brief Search games in the database */
         std::vector<PersistentGame> searchGames(
-                const std::vector<std::string> players,
+                const std::vector<std::pair<std::string, std::string> > players,
+                int time_begin, int time_end,
                 int offset,
                 int max_results);
 
@@ -130,10 +131,16 @@ class DatabaseInterface : public pqxx::transactor<>
         /*! \brief Set user info */
         void setUserEmail(const std::string& username, const std::string& email);
 
+        /*! \brief Incremnte the user's online time */
+        void updateOnlineTime(const std::string& user, int increment);
+
+        /*! \brief Get user's onlime time */
+        int getOnlineTime(const std::string& user);
+
     private:
 
         /*! \brief Get the user's id by his name */
-        int getUserId(const std::string& username);
+        int getUserId(const std::string& username, bool create);
 
         /*! \brief Get the username id by his id */
         std::string getUsername(int user_id);

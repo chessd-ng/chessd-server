@@ -95,6 +95,15 @@ namespace XML {
                     return this->attributes().find(name)->second;
 			}
 
+            const std::string& getAttribute(const std::string& name,
+                    const std::string& default_value) const {
+                AttributeMap::const_iterator iterator = this->attributes().find(name);
+                if(iterator == this->attributes().end())
+                    return default_value;
+                else
+                    return this->attributes().find(name)->second;
+            }
+
 			Tag& findChild(const std::string& name) {
                 foreach(tag, this->tags()) {
                     if(tag->name() == name)
