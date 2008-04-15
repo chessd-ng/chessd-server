@@ -335,7 +335,7 @@ void RatingComponent::fetchProfile(const Stanza& stanza, DatabaseInterface& data
     generator.addAttribute("id", stanza.id());
     generator.addAttribute("type", "result");
     generator.openTag("query");
-    generator.addAttribute("xmlns", XMLNS_CHESSD_INFO);
+    generator.addAttribute("xmlns", XMLNS_CHESSD_PROFILE);
 
     /* for each requested info, consult the database */
     foreach(tag, query.tags()) {
