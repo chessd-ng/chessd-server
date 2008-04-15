@@ -356,7 +356,7 @@ std::vector<PersistentGame> DatabaseInterface::searchGames(
     try {
         /* prepare sql query */
         std::string select =
-            " SELECT games.game_id, category, time_stamp ";
+            " SELECT games.game_id, category, time_stamp, result ";
         std::string from =
             " FROM games ";
         std::string where;
@@ -412,6 +412,7 @@ std::vector<PersistentGame> DatabaseInterface::searchGames(
 
             /*  parse values */
             r->at("game_id").to(game.id);
+            r->at("result").to(game.result);
             r->at("time_stamp").to(t);
             game.time_stamp = boost::posix_time::from_time_t(t);
             game.category = r->at("category").c_str();

@@ -363,6 +363,18 @@ Any date and time is in the format specified by the XEP-082.
     </query>
 </iq>
 
+<iq type='result' to='rating.shiva' id='12345'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#profile'>
+        <profile jid='fulano@shiva'>
+            <rating cateogry='xxx' rating='1234'/>
+            <rating cateogry='yyy' rating='1234'/>
+            <type type='admin'/>
+            <uptime seconds='789'/>
+            <online_time seconds='1234567'/>
+        </profile>
+    </query>
+</iq>
+
 <!--
     History.
 --!>
