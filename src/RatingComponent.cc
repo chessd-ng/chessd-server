@@ -144,8 +144,8 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
         try {
             XML::TagGenerator generator;
             std::vector<std::pair<std::string, std::string> > players;
-            int max_results = 50;
-            int offset = 0;
+            unsigned int max_results = 50;
+            unsigned int offset = 0;
             int time_begin = -1, time_end = -1;
             bool has_more = false;
 
@@ -335,7 +335,7 @@ void RatingComponent::fetchProfile(const Stanza& stanza, DatabaseInterface& data
     generator.addAttribute("id", stanza.id());
     generator.addAttribute("type", "result");
     generator.openTag("query");
-    generator.addAttribute("xmlns", XMLNS_CHESSD_INFO);
+    generator.addAttribute("xmlns", XMLNS_CHESSD_PROFILE);
 
     /* for each requested info, consult the database */
     foreach(tag, query.tags()) {
