@@ -22,11 +22,12 @@
 #include "GameException.hh"
 
 Match* MatchFactory::create(const XML::Tag& match_offer,const TeamDatabase& teams) {
+	validateXML(match_offer);
 	return new MatchChess(getPlayersTag(match_offer),match_offer.getAttribute("category"));
 }
 
 bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& category) {
-	if(!_player.hasAttribute("time"))
+	if(!_player.hasAttribute("time") and category!="untimed")
 		return false;
 
 	if(category=="standard") {
@@ -43,6 +44,8 @@ bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& catego
 				(2u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Seconds)))
 			return true;
 	}
+	else if(category=="untimed")
+		return true;
 	return false;
 }
 
@@ -79,17 +82,19 @@ void MatchFactory::validateXML(const XML::Tag& _match_offer) {
 			if(colors.insert(c_it->getAttribute("color")).second==false)
 				throw bad_information("Players of equal colors in the same match");
 
-			if(!c_it->hasAttribute("time"))
+			if(!c_it->hasAttribute("time") and category!="untimed")
 				throw bad_information("xml does not have time for a player");
 
-			if(time.first==true) {
-				if(time.second!=c_it->getAttribute("time"))
-					throw bad_information("time for players are diferent");
+			if(category!="untimed") {
+				if(time.first==true) {
+					if(time.second!=c_it->getAttribute("time"))
+						throw bad_information("time for players are diferent");
+				}
+				else
+					time=make_pair(true,c_it->getAttribute("time"));
+				if(isTimeValid(*c_it,category)==false)
+					throw bad_information(std::string("invalid time for category ")+category);
 			}
-			else
-				time=make_pair(true,c_it->getAttribute("time"));
-			if(isTimeValid(*c_it,category)==false)
-				throw bad_information(std::string("invalid time for category ")+category);
 		}
 	}
 	if(count!=2)

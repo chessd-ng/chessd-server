@@ -28,19 +28,23 @@
 enum end_reason{
 	NOREASON=0,RESIGNED=1,CHECKMATE=2,DRAWAGREED=3,TIMEOVER=4,DRAWREPETITION=5,DRAWIMPOSSIBILITYOFCHECKMATE=6,DRAWFIFTYMOVE=7,DRAWSTALEMATE=8
 };
-
-
-class GameChess : public Game {
+/*
+ * Instead of having GameChess and GameChessUntimed,
+ * there should be Game Chess, GameChessUntimed and
+ * GameChessTimed which includes standard, blitz and
+ * lightining categories
+*/
+class GameChessUntimed : public Game {
 	public:
-		GameChess(const StandardPlayerList& _players, const std::string &category);
+		GameChessUntimed(const StandardPlayerList& _players, const std::string &category);
 
 		/*! \brief Constructor for adjourned games
-		 * \description it assumes that adjourned games are not over
-		*/
-		GameChess(XML::Tag* adjourned_game);
+		 * \description it assumes that adjourned games are not over */
+		GameChessUntimed(XML::Tag* adjourned_game);
 
-		virtual ~GameChess() {};
+		virtual ~GameChessUntimed() {};
 
+		//! \brief generates state tag as specified in chessd protocol
 		virtual XML::Tag* state(const Util::Time& current_time) const;
 
 		virtual XML::Tag* history() const;
@@ -83,13 +87,13 @@ class GameChess : public Game {
 		/*! \brief returns the team result list if the game has ended*/
 		virtual PlayerResultList donePlayerResultList() const;
 
+		virtual int whoTimedOver() const { return -1;}
+
 		int realDone();
 
-		//! \brief generates state tag as specified in chessd protocol
-		XML::Tag* generateStateTag(const ChessState &est,const Util::Time& current_time) const ;
 		
 		//! \brief generates history tag as specified in chessd protocol
-		XML::Tag* generateHistoryTag(Util::Time time_passed=Util::Time()) const;
+		virtual XML::Tag* generateHistoryTag(Util::Time time_passed=Util::Time()) const;
 
 		//Chess class from libchess
 		Chess chess;
@@ -98,32 +102,11 @@ class GameChess : public Game {
 		//at the beginning of the game or at restart time_of_last_time is 0
 		Util::Time time_of_last_move;
 
-	private:
+		virtual void interpretHistoryMoves(const std::string& moves);
+
+	//private:
 		//\brief set initial variables, it is just called in the constructor
 		void setInitialVariables();
-
-		//\brief check if the time of current player is over,
-		//if yes, then sed this->_done and this->time_over
-		bool checkTimeOver(const Util::Time& current_time);
-
-		/*
-		 * tells if the time of one player is over
-		 * -1 for no time over
-		 *  0 white's time is over
-		 *  1 black's time is over
-		*/
-		int time_over;
-
-		/*
-		 * store the initial time of the game
-		*/
-		int initial_time;
-
-		/*
-		 * The time is only counted after 2 moves after the game start or restart
-		 * stores the number of turns since the restart or start of the game
-		*/
-		int turns_restart;
 
 		/*
 		 * for optimizations reasons, the reason why the game is over is set on move
@@ -166,6 +149,53 @@ class GameChess : public Game {
 
 		//a list of Players
         PlayerList _simple_players;
+	private:
+};
+
+class GameChess: public GameChessUntimed {
+	public:
+		GameChess(const StandardPlayerList& _players, const std::string &category);
+
+		/*! \brief Constructor for adjourned games
+		 * \description it assumes that adjourned games are not over */
+		GameChess(XML::Tag* adjourned_game);
+
+		virtual XML::Tag* state(const Util::Time& current_time) const;
+
+		virtual bool done(const Util::Time& current_time) ;
+
+		virtual XML::Tag* move(const Player& player, const std::string& movement, const Util::Time& time_stamp);
+	protected:
+		virtual int whoTimedOver() const { return this->time_over;};
+
+		virtual XML::Tag* generateHistoryTag(Util::Time time_passed=Util::Time()) const;
+
+		virtual void interpretHistoryMoves(const std::string& moves);
+
+	private:
+		//\brief check if the time of current player is over,
+		//if yes, then sed this->_done and this->time_over
+		bool checkTimeOver(const Util::Time& current_time);
+
+		/*
+		 * tells if the time of one player is over
+		 * -1 for no time over
+		 *  0 white's time is over
+		 *  1 black's time is over
+		*/
+		int time_over;
+
+		/*
+		 * store the initial time of the game
+		*/
+		int initial_time;
+
+		/*
+		 * The time is only counted after 2 moves after the game start or restart
+		 * stores the number of turns since the restart or start of the game
+		*/
+		int turns_restart;
+
 };
 
 class ChessGameResult : public GameResult {
