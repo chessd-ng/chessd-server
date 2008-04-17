@@ -141,8 +141,7 @@ GameRoom::~GameRoom() { }
 void GameRoom::checkTime() {
     /* cancel games for inactivity */
     if(this->game_active and this->move_count <= 1 and
-            this->currentTime() > (5 * Util::Minutes) and
-            this->occupants().size() == 0) {
+            this->currentTime() > (5 * Util::Minutes)) {
         /* FIXME */
         this->endGame(END_TYPE_CANCELED);
     }
