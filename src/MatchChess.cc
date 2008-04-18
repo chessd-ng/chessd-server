@@ -45,7 +45,9 @@ const std::string& MatchChess::category() const {
 }
 
 Game* MatchChess::createGame() const {
-	return new GameChess(this->getPlayersFromXML(this->_match_players),this->_category);
+	if(this->_category!="untimed")
+		return new GameChess(this->getPlayersFromXML(this->_match_players),this->_category);
+	return new GameChessUntimed(this->getPlayersFromXML(this->_match_players),this->_category);
 }
 
 XML::Tag* MatchChess::notification() const {
@@ -61,8 +63,10 @@ XML::Tag* MatchChess::notification() const {
 StandardPlayerList MatchChess::getPlayersFromXML(const std::vector<XML::Tag>& xml_players) {
 	StandardPlayerList players;
 	foreach(c_it,xml_players) {
+		Util::Time time,inc;
 		XMPP::Jid aux(c_it->getAttribute("jid"));
-		Util::Time time(c_it->getAttribute("time"),Util::Seconds),inc;
+		if(c_it->hasAttribute("time"))
+			time=Util::Time(c_it->getAttribute("time"),Util::Seconds);
 		if(c_it->hasAttribute("inc"))
 			inc=Util::Time(c_it->getAttribute("inc"),Util::Seconds);
 		StandardPlayerColor c(c_it->getAttribute("color")=="white"?White:Black);
@@ -82,7 +86,9 @@ std::vector<XML::Tag> MatchChessAdjourn::getPlayersTag(const XML::Tag& history_a
 }
 
 Game* MatchChessAdjourn::createGame() const {
-	return new GameChess(this->history);
+	if(this->category()!="untimed")
+		return new GameChess(this->history);
+	return new GameChessUntimed(this->history);
 }
 
 XML::Tag* MatchChessAdjourn::notification() const {

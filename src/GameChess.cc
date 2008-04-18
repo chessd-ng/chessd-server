@@ -27,7 +27,7 @@
 /*
  * Set initial variables.
 */
-GameChess::GameChess(const StandardPlayerList& _players, const std::string &_category) {
+GameChessUntimed::GameChessUntimed(const StandardPlayerList& _players, const std::string &_category) {
 	this->_category=_category;
 	this->_players=_players;
 
@@ -44,12 +44,10 @@ GameChess::GameChess(const StandardPlayerList& _players, const std::string &_cat
         _simple_players.push_back(it->jid);
     }
 
-	this->initial_time=int(this->_players[0].time.getSeconds()+0.001);
-
 	this->setInitialVariables();
 }
 
-GameChess::GameChess(XML::Tag* adjourned_game) {
+GameChessUntimed::GameChessUntimed(XML::Tag* adjourned_game) {
 	this->_category=adjourned_game->getAttribute("category");
 
 	//parse XML to get needed variables
@@ -57,11 +55,10 @@ GameChess::GameChess(XML::Tag* adjourned_game) {
 	foreach(it,adjourned_game->tags()) {
 		if(it->name()=="player") {
 			this->_players.push_back(StandardPlayer(XMPP::Jid(it->getAttribute("jid")),
-						Util::Time(it->getAttribute("time_left"),Util::Seconds),
-						Util::Time(it->getAttribute("inc"),Util::Seconds),
+						Util::Time(),
+						Util::Time(),
 						StandardPlayerColor(it->getAttribute("color")=="white"?White:Black)));
 			this->colormap[this->_players.rbegin()->jid]=this->_players.rbegin()->color==White?Chess::WHITE:Chess::BLACK;
-			this->initial_time=Util::parse_string<int>(it->getAttribute("time"));
         	_simple_players.push_back(XMPP::Jid(it->getAttribute("jid")));
 		}
 		else {
@@ -74,38 +71,37 @@ GameChess::GameChess(XML::Tag* adjourned_game) {
 	 */
 	if(this->_players[0].color==Black)
 		std::swap(this->_players[0],this->_players[1]);
+	if(colormap[_simple_players[0]]==Chess::BLACK)
+		std::swap(this->_simple_players[0],this->_simple_players[1]);
 
 	foreach(it,this->_players)
 		standard_player_map[it->jid]=&(*it);
 
 	//Start the game where it stopped
 	//just tell libchess where the game is
-	std::stringstream ss(this->history_moves);
-	std::string mv;
-	for(int i=0 ; ss >> mv ; i=(i+1)%2) {
-		this->chess.makeMove(mv);
-		ss >> mv;
-	}
 
 	this->setInitialVariables();
 
-	delete adjourned_game;
+
+	if(this->_category=="untimed") {
+		this->interpretHistoryMoves(this->history_moves);
+		delete adjourned_game;
+	}
 }
 
-void GameChess::setInitialVariables() {
+void GameChessUntimed::interpretHistoryMoves(const std::string& moves) {
+	std::stringstream ss(moves);
+	std::string mv;
+	for(int i=0 ; ss >> mv ; i=(i+1)%2)
+		this->chess.makeMove(mv);
+}
+
+void GameChessUntimed::setInitialVariables() {
 	//nobody resigned
 	this->_resign=Chess::UNDEFINED;
 
-	//time is not over for anyone
-	this->time_over=-1;
-
 	//the game is not over, it's starting or restarting
 	this->_done=NOREASON;
-
-	this->turns_restart=0; //0 turns since the restart of the game
-
-	//no moves were made, so time is 0
-	this->time_of_last_move=Util::Time();
 
 	//Assumes that this->_players is already set
 	//initiates colormap
@@ -115,15 +111,16 @@ void GameChess::setInitialVariables() {
 	this->_title=this->_players[0].jid.node()+" x "+this->_players[1].jid.node();
 }
 
-const std::vector<XMPP::Jid>& GameChess::players() const {
+const std::vector<XMPP::Jid>& GameChessUntimed::players() const {
     return this->_simple_players;
 }
 
-XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& current_time) const {
+XML::Tag* GameChessUntimed::state(const Util::Time& current_time) const {
 	XML::TagGenerator t;
 	t.openTag("state");
 	t.addAttribute("category",this->category());
 
+	ChessState est=chess.getChessState();
 	//board tag
 	t.openTag("board");
 	{
@@ -143,14 +140,9 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 		t.openTag("player");
 		{   
 			t.addAttribute("jid",it->jid.full());
-			Util::Time aux=it->time;
-			if( ( chess.turn()==(colormap.find(it->jid)->second) ) and (this->turns_restart >= 2) and (this->_done==NOREASON or this->_done==TIMEOVER))
-				aux-=current_time-time_of_last_move;
-			
-			//XXX be careful with double from getSeconds
-			t.addAttribute("time", Util::to_string((int)(std::max(aux.getSeconds()+0.001,0.0))));
 
 			t.addAttribute("color",it->color==White?"white":"black");
+
 			t.closeTag();
 		}
 	}
@@ -158,37 +150,33 @@ XML::Tag* GameChess::generateStateTag(const ChessState &est, const Util::Time& c
 	return t.getTag();
 }
 
-XML::Tag* GameChess::state(const Util::Time& current_time) const {
-	return (this->generateStateTag(chess.getChessState(),current_time));
-}
-
-XML::Tag* GameChess::history() const {
+XML::Tag* GameChessUntimed::history() const {
 	XML::Tag* h=generateHistoryTag();
 	return ChessHistoryProcess::generate(h);
 }
 
-const std::string& GameChess::category() const {
+const std::string& GameChessUntimed::category() const {
 	return this->_category;
 }
 
-const std::string& GameChess::title() const {
+const std::string& GameChessUntimed::title() const {
 	return this->_title;
 }
 
-void GameChess::resign(const Player& player) {
+void GameChessUntimed::resign(const Player& player) {
 	this->_resign=colormap[player]; //set the player who resigned
 	this->_done=RESIGNED; //the game is over and the reason is one of the players resigned
 }
 
-void GameChess::call_flag(const Player& player) {
+void GameChessUntimed::call_flag(const Player& player) {
 }
 
-void GameChess::draw() {
+void GameChessUntimed::draw() {
 	//the players agreed on a draw
 	this->_done=DRAWAGREED;
 }
 
-AdjournedGame* GameChess::adjourn(const Util::Time& current_time) {
+AdjournedGame* GameChessUntimed::adjourn(const Util::Time& current_time) {
 	//you can't adjourn a game if it is over
 	if(this->_done!=NOREASON)
 		throw game_over("cannot adjourn, game already over");
@@ -203,27 +191,15 @@ AdjournedGame* GameChess::adjourn(const Util::Time& current_time) {
 	return new ChessAdjournedGame(hist,this->_simple_players,this->category());
 }
 
-bool GameChess::checkTimeOver(const Util::Time& current_time) {
-	if(this->turns_restart >= 2)
-		if(this->_players[this->chess.turn()].time+this->time_of_last_move-current_time <= Util::Time()) {
-			this->time_over=this->chess.turn();
-			this->_done=TIMEOVER;
-			return true;
-		}
-	return false;
-}
-
-bool GameChess::done(const Util::Time& current_time) {
-	if(this->_done==NOREASON)
-		this->checkTimeOver(current_time);
+bool GameChessUntimed::done(const Util::Time& current_time) {
 	return this->_done!=0;
 }
 
-GameResult* GameChess::result() const {
+GameResult* GameChessUntimed::result() const {
 	return new ChessGameResult(this->doneEndReason(),this->donePlayerResultList(),this->category(),this->generateHistoryTag());
 }
 
-int GameChess::realDone() {
+int GameChessUntimed::realDone() {
 	//aux is and int valuer for type end_reason
 	int aux=0;
 	if(this->_done!=NOREASON)
@@ -238,7 +214,7 @@ int GameChess::realDone() {
 	return 0;
 }
 
-std::string GameChess::doneEndReason() const {
+std::string GameChessUntimed::doneEndReason() const {
 	std::string reason;
 	switch(this->_done) {
 		case RESIGNED:
@@ -251,7 +227,7 @@ std::string GameChess::doneEndReason() const {
 			return "The players agreed on a draw";
 			break;
 		case TIMEOVER:
-			return std::string("Time of ")+std::string((time_over==int(White))?"white":"black")+std::string(" has ended");
+			return std::string("Time of ")+std::string((this->whoTimedOver()==int(White))?"white":"black")+std::string(" has ended");
 			break;
 		case DRAWREPETITION:
 			return "Draw by three fold repetition rule";
@@ -273,7 +249,7 @@ std::string GameChess::doneEndReason() const {
 	return "";
 }
 
-PlayerResultList GameChess::donePlayerResultList() const {
+PlayerResultList GameChessUntimed::donePlayerResultList() const {
 	/* prl is indexed for
 	 * 0 is white
 	 * 1 is black*/
@@ -284,14 +260,14 @@ PlayerResultList GameChess::donePlayerResultList() const {
 	if(this->_done==3 or this->_done>=5) //if it is a draw
 		prl[0].score=prl[1].score="1/2";
 	else if (this->_done!=NOREASON) { //if the game ended
-		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->time_over==1/*black*/);
+		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->whoTimedOver()==1/*black*/);
 		prl[0].score=(aux==true)?"1":"0";
 		prl[1].score=(aux==true)?"0":"1";
 	}
 	return prl;
 }
 
-XML::Tag* GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
+XML::Tag* GameChessUntimed::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
 	//can't make a move if the game is already over
 	if(this->_done!=0)
 		throw game_over("The game is already over");
@@ -300,23 +276,9 @@ XML::Tag* GameChess::move(const Player& player, const std::string& movement, con
 	if(colormap[player]!=chess.turn())
 		throw wrong_turn(std::string("It's not ")+std::string(colormap[player]==Chess::WHITE?"white":"black")+std::string("'s turn"));
 
-	//check if time is over
-	if(this->checkTimeOver(time_stamp))
-		throw time_over::time_over(std::string("Time of ")+std::string(this->standard_player_map[player]->color==White?"white":"black")+std::string(" is over"));
-
 	//make the move
 	if(chess.verifyAndMakeMove(movement)==false)
 		throw invalid_move("Invalid Move"); //if the move isn't succesfull
-
-	//count time
-	if(this->turns_restart >= 2) 
-		this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
-
-	//update time_of_last_move
-	time_of_last_move=time_stamp;
-
-	//update turns since restart
-	this->turns_restart++;
 
 	//set the _done variable here for optimization
 	this->_done=(end_reason)realDone();
@@ -327,8 +289,7 @@ XML::Tag* GameChess::move(const Player& player, const std::string& movement, con
 		realmove+="q";
 
 	//update history_moves
-	int last_time=int(this->standard_player_map[player]->time.getSeconds()+0.001);
-	history_moves+=realmove+" "+Util::to_string(last_time)+" ";
+	history_moves+=realmove+" ";
 
 	//generate move tag
 	XML::TagGenerator move_tag;
@@ -338,7 +299,7 @@ XML::Tag* GameChess::move(const Player& player, const std::string& movement, con
 	return move_tag.getTag();
 }
 
-XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
+XML::Tag* GameChessUntimed::generateHistoryTag(Util::Time time_passed) const {
 	XML::TagGenerator gen;
 
 	gen.openTag("history");
@@ -359,19 +320,6 @@ XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
 
 			gen.addAttribute("score",it->score);
 
-			gen.addAttribute("time",Util::to_string(this->initial_time));
-
-			//TODO
-			//confirm if time_left attribute is only for adjourned games
-			if(this->_done==NOREASON) {
-				if( (this->chess.turn() == colormap.find(it->jid)->second) and (this->turns_restart>=2))
-					gen.addAttribute("time_left",Util::to_string<int>(int((this->_players[(it->role=="white")?0:1].time-time_passed).getSeconds()+0.001)));
-				else
-					gen.addAttribute("time_left",Util::to_string<int>(int(this->_players[(it->role=="white")?0:1].time.getSeconds()+0.001)));
-			}
-
-			gen.addAttribute("inc",Util::to_string<int>(int(this->_players[0].inc.getSeconds()+0.001)));
-
 			gen.closeTag();
 		}
 		gen.closeTag();
@@ -379,9 +327,136 @@ XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
 	return gen.getTag();
 }
 
-//--------------------------------------
-//CHESS GAME RESULT Stuff
-//--------------------------------------
+/*
+ * Game Chess Stuff
+*/
+
+GameChess::GameChess(const StandardPlayerList& _players, const std::string &category) : GameChessUntimed(_players,category) {
+	this->initial_time=int(this->_players[0].time.getSeconds()+0.001);
+
+	//time is not over for anyone
+	this->time_over=-1;
+
+	this->turns_restart=0; //0 turns since the restart of the game
+
+	//no moves were made, so time is 0
+	this->time_of_last_move=Util::Time();
+
+}
+
+GameChess::GameChess(XML::Tag* adjourned_game) : GameChessUntimed(adjourned_game) {
+	//parse XML to get needed variables
+	//this XML is specified in chessd protocol
+	foreach(it,adjourned_game->tags()) {
+		if(it->name()=="player") {
+			this->_players[it->getAttribute("color")=="white"?White:Black].time=Util::Time(it->getAttribute("time_left"),Util::Seconds),
+			this->_players[it->getAttribute("color")=="white"?White:Black].inc=Util::Time(it->getAttribute("inc"),Util::Seconds);
+			this->initial_time=Util::parse_string<int>(it->getAttribute("time"));
+		}
+	}
+	//time is not over for anyone
+	this->time_over=-1;
+
+	this->turns_restart=0; //0 turns since the restart of the game
+
+	//no moves were made, so time is 0
+	this->time_of_last_move=Util::Time();
+
+	//interpret moves
+	this->interpretHistoryMoves(this->history_moves);
+
+	delete adjourned_game;
+}
+
+XML::Tag* GameChess::state(const Util::Time& current_time) const {
+	XML::Tag* ans=GameChessUntimed::state(current_time);
+
+	foreach(it,ans->tags()) {
+		if(it->name()=="player") {
+			Util::Time aux=this->_players[colormap.find(Player(it->getAttribute("jid")))->second].time;
+			if( ( chess.turn()==(colormap.find(Player(it->getAttribute("jid")))->second) ) and (this->turns_restart >= 2) and (this->_done==NOREASON or this->_done==TIMEOVER))
+				aux-=current_time-time_of_last_move;
+			
+			//XXX be careful with double from getSeconds
+			it->attributes()["time"]= Util::to_string((int)(std::max(aux.getSeconds()+0.001,0.0)));
+		}
+	}
+
+	return ans;
+}
+
+bool GameChess::done(const Util::Time& current_time) {
+	if(this->_done==NOREASON)
+		this->checkTimeOver(current_time);
+	return GameChessUntimed::done(current_time);
+}
+
+XML::Tag* GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
+	//check if time is over
+	if(this->checkTimeOver(time_stamp))
+		throw time_over::time_over(std::string("Time of ")+std::string(this->chess.turn()==White?"white":"black")+std::string(" is over"));
+
+	XML::Tag* ans=GameChessUntimed::move(player,movement,time_stamp);
+
+	//count time
+	if(this->turns_restart >= 2) 
+		this->standard_player_map[player]->time-=time_stamp-time_of_last_move-this->standard_player_map[player]->inc;
+
+	//update time_of_last_move
+	time_of_last_move=time_stamp;
+
+	//update turns since restart
+	this->turns_restart++;
+
+	//update history_moves
+	int last_time=int(this->standard_player_map[player]->time.getSeconds()+0.001);
+	history_moves+=Util::to_string(last_time)+" ";
+
+	return ans;
+}
+
+bool GameChess::checkTimeOver(const Util::Time& current_time) {
+	if(this->turns_restart >= 2)
+		if(this->_players[this->chess.turn()].time+this->time_of_last_move-current_time <= Util::Time()) {
+			this->time_over=this->chess.turn();
+			this->_done=TIMEOVER;
+			return true;
+		}
+	return false;
+}
+
+XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
+	XML::Tag* ans=GameChessUntimed::generateHistoryTag(time_passed);
+	foreach( it , ans->tags() ) {
+		if(it->name()=="player") {
+			it->attributes()["time"]=Util::to_string(this->initial_time);
+
+			if(this->_done==NOREASON) {
+				if( (this->chess.turn() == colormap.find(Player(it->getAttribute("jid")))->second) and (this->turns_restart>=2))
+					it->attributes()["time_left"]=Util::to_string<int>(int((this->_players[(it->getAttribute("color")=="white")?0:1].time-time_passed).getSeconds()+0.001));
+				else
+					it->attributes()["time_left"]=Util::to_string<int>(int(this->_players[(it->getAttribute("color")=="white")?0:1].time.getSeconds()+0.001));
+			}
+
+			it->attributes()["inc"]=Util::to_string<int>(int(this->_players[0].inc.getSeconds()+0.001));
+
+		}
+	}
+	return ans;
+}
+
+void GameChess::interpretHistoryMoves(const std::string& moves) {
+	std::stringstream ss(moves);
+	std::string mv;
+	for(int i=0 ; ss >> mv ; i=(i+1)%2) {
+		this->chess.makeMove(mv);
+		ss >> mv;
+	}
+}
+
+/*--------------------------------------
+ *CHESS GAME RESULT Stuff
+ *--------------------------------------*/
 
 ChessGameResult::ChessGameResult(const std::string &endreason,const PlayerResultList &prl, const std::string& __category, XML::Tag* hist) : _history(hist) {
 	this->_end_reason=endreason;
