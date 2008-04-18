@@ -48,7 +48,7 @@ BEGIN;
 
 
     CREATE TABLE player_rating (
-        user_id     i   nteger REFERENCES users,
+        user_id         integer REFERENCES users,
         category        varchar NOT NULL,
         rating          integer NOT NULL,
         volatility      numeric NOT NULL,
