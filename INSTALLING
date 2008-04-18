@@ -81,7 +81,16 @@ that you should change a line that look like this:
 In order to give a name to the server. You also should replace "secret"
 with a password that will be used by the chessd to connect to ejabberd.
 
-Then just restart the ejabberd server if it was already running.
+You must enable in-band registration too. Look up for a line that
+looks like this:
+
+{access, register, [{deny, all}]}.
+
+And replace it with:
+
+{access, register, [{allow, all}]}.
+
+Then just restart ejabberd if it was already running.
 
 --- Setting up chessd ---
 
