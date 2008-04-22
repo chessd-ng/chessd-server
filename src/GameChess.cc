@@ -30,6 +30,7 @@
 GameChessUntimed::GameChessUntimed(const StandardPlayerList& _players, const std::string &_category) {
 	this->_category=_category;
 	this->_players=_players;
+	this->auto_flag=true;
 
 	/*
 	 * 0 is white
@@ -168,7 +169,15 @@ void GameChessUntimed::resign(const Player& player) {
 	this->_done=RESIGNED; //the game is over and the reason is one of the players resigned
 }
 
-void GameChessUntimed::call_flag(const Player& player) {
+void GameChessUntimed::call_flag(const Util::Time& current_time) {
+	if(this->_done==NOREASON) {
+		int aux;
+		if((aux=chess.verifyDraw())!=0)
+			//there are 3 reasons for drawing and chess.verifyDraw()
+			//returns an int between 0 and 3 and the draw reasons begin
+			//at value 5, that's whi +4 
+			this->_done=(end_reason)(aux+4);
+	}
 }
 
 void GameChessUntimed::draw() {
@@ -200,18 +209,15 @@ GameResult* GameChessUntimed::result() const {
 }
 
 int GameChessUntimed::realDone() {
-	//aux is and int valuer for type end_reason
-	int aux=0;
 	if(this->_done!=NOREASON)
 		return this->_done;
 	else if(chess.verifyCheckMate())
 		return CHECKMATE;
-	else if((aux=chess.verifyDraw())!=0)
-		//there are 3 reasons for drawing and chess.verifyDraw()
-		//returns an int between 0 and 3 and the draw reasons begin
-		//at value 5, that's whi +4 
-		return aux+4;
-	return 0;
+	else {
+		if(auto_flag==true)
+			GameChessUntimed::call_flag(Util::Time());
+	}
+	return this->_done;
 }
 
 std::string GameChessUntimed::doneEndReason() const {
@@ -240,6 +246,9 @@ std::string GameChessUntimed::doneEndReason() const {
 			break;
 		case DRAWSTALEMATE:
 			return "Draw by stalemate";
+			break;
+		case DRAWTIMEOVER:
+			return "Time of both players have ended";
 			break;
 		default:
 			//this shouldn't happen because this function
@@ -378,11 +387,19 @@ XML::Tag* GameChess::state(const Util::Time& current_time) const {
 				aux-=current_time-time_of_last_move;
 			
 			//XXX be careful with double from getSeconds
-			it->attributes()["time"]= Util::to_string((int)(std::max(aux.getSeconds()+0.001,0.0)));
+			if(this->auto_flag == true)
+				it->attributes()["time"]= Util::to_string((int)(std::max(aux.getSeconds()+0.001,0.0)));
+			else
+				it->attributes()["time"]= Util::to_string((int)(aux.getSeconds()+0.001));
 		}
 	}
 
 	return ans;
+}
+
+void GameChess::call_flag(const Util::Time& current_time) {
+	this->checkTimeOver(current_time);
+	GameChessUntimed::call_flag(current_time);
 }
 
 bool GameChess::done(const Util::Time& current_time) {
@@ -393,8 +410,9 @@ bool GameChess::done(const Util::Time& current_time) {
 
 XML::Tag* GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
 	//check if time is over
-	if(this->checkTimeOver(time_stamp))
-		throw time_over::time_over(std::string("Time of ")+std::string(this->chess.turn()==White?"white":"black")+std::string(" is over"));
+	if(this->auto_flag==true)
+		if(this->checkTimeOver(time_stamp))
+			throw time_over::time_over(std::string("Time of ")+std::string(this->chess.turn()==White?"white":"black")+std::string(" is over"));
 
 	XML::Tag* ans=GameChessUntimed::move(player,movement,time_stamp);
 
@@ -416,13 +434,19 @@ XML::Tag* GameChess::move(const Player& player, const std::string& movement, con
 }
 
 bool GameChess::checkTimeOver(const Util::Time& current_time) {
-	if(this->turns_restart >= 2)
-		if(this->_players[this->chess.turn()].time+this->time_of_last_move-current_time <= Util::Time()) {
-			this->time_over=this->chess.turn();
-			this->_done=TIMEOVER;
-			return true;
+	int conta=0;
+	if(this->turns_restart >= 2) {
+		for(int i=0;i<2;i++) {
+			if(this->_players[i].time+((this->chess.turn()==i)?(this->time_of_last_move-current_time):Util::Time()) <= Util::Time()) {
+				this->time_over=i;
+				this->_done=TIMEOVER;
+				conta++;
+			}
 		}
-	return false;
+	}
+	if(conta==2)
+		this->_done=DRAWTIMEOVER;
+	return conta>0;
 }
 
 XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {

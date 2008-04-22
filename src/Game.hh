@@ -100,7 +100,7 @@ class Game {
 		virtual void resign(const Player& player) = 0;
 
 		/*! \brief The player has called a flag. */
-		virtual void call_flag(const Player& player) = 0;
+		virtual void call_flag(const Util::Time& current_time) = 0;
 
 		/*! \brief The players agreed on a draw. */
 		virtual void draw() = 0;

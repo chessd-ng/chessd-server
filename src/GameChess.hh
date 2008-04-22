@@ -26,7 +26,7 @@
 #include <vector>
 
 enum end_reason{
-	NOREASON=0,RESIGNED=1,CHECKMATE=2,DRAWAGREED=3,TIMEOVER=4,DRAWREPETITION=5,DRAWIMPOSSIBILITYOFCHECKMATE=6,DRAWFIFTYMOVE=7,DRAWSTALEMATE=8
+	NOREASON=0,RESIGNED=1,CHECKMATE=2,DRAWAGREED=3,TIMEOVER=4,DRAWREPETITION=5,DRAWIMPOSSIBILITYOFCHECKMATE=6,DRAWFIFTYMOVE=7,DRAWSTALEMATE=8,DRAWTIMEOVER=9
 };
 /*
  * Instead of having GameChess and GameChessUntimed,
@@ -61,7 +61,7 @@ class GameChessUntimed : public Game {
 		virtual void resign(const Player& player);
 
 		/*! \brief The player has called a flag */
-		virtual void call_flag(const Player& player); //TODO
+		virtual void call_flag(const Util::Time& current_time); //TODO
 
 		/*! \brief The players agreed on a draw */
 		virtual void draw();
@@ -104,10 +104,7 @@ class GameChessUntimed : public Game {
 
 		virtual void interpretHistoryMoves(const std::string& moves);
 
-	//private:
-		//\brief set initial variables, it is just called in the constructor
-		void setInitialVariables();
-
+		bool auto_flag;
 		/*
 		 * for optimizations reasons, the reason why the game is over is set on move
 		 * and when done is called, it's only needed to see the value of this variable
@@ -150,6 +147,8 @@ class GameChessUntimed : public Game {
 		//a list of Players
         PlayerList _simple_players;
 	private:
+		//\brief set initial variables, it is just called in the constructor
+		void setInitialVariables();
 };
 
 class GameChess: public GameChessUntimed {
@@ -161,6 +160,8 @@ class GameChess: public GameChessUntimed {
 		GameChess(XML::Tag* adjourned_game);
 
 		virtual XML::Tag* state(const Util::Time& current_time) const;
+
+		virtual void call_flag(const Util::Time& current_time);
 
 		virtual bool done(const Util::Time& current_time) ;
 
