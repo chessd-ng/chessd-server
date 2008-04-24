@@ -90,6 +90,15 @@ And replace it with:
 
 {access, register, [{allow, all}]}.
 
+In order to enable some of the admin features, you have to give
+admin privilegies to the admin component. To do so you just
+have to add the following line to the ejabberd config file:
+
+{acl, admin, {user, "", "admin.localhost"}}.
+
+Here, the "admin.localhost" string must be the same one
+you chose for the component configuration.
+
 Then just restart ejabberd if it was already running.
 
 --- Setting up chessd ---
