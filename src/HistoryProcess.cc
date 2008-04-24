@@ -34,6 +34,7 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 	XML::TagGenerator new_history;
 	std::string category=history_tag->getAttribute("category");
 	int new_time;
+	int initial_time=-1;
 
 	/*
 	 * position 0 is white
@@ -51,9 +52,11 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 				if(players[p]->hasAttribute("time")==false) {
 					std::stringstream s(history_tag->findChild("moves").getAttribute("movetext"));
 					std::string tmp;
-					s >> tmp >> tmp;
-					players[p]->attributes()["time"]=tmp;
+					if(s >> tmp >> tmp) {
+						players[p]->attributes()["time"]=tmp;
+					}
 				}
+				initial_time=Util::parse_string<int>(players[p]->attributes()["time"]);
 			}
 //			players[p]->attributes().erase("time");
 		}
@@ -68,6 +71,7 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 		std::stringstream s(history_tag->findChild("moves").getAttribute("movetext"));
 		std::string move;
 		new_time=-1;
+		new_history.addChild(generateStateTag(chess.getChessState(),initial_time,"",""));
 		for(int i=0;s >> move;i++) {
 			chess.makeMove(move);
 
