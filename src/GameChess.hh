@@ -202,7 +202,7 @@ class GameChess: public GameChessUntimed {
 
 class ChessGameResult : public GameResult {
 	public:
-		ChessGameResult(const std::string& endreason,const PlayerResultList &l,const std::string& _category,XML::Tag *hist);
+		ChessGameResult(const std::string& endreason,const PlayerResultList &l,const XML::AttributeMap& _game_attributes,XML::Tag *hist);
 
 		virtual ~ChessGameResult();
 
@@ -211,6 +211,8 @@ class ChessGameResult : public GameResult {
 		virtual const std::string& end_reason() const;
 
 		virtual const PlayerResultList& players() const;
+
+		virtual bool isRated() const;
 
 		/*! \brief generates a History tag*/
 		virtual XML::Tag* history() const;
@@ -223,7 +225,7 @@ class ChessGameResult : public GameResult {
 	private:
 		std::string _end_reason;
 
-		std::string _category;
+		XML::AttributeMap game_attributes;
 
 		XML::Tag *_history;
 };

@@ -29,6 +29,9 @@
 */
 GameChessUntimed::GameChessUntimed(const StandardPlayerList& _players, const XML::AttributeMap& _game_attributes) {
 	this->game_attributes=_game_attributes;
+	if(this->game_attributes.find("category")==this->game_attributes.end())
+		this->game_attributes["category"]="standard";
+
 	this->_players=_players;
 	this->auto_flag=this->game_attributes["autoflag"]=="true";
 
@@ -162,7 +165,9 @@ const std::string& GameChessUntimed::category() const {
 }
 
 bool GameChessUntimed::isRated() const {
-	return this->game_attributes.find("rated")->second=="true";
+	if_find(it,"rated",this->game_attributes)
+		return it->second=="true";
+	return true;
 }
 
 const std::string& GameChessUntimed::title() const {
@@ -210,7 +215,7 @@ bool GameChessUntimed::done(const Util::Time& current_time) {
 }
 
 GameResult* GameChessUntimed::result() const {
-	return new ChessGameResult(this->doneEndReason(),this->donePlayerResultList(),this->category(),this->generateHistoryTag());
+	return new ChessGameResult(this->doneEndReason(),this->donePlayerResultList(),this->game_attributes,this->generateHistoryTag());
 }
 
 int GameChessUntimed::realDone() {
@@ -487,10 +492,12 @@ void GameChess::interpretHistoryMoves(const std::string& moves) {
  *CHESS GAME RESULT Stuff
  *--------------------------------------*/
 
-ChessGameResult::ChessGameResult(const std::string &endreason,const PlayerResultList &prl, const std::string& __category, XML::Tag* hist) : _history(hist) {
+ChessGameResult::ChessGameResult(const std::string &endreason,const PlayerResultList &prl, const XML::AttributeMap& _game_attributes, XML::Tag* hist) : _history(hist) {
 	this->_end_reason=endreason;
 	this->player_result_list=prl;
-	this->_category=__category;
+	this->game_attributes=_game_attributes;
+	if(this->game_attributes.find("category")==this->game_attributes.end())
+		this->game_attributes["category"]="standard";
 }
 
 ChessGameResult::~ChessGameResult() {
@@ -498,7 +505,7 @@ ChessGameResult::~ChessGameResult() {
 }
 
 const std::string& ChessGameResult::category() const {
-	return this->_category;
+	return this->game_attributes.find("category")->second;
 }
 
 const std::string& ChessGameResult::end_reason() const {
@@ -507,6 +514,12 @@ const std::string& ChessGameResult::end_reason() const {
 
 const PlayerResultList& ChessGameResult::players() const {
 	return this->player_result_list;
+}
+
+bool ChessGameResult::isRated() const {
+	if_find(it,"rated",this->game_attributes)
+		return it->second=="true";
+	return true;
 }
 
 XML::Tag* ChessGameResult::history() const {

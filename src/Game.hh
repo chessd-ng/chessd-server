@@ -49,6 +49,9 @@ class GameResult {
 		/*! \brief List of all players in the game */
 		virtual const PlayerResultList& players() const = 0;
 
+		/*! \brief verify if the game is rated or not*/
+		virtual bool isRated() const = 0;
+
 		/*! \brief The game history */
 		virtual XML::Tag* history() const = 0;
 
