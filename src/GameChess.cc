@@ -27,10 +27,10 @@
 /*
  * Set initial variables.
 */
-GameChessUntimed::GameChessUntimed(const StandardPlayerList& _players, const std::string &_category) {
-	this->_category=_category;
+GameChessUntimed::GameChessUntimed(const StandardPlayerList& _players, const XML::AttributeMap& _game_attributes) {
+	this->game_attributes=_game_attributes;
 	this->_players=_players;
-	this->auto_flag=true;
+	this->auto_flag=this->game_attributes["autoflag"]=="true";
 
 	/*
 	 * 0 is white
@@ -49,7 +49,8 @@ GameChessUntimed::GameChessUntimed(const StandardPlayerList& _players, const std
 }
 
 GameChessUntimed::GameChessUntimed(XML::Tag* adjourned_game) {
-	this->_category=adjourned_game->getAttribute("category");
+	this->game_attributes=adjourned_game->attributes();
+	this->auto_flag=true;
 
 	//parse XML to get needed variables
 	//this XML is specified in chessd protocol
@@ -84,7 +85,7 @@ GameChessUntimed::GameChessUntimed(XML::Tag* adjourned_game) {
 	this->setInitialVariables();
 
 
-	if(this->_category=="untimed") {
+	if(this->category()=="untimed") {
 		this->interpretHistoryMoves(this->history_moves);
 		delete adjourned_game;
 	}
@@ -157,7 +158,11 @@ XML::Tag* GameChessUntimed::history() const {
 }
 
 const std::string& GameChessUntimed::category() const {
-	return this->_category;
+	return this->game_attributes.find("category")->second;
+}
+
+bool GameChessUntimed::isRated() const {
+	return this->game_attributes.find("rated")->second=="true";
 }
 
 const std::string& GameChessUntimed::title() const {
@@ -340,7 +345,7 @@ XML::Tag* GameChessUntimed::generateHistoryTag(Util::Time time_passed) const {
  * Game Chess Stuff
 */
 
-GameChess::GameChess(const StandardPlayerList& _players, const std::string &category) : GameChessUntimed(_players,category) {
+GameChess::GameChess(const StandardPlayerList& _players, const XML::AttributeMap& _game_attributes) : GameChessUntimed(_players,_game_attributes) {
 	this->initial_time=int(this->_players[0].time.getSeconds()+0.001);
 
 	//time is not over for anyone

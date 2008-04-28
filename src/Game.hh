@@ -96,6 +96,9 @@ class Game {
 		/*! \brief A title for the game. */
 		virtual const std::string& title() const = 0;
 
+		/*! \brief A title for the game. */
+		virtual bool isRated() const = 0;
+
 		/*! \brief The player has resigned. */
 		virtual void resign(const Player& player) = 0;
 

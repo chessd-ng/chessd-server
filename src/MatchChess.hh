@@ -25,7 +25,7 @@
 
 struct MatchChess : public Match {
 	public:
-		MatchChess(const std::vector<XML::Tag>& players, const std::string& __category);
+		MatchChess(const std::vector<XML::Tag>& players, const XML::AttributeMap& __attributes);
 
 		virtual ~MatchChess();
 		
@@ -43,7 +43,7 @@ struct MatchChess : public Match {
 		std::vector<XML::Tag> _match_players;
 
 	private:
-		std::string _category;
+		XML::AttributeMap _attributes;
 
 		PlayerList _players;
 
@@ -53,7 +53,7 @@ struct MatchChess : public Match {
 
 struct MatchChessAdjourn : public MatchChess {
 	public:
-		MatchChessAdjourn(XML::Tag* _history) : MatchChess(this->getPlayersTag(*_history),_history->getAttribute("category")), history(_history) { }
+		MatchChessAdjourn(XML::Tag* _history) : MatchChess(this->getPlayersTag(*_history),_history->attributes()), history(_history) { }
 
 		virtual Game* createGame() const;
 

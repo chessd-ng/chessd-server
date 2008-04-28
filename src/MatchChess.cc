@@ -25,9 +25,9 @@
  * MatchChess stuff
 */
 
-MatchChess::MatchChess(const std::vector<XML::Tag>& players, const std::string& __category) : 
+MatchChess::MatchChess(const std::vector<XML::Tag>& players, const XML::AttributeMap& __attributes) : 
 	_match_players(players) ,
-	_category(__category)
+	_attributes(__attributes)
 {
 	foreach(it,players)
 		this->_players.push_back(Player(it->getAttribute("jid")));
@@ -41,13 +41,13 @@ const PlayerList& MatchChess::players() const {
 }
 
 const std::string& MatchChess::category() const {
-	return this->_category;
+	return this->_attributes.find("category")->second;
 }
 
 Game* MatchChess::createGame() const {
-	if(this->_category!="untimed")
-		return new GameChess(this->getPlayersFromXML(this->_match_players),this->_category);
-	return new GameChessUntimed(this->getPlayersFromXML(this->_match_players),this->_category);
+	if(this->category()!="untimed")
+		return new GameChess(this->getPlayersFromXML(this->_match_players),this->_attributes);
+	return new GameChessUntimed(this->getPlayersFromXML(this->_match_players),this->_attributes);
 }
 
 XML::Tag* MatchChess::notification() const {

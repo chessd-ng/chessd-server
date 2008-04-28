@@ -36,7 +36,7 @@ enum end_reason{
 */
 class GameChessUntimed : public Game {
 	public:
-		GameChessUntimed(const StandardPlayerList& _players, const std::string &category);
+		GameChessUntimed(const StandardPlayerList& _players, const XML::AttributeMap &__attributes);
 
 		/*! \brief Constructor for adjourned games
 		 * \description it assumes that adjourned games are not over */
@@ -56,6 +56,8 @@ class GameChessUntimed : public Game {
 		/*! \brief function to return the title of the game
 		 * \return returns the full jids of the player separated by an "x" */
 		virtual const std::string& title() const;
+
+		virtual bool isRated() const;
 
 		/*! \brief The player has resigned */
 		virtual void resign(const Player& player);
@@ -91,6 +93,8 @@ class GameChessUntimed : public Game {
 
 		int realDone();
 
+		//stores the attributes of the game
+		XML::AttributeMap game_attributes;
 		
 		//! \brief generates history tag as specified in chessd protocol
 		virtual XML::Tag* generateHistoryTag(Util::Time time_passed=Util::Time()) const;
@@ -123,9 +127,6 @@ class GameChessUntimed : public Game {
 		//stores the title of the game "jid white x jid black"
 		std::string _title;
 
-		//stores wich catecory the game is
-		std::string _category;
-
 		/*
 		 * libchess is based in color, and this API is based on jid, so
 		 * this map make the correlations between jid and color
@@ -153,7 +154,7 @@ class GameChessUntimed : public Game {
 
 class GameChess: public GameChessUntimed {
 	public:
-		GameChess(const StandardPlayerList& _players, const std::string &category);
+		GameChess(const StandardPlayerList& _players, const XML::AttributeMap& category);
 
 		/*! \brief Constructor for adjourned games
 		 * \description it assumes that adjourned games are not over */

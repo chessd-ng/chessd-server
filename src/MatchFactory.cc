@@ -23,7 +23,7 @@
 
 Match* MatchFactory::create(const XML::Tag& match_offer,const TeamDatabase& teams) {
 	validateXML(match_offer);
-	return new MatchChess(getPlayersTag(match_offer),match_offer.getAttribute("category"));
+	return new MatchChess(getPlayersTag(match_offer),match_offer.attributes());
 }
 
 bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& category) {

@@ -103,7 +103,7 @@ Then just restart ejabberd if it was already running.
 
 --- Setting up chessd ---
 
-Finally, let's setup the server. Settgin up chessd consist only in inform
+Finally, let's setup the server. Setting up chessd consist only in inform
 the server of the previous configurations. All you have to do is edit the
 config.xml. It should look like this:
 

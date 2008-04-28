@@ -24,6 +24,10 @@
 ChessTourney::ChessTourney(const std::string& __category, const Util::Time& _initial_time, const Util::Time& _inc, int __rounds) : _category(__category), initial_time(_initial_time), inc(_inc), _rounds(__rounds), _missing_rounds(__rounds), tourney('s') {
 	tourney_started=false;
 	missing_results=false;
+	game_attributes["category"]=__category;
+	game_attributes["time"]=Util::to_string((int)_initial_time.getSeconds());
+	game_attributes["inc"]=Util::to_string((int)_inc.getSeconds());
+	game_attributes["rounds"]=Util::to_string(__rounds);
 }
 
 const TourneyPlayerList& ChessTourney::players() const {
@@ -76,7 +80,7 @@ std::vector<Game*>* ChessTourney::makeGames(const std::list<Pairing::Game>& game
 		StandardPlayerList players;
 		players.push_back(StandardPlayer(this->_players[it->whiteName].jid,this->initial_time,this->inc,White));
 		players.push_back(StandardPlayer(this->_players[it->blackName].jid,this->initial_time,this->inc,Black));
-		g->push_back(new GameChess(players,this->_category));
+		g->push_back(new GameChess(players,this->game_attributes));
 	}
 	return g;
 }
