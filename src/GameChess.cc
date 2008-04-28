@@ -33,7 +33,7 @@ GameChessUntimed::GameChessUntimed(const StandardPlayerList& _players, const XML
 		this->game_attributes["category"]="standard";
 
 	this->_players=_players;
-	this->auto_flag=this->game_attributes["autoflag"]=="true";
+	this->auto_flag=this->game_attributes["autoflag"]=="true" or this->game_attributes["autoflag"]=="";
 
 	/*
 	 * 0 is white
@@ -413,7 +413,7 @@ void GameChess::call_flag(const Util::Time& current_time) {
 }
 
 bool GameChess::done(const Util::Time& current_time) {
-	if(this->_done==NOREASON)
+	if(this->_done==NOREASON and this->auto_flag==true)
 		this->checkTimeOver(current_time);
 	return GameChessUntimed::done(current_time);
 }
