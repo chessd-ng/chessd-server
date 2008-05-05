@@ -263,7 +263,9 @@ void DatabaseInterface::insertGameResult(GameResult& game_result)
     }
 
     /* update ratings */
-    game_result.updateRating(ratings);
+    if(game_result.isRated()) {
+        game_result.updateRating(ratings);
+    }
 
     /* create vector of persistent ratings */
     foreach(it, ratings) {
