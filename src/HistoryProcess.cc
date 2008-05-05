@@ -24,7 +24,7 @@
 
 XML::Tag* HistoryProcess::generate(XML::Tag* history_tag) {
 	std::string category=history_tag->getAttribute("category");
-	if(category=="standard" or category=="blitz" or category=="lightning")
+	if(category=="standard" or category=="blitz" or category=="lightning" or category=="untimed")
 		return ChessHistoryProcess::generate(history_tag);
 	return 0;
 }
@@ -34,6 +34,7 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 	XML::TagGenerator new_history;
 	std::string category=history_tag->getAttribute("category");
 	int new_time;
+	int initial_time=-1;
 
 	/*
 	 * position 0 is white
@@ -46,12 +47,16 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 			int p=((it->getAttribute("color")==std::string("white"))?0:1);
 			players[p]=new XML::Tag(*it);
 			players[p]->attributes().erase("score");
-			//FIXME workarround
-			if(players[p]->hasAttribute("time")==false) {
-				std::stringstream s(history_tag->findChild("moves").getAttribute("movetext"));
-				std::string tmp;
-				s >> tmp >> tmp;
-				players[p]->attributes()["time"]=tmp;
+			//FIXME workarround to get initial time
+			if(category!="untimed") {
+				if(players[p]->hasAttribute("time")==false) {
+					std::stringstream s(history_tag->findChild("moves").getAttribute("movetext"));
+					std::string tmp;
+					if(s >> tmp >> tmp) {
+						players[p]->attributes()["time"]=tmp;
+					}
+				}
+				initial_time=Util::parse_string<int>(players[p]->attributes()["time"]);
 			}
 //			players[p]->attributes().erase("time");
 		}
@@ -65,10 +70,13 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 
 		std::stringstream s(history_tag->findChild("moves").getAttribute("movetext"));
 		std::string move;
+		new_time=-1;
+		new_history.addChild(generateStateTag(chess.getChessState(),initial_time,"",""));
 		for(int i=0;s >> move;i++) {
 			chess.makeMove(move);
 
-			s >> new_time;
+			if(category!="untimed")
+				s >> new_time;
 
 			new_history.addChild(generateStateTag(chess.getChessState(),new_time,move,chess.PGNOfLastMove()));
 		}
@@ -93,7 +101,8 @@ XML::Tag* ChessHistoryProcess::generateStateTag(const ChessState& state, int tim
 		new_state.addAttribute("fullmoves",Util::to_string(state.fullmoves));*/
 		new_state.addAttribute("move",mv);
 		new_state.addAttribute("short",short_mv);
-		new_state.addAttribute("time",Util::to_string(time));
+		if(time>=0)
+			new_state.addAttribute("time",Util::to_string(time));
 		new_state.closeTag();
 	}
 	return new_state.getTag();

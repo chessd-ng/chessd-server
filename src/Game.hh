@@ -49,6 +49,9 @@ class GameResult {
 		/*! \brief List of all players in the game */
 		virtual const PlayerResultList& players() const = 0;
 
+		/*! \brief verify if the game is rated or not*/
+		virtual bool isRated() const = 0;
+
 		/*! \brief The game history */
 		virtual XML::Tag* history() const = 0;
 
@@ -96,11 +99,14 @@ class Game {
 		/*! \brief A title for the game. */
 		virtual const std::string& title() const = 0;
 
+		/*! \brief A title for the game. */
+		virtual bool isRated() const = 0;
+
 		/*! \brief The player has resigned. */
 		virtual void resign(const Player& player) = 0;
 
 		/*! \brief The player has called a flag. */
-		virtual void call_flag(const Player& player) = 0;
+		virtual void call_flag(const Util::Time& current_time) = 0;
 
 		/*! \brief The players agreed on a draw. */
 		virtual void draw() = 0;

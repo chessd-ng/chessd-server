@@ -43,6 +43,10 @@
 		<name>Draw by stalemate</name>
 		<text>Draw by stalemate</text>
 	</text>
+	<text>
+		<name>Time of both players have ended</name>
+		<text>Time of both players have ended</text>
+	</text>
     <text>
         <name>The game was adjourned</name>
         <text>The game was adjourned</test>

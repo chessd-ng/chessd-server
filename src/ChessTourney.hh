@@ -56,6 +56,8 @@ class ChessTourney : public Tourney {
 		
 		TourneyPlayerList _players;
 
+		XML::AttributeMap game_attributes;
+
 	private:
 		std::map<XMPP::Jid,int> player_map;
 

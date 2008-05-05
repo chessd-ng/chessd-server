@@ -299,18 +299,21 @@ void Chess::updateState(const ChessMove& mv) {
 }
 
 bool Chess::verifyCastle(const ChessMove& mv) const {
+	/*if the king has moved two positions to the right or left, then it's a castle*/
 	if( (this->gameboard->getType(mv.from()) == ChessPiece::KING))
 		if( abs(mv.to().x - mv.from().x)==2 )
 			return true;
 	return false;
 }
 
-bool Chess::verifyStaleMate(int player) const { 
+bool Chess::verifyStaleMate(int player) const {
+	//if the player is in check, it's not stalemate
 	if(verifyCheck(player) == true)
 		return false;
 
-	for(int i=0; i<this->nlines;i++) 
-		for(int j=0;j<this->ncolums;j++) 
+	/*Search for the pieces of "player" and check if there's a valid position for each one*/
+	for(int i=0; i<this->nlines;i++)
+		for(int j=0;j<this->ncolums;j++)
 			if( this->gameboard->color(Position(j,i)) == player ) {
 				Position pos(j,i);
 				std::vector <Position> *p=getPositions(pos);
@@ -336,6 +339,7 @@ bool Chess::verifyThreefoldRepetition() const {
 }
 
 bool Chess::verifyImpossibilityOfCheckmate() const {
+	/*this vector stores all pieces of each player*/
 	std::vector<std::pair<ChessPiece,Position> > aux[2];
 	for(int i=0;i<this->nlines;i++)
 		for(int j=0;j<this->ncolums;j++) {
@@ -346,20 +350,25 @@ bool Chess::verifyImpossibilityOfCheckmate() const {
 			}
 		}
 
+	/* if the two players have only one piece, then it's sure that it is only one king foreach
+	 * and is a impossibility of checkmate */
 	if((aux[0].size()==1) and (aux[1].size()==1))
 		return true;
+	/* if white has one piece and black has 2, a king and a bishop or a knight*/
 	else if((aux[0].size()==1) and (aux[1].size()==2)) {
 		for(int i=0;i<(int)aux[1].size();i++)
 			if(aux[1][i].first.type()==ChessPiece::BISHOP or aux[1][i].first.type()==ChessPiece::KNIGHT)
 				return true;
 	}
 
+	/* if black has one piece and white has 2, a king and a bishop or a knight*/
 	else if((aux[0].size()==2) and (aux[1].size()==1)) {
 		for(int i=0;i<(int)aux[0].size();i++)
 			if(aux[0][i].first.type()==ChessPiece::BISHOP or aux[0][i].first.type()==ChessPiece::KNIGHT)
 				return true;
 	}
 
+	/*if both players have 2 pieces a king and a bishop of different color*/
 	else if((aux[0].size()==2) and (aux[1].size()==2)) {
 		for(int i=0;i<(int)aux[0].size();i++)
 			if(aux[0][i].first.type()==ChessPiece::BISHOP)
@@ -384,7 +393,9 @@ std::vector<Position> Chess::howmanyCanMove(const Position& where, const ChessPi
 	return ans;
 }
 
-bool Chess::differentColums(Position where, const std::vector<Position>& pos) {
+bool Chess::differentColumns(Position where, const std::vector<Position>& pos) {
+	/*iterate through all elements of "pos" searching for a position
+	that has the same column as "where*/
 	for(unsigned int i=0;i<pos.size();i++)
 		if(where != pos[i])
 			if(where.x == pos[i].x)
@@ -393,6 +404,8 @@ bool Chess::differentColums(Position where, const std::vector<Position>& pos) {
 }
 
 bool Chess::differentRows(Position where, const std::vector<Position>& pos) {
+	/*iterate through all elements of "pos" searching for a position
+	that has the same row as "where*/
 	for(unsigned int i=0;i<pos.size();i++)
 		if(where != pos[i])
 			if(where.y == pos[i].y)
@@ -413,14 +426,16 @@ std::string Chess::ChessMoveToPGN(const ChessMove& mv) const {
 	//set to that is always present
 	to=mv.to().toStringNotation();
 
+	//only pawns that don't require the name of the piece
 	if(this->gameboard->getType(mv.from()) != ChessPiece::PAWN)
+		//set the name of the piece at the beginning
 		from=toupper(this->gameboard->getPieceReal(mv.from()));
 
 	//if more than one piece of the same type can go to that position
 	if((pieces_positions=howmanyCanMove(mv.to(),this->gameboard->getType(mv.from()))).size() > 1) {
 		/*if the piece going to position mv.to() is in a different
 		  column from the others*/
-		if(differentColums(mv.from(),pieces_positions)==true)
+		if(differentColumns(mv.from(),pieces_positions)==true)
 			from+=char(mv.from().x+'a');
 		/*if the piece going to position mv.to() is in a different
 		  row from the others*/

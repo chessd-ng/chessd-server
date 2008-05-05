@@ -24,7 +24,8 @@
 #include "Util/Timer.hh"
 enum StandardPlayerColor {
 	White=0,
-	Black=1
+	Black=1,
+	Undefined=-1
 };
 /*! \brief All the info necessary for a player
 */

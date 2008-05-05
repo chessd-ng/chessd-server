@@ -1,11 +1,11 @@
 <locale lang='pt-br'>
     <text>
         <name>White has won by checkmate</name>
-        <text>As brancas ganharam por cheque-mate</text>
+        <text>As brancas ganharam por xeque-mate</text>
     </text>
     <text>
         <name>Black has won by checkmate</name>
-        <text>As pretas ganharam por cheque-mate</text>
+        <text>As pretas ganharam por xeque-mate</text>
     </text>
     <text>
         <name>White has resigned</name>
@@ -41,7 +41,11 @@
 	</text>
 	<text>
 		<name>Draw by stalemate</name>
-		<text>Empate por cheque perpétuo</text>
+		<text>Empate por xeque perpétuo</text>
+	</text>
+	<text>
+		<name>Time of both players have ended</name>
+		<text>O tempo dos dois jogadores acabaram</text>
 	</text>
     <text>
         <name>The game was adjourned</name>

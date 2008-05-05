@@ -22,11 +22,12 @@
 #include "GameException.hh"
 
 Match* MatchFactory::create(const XML::Tag& match_offer,const TeamDatabase& teams) {
-	return new MatchChess(getPlayersTag(match_offer),match_offer.getAttribute("category"));
+	validateXML(match_offer);
+	return new MatchChess(getPlayersTag(match_offer),match_offer.attributes());
 }
 
 bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& category) {
-	if(!_player.hasAttribute("time"))
+	if(!_player.hasAttribute("time") and category!="untimed")
 		return false;
 
 	if(category=="standard") {
@@ -43,6 +44,8 @@ bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& catego
 				(2u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Seconds)))
 			return true;
 	}
+	else if(category=="untimed")
+		return true;
 	return false;
 }
 
@@ -61,6 +64,7 @@ void MatchFactory::validateXML(const XML::Tag& _match_offer) {
 		throw bad_information("category from xml incompatible with class game type");
 
 	int count=0;
+	int count_color=0;
 	std::set<std::string> colors;
 	std::pair<bool,std::string> time;
 	time.first=false;
@@ -70,30 +74,35 @@ void MatchFactory::validateXML(const XML::Tag& _match_offer) {
 			if(!c_it->hasAttribute("jid"))
 				throw bad_information("xml does not have jid for a player");
 
-			if(!c_it->hasAttribute("color"))
-				throw bad_information("xml does not have color for a player");
+			if(c_it->hasAttribute("color")) {
+				if(c_it->getAttribute("color")!="white" and c_it->getAttribute("color")!="black")
+					throw bad_information("wrong color for a player");
 
-			if(c_it->getAttribute("color")!="white" and c_it->getAttribute("color")!="black")
-				throw bad_information("wrong color for a player");
+				if(colors.insert(c_it->getAttribute("color")).second==false)
+					throw bad_information("Players of equal colors in the same match");
+				count_color++;
 
-			if(colors.insert(c_it->getAttribute("color")).second==false)
-				throw bad_information("Players of equal colors in the same match");
+			}
 
-			if(!c_it->hasAttribute("time"))
+			if(!c_it->hasAttribute("time") and category!="untimed")
 				throw bad_information("xml does not have time for a player");
 
-			if(time.first==true) {
-				if(time.second!=c_it->getAttribute("time"))
-					throw bad_information("time for players are diferent");
+			if(category!="untimed") {
+				if(time.first==true) {
+					if(time.second!=c_it->getAttribute("time"))
+						throw bad_information("time for players are diferent");
+				}
+				else
+					time=make_pair(true,c_it->getAttribute("time"));
+				if(isTimeValid(*c_it,category)==false)
+					throw bad_information(std::string("invalid time for category ")+category);
 			}
-			else
-				time=make_pair(true,c_it->getAttribute("time"));
-			if(isTimeValid(*c_it,category)==false)
-				throw bad_information(std::string("invalid time for category ")+category);
 		}
 	}
 	if(count!=2)
 		throw bad_information(std::string("Invalid number of players for category ")+category);
+	if(count_color!=0 and count_color!=2)
+		throw bad_information(std::string("Only one player chose the color"));
 }
 
 std::vector<XML::Tag> MatchFactory::getPlayersTag(const XML::Tag& match_offer) {

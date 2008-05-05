@@ -104,8 +104,10 @@ class Chess : public ChessBasedGame {
 
 		std::vector<Position> howmanyCanMove(const Position& where, const ChessPiece& p) const;
 
-		static bool differentColums(Position where, const std::vector<Position>& pos);
+		/*! \brief check if all others position different of "where" have different columns than "where"*/
+		static bool differentColumns(Position where, const std::vector<Position>& pos);
 
+		/*! \brief check if all others position different of "where" have different rows than "where"*/
 		static bool differentRows(Position where, const std::vector<Position>& pos);
 
 		/*! \transform a move to PGN notation*/

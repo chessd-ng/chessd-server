@@ -25,9 +25,9 @@
  * MatchChess stuff
 */
 
-MatchChess::MatchChess(const std::vector<XML::Tag>& players, const std::string& __category) : 
+MatchChess::MatchChess(const std::vector<XML::Tag>& players, const XML::AttributeMap& __attributes) : 
 	_match_players(players) ,
-	_category(__category)
+	_attributes(__attributes)
 {
 	foreach(it,players)
 		this->_players.push_back(Player(it->getAttribute("jid")));
@@ -41,11 +41,13 @@ const PlayerList& MatchChess::players() const {
 }
 
 const std::string& MatchChess::category() const {
-	return this->_category;
+	return this->_attributes.find("category")->second;
 }
 
 Game* MatchChess::createGame() const {
-	return new GameChess(this->getPlayersFromXML(this->_match_players),this->_category);
+	if(this->category()!="untimed")
+		return new GameChess(this->getPlayersFromXML(this->_match_players),this->_attributes);
+	return new GameChessUntimed(this->getPlayersFromXML(this->_match_players),this->_attributes);
 }
 
 XML::Tag* MatchChess::notification() const {
@@ -60,13 +62,19 @@ XML::Tag* MatchChess::notification() const {
 
 StandardPlayerList MatchChess::getPlayersFromXML(const std::vector<XML::Tag>& xml_players) {
 	StandardPlayerList players;
+	srand(time(NULL));
+	int color=rand()%2;
 	foreach(c_it,xml_players) {
+		Util::Time time,inc;
 		XMPP::Jid aux(c_it->getAttribute("jid"));
-		Util::Time time(c_it->getAttribute("time"),Util::Seconds),inc;
+		if(c_it->hasAttribute("time"))
+			time=Util::Time(c_it->getAttribute("time"),Util::Seconds);
 		if(c_it->hasAttribute("inc"))
 			inc=Util::Time(c_it->getAttribute("inc"),Util::Seconds);
-		StandardPlayerColor c(c_it->getAttribute("color")=="white"?White:Black);
-		players.push_back(StandardPlayer(aux,time,inc,c));
+		if(c_it->hasAttribute("color"))
+			color=(c_it->getAttribute("color")=="white"?0:1);
+		players.push_back(StandardPlayer(aux,time,inc,(StandardPlayerColor)color));
+		color=(color+1)%2;
 	}
 	return players;
 }
@@ -82,7 +90,9 @@ std::vector<XML::Tag> MatchChessAdjourn::getPlayersTag(const XML::Tag& history_a
 }
 
 Game* MatchChessAdjourn::createGame() const {
-	return new GameChess(this->history);
+	if(this->category()!="untimed")
+		return new GameChess(this->history);
+	return new GameChessUntimed(this->history);
 }
 
 XML::Tag* MatchChessAdjourn::notification() const {
