@@ -53,7 +53,9 @@ Game* MatchChess::createGame() const {
 XML::Tag* MatchChess::notification() const {
 	XML::TagGenerator t;
 	t.openTag("match");
-	t.addAttribute("category",this->category());
+//	t.addAttribute("category",this->category());
+	foreach(it,this->_attributes)
+		t.addAttribute(it->first,it->second);
 	foreach(it,this->_match_players)
 		t.addChild(new XML::Tag(*it));
 	t.closeTag();
