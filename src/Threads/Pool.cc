@@ -21,57 +21,59 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 
 using namespace std;
 
 namespace Threads {
 
+    /* Is 256Kb enough? */
 	const size_t StackSize = 1 << 18;
 
 	Pool::Pool() { }
 
 	Pool::~Pool() {
-		vector<pthread_t>& vetor = threads.getWriteLock();
-		foreach(thread, vetor) {
-			tasks.push(0);
+        WriteLock<vector<Thread*> > threads(this->threads);
+        /* issue a stop to all threads */
+		foreach(thread, *threads) {
+            (*thread)->stop();
 		}
-		foreach(thread, vetor) {
-			pthread_join(*thread, 0);
+        /* wait then to stop completely */
+		foreach(thread, *threads) {
+            (*thread)->join();
 		}
-		threads.releaseLock();
+        /* free resources */
+		foreach(thread, *threads) {
+            delete *thread;
+		}
 	}
 
 	void Pool::launchTask(Task& task) {
-		if(not tasks.try_push(&task)) {
-			this->newThread();
-			this->tasks.push(&task);
-		}
+        Thread* thread;
+        if(this->idle_threads.try_pop(thread)) {
+            thread->queueTask(&task);
+        } else {
+            Thread* thread = new Thread(boost::bind(&Pool::threadIdled, this, _1));
+            if(not thread->start()) {
+                delete thread;
+                this->task_queue.push(&task);
+            } else {
+                WriteLock<vector<Thread*> > threads(this->threads);
+                threads->push_back(thread);
+                thread->queueTask(&task);
+            }
+        }
 	}
 
-	static void * start_routine(void* queue) {
-		Queue<Task*>& tasks = *static_cast<Queue<Task*>*>(queue);
-		Task* tarefa;
-		// cerr << "newThread()" << endl;
-		while((tarefa = tasks.pop())) {
-			tarefa->run();
-		}
-		// cerr << "thread closed" << endl;
-		return 0;
-	}
+    void Pool::threadIdled(Thread* thread) {
+        Task* task;
 
-	void Pool::newThread() {
-		vector<pthread_t>& vetor = threads.getWriteLock();
-		vetor.push_back(pthread_t());
-		pthread_t& thread = vetor.back();
-		pthread_attr_t thread_attr;
-		pthread_attr_init(&thread_attr);
-		pthread_attr_setstacksize(&thread_attr, StackSize);
-		if(pthread_create(&thread, &thread_attr, start_routine, static_cast<void*>(&tasks))!=0) {
-			//cerr << "Erro ao criar a thread" << endl;
-			/* TODO: throw exception, watch the locks! */
-			vetor.pop_back();
-		}
-		threads.releaseLock();
-	}
+        if(this->task_queue.try_pop(task)) {
+            thread->queueTask(task);
+        } else {
+            this->idle_threads.push(thread);
+        }
+    }
 
 }

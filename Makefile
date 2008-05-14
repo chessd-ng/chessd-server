@@ -50,7 +50,8 @@ SOURCES = \
 		  src/XMPP/Stanza.cc \
 		  src/XMPP/Stream.cc \
 		  src/MatchFactory.cc \
-		  src/Util/Date.cc
+		  src/Util/Date.cc \
+		  src/Threads/Thread.cc
 
 
 SRCDIR = src

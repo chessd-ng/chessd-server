@@ -23,8 +23,8 @@
 #include "Queue.hh"
 #include "Task.hh"
 #include "SafeObject.hh"
+#include "Thread.hh"
 
-#include <pthread.h>
 #include <vector>
 
 namespace Threads {
@@ -42,9 +42,11 @@ namespace Threads {
 
 		private:
 
-			Queue<Task*> tasks;
+			Queue<Thread*> idle_threads;
 
-			SafeObject<std::vector<pthread_t> > threads;
+			SafeObject<std::vector<Thread*> > threads;
+
+            Queue<Task*> task_queue;
 
 			friend class Util::Singleton<Pool>;
 
@@ -53,6 +55,8 @@ namespace Threads {
 			~Pool();
 
 			void newThread();
+
+            void threadIdled(Thread* thread);
 	};
 
 }

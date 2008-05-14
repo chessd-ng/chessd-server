@@ -68,8 +68,6 @@ namespace Threads {
 
 			bool running;
 
-			void dispatch();
-
 			void _stop();
 
 	};

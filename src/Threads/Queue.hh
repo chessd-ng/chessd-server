@@ -32,73 +32,53 @@ namespace Threads {
             private:
                 std::queue<T> queue;
                 Condition condition;
-                size_t wait_count, tickets;
             public:
-                Queue() : wait_count(0), tickets(0) { }
+                Queue() { }
                 ~Queue() { }
                 T pop() {
                     condition.lock();
-                    if(tickets == 0) {
-                        ++wait_count;
+                    while(queue.size() == 0) {
                         condition.wait();
-                    } else {
-                        --tickets;
                     }
                     T tmp = queue.front();
                     queue.pop();
                     condition.unlock();
                     return tmp;
                 }
-                bool pop(T& item, Util::Time time) {
+                bool try_pop(T& item, Util::Time time) {
+                    bool ret;
+
                     condition.lock();
-                    if(tickets == 0) {
-                        ++wait_count;
-                        if(not condition.wait(time)) {
-                            condition.unlock();
-                            --wait_count;
-                            return false;
-                        }
+                    if(not condition.wait(time)) {
+                        condition.unlock();
+                        ret = false;
                     } else {
-                        --tickets;
+                        item = queue.front();
+                        queue.pop();
+                        ret = true;
                     }
-                    item = queue.front();
-                    queue.pop();
                     condition.unlock();
                     return true;
                 }
-                bool try_pop(T& t) {
+                bool try_pop(T& item) {
+                    bool ret;
+
                     condition.lock();
-                    if(tickets == 0) {
-                        condition.unlock();
-                        return false;
+                    if(queue.size() > 0) {
+                        ret = true;
+                        item = queue.front();
+                        queue.pop();
+                    } else {
+                        ret = false;
                     }
-                    --tickets;
-                    t = queue.front();
-                    queue.pop();
                     condition.unlock();
-                    return true;
+                    return ret;
                 }
                 void push(const T& t) {
                     condition.lock();
                     queue.push(t);
-                    if(wait_count > 0) {
-                        --wait_count;
-                        condition.signal();
-                    } else
-                        ++tickets;
-                    condition.unlock();
-                }
-                bool try_push(const T& t) {
-                    condition.lock();
-                    if(wait_count == 0) {
-                        condition.unlock();
-                        return false;
-                    }
-                    queue.push(t);
-                    --wait_count;
                     condition.signal();
                     condition.unlock();
-                    return true;
                 }
         };
 }
