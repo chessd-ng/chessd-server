@@ -34,23 +34,24 @@ namespace Threads {
             Mutex mutex;
 		public:
 			Condition() {
-                pthread_condattr_t cond_attribute;
+                //pthread_condattr_t cond_attribute;
 
                 /* init the condition attribute object */
                 /* TODO, the attribute could be cached so
                  * we don't have to init it everytime */
-                pthread_condattr_init(&cond_attribute);
+                //pthread_condattr_init(&cond_attribute);
 
                 /* set the condition clock to the monotonic clock,
                  * so that we don't run into trubles if someone
                  * modify the system clock */
-                pthread_condattr_setclock(&cond_attribute, CLOCK_MONOTONIC);
+                //pthread_condattr_setclock(&cond_attribute, CLOCK_MONOTONIC);
 
                 /* init the condition object */
-				pthread_cond_init(&condition, &cond_attribute);
+				//pthread_cond_init(&condition, &cond_attribute);
+				pthread_cond_init(&condition, 0);
 
                 /* destroy our condition attribute */
-                pthread_condattr_destroy(&cond_attribute);
+                //pthread_condattr_destroy(&cond_attribute);
 			}
 			~Condition() {
 				pthread_cond_destroy(&condition);
