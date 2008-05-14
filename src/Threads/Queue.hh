@@ -37,7 +37,7 @@ namespace Threads {
                 ~Queue() { }
                 T pop() {
                     condition.lock();
-                    while(queue.size() == 0) {
+                    while(queue.empty()) {
                         condition.wait();
                     }
                     T tmp = queue.front();
@@ -49,8 +49,7 @@ namespace Threads {
                     bool ret;
 
                     condition.lock();
-                    if(not condition.wait(time)) {
-                        condition.unlock();
+                    if(queue.empty() and not condition.wait(time)) {
                         ret = false;
                     } else {
                         item = queue.front();
@@ -58,13 +57,13 @@ namespace Threads {
                         ret = true;
                     }
                     condition.unlock();
-                    return true;
+                    return ret;
                 }
                 bool try_pop(T& item) {
                     bool ret;
 
                     condition.lock();
-                    if(queue.size() > 0) {
+                    if(not queue.empty() > 0) {
                         ret = true;
                         item = queue.front();
                         queue.pop();
