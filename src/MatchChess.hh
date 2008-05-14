@@ -39,7 +39,7 @@ struct MatchChess : public Match {
 		virtual XML::Tag* notification() const;
 
 	protected:
-		/*this is protected just only for MatchChessAdjourn*/
+		/*this is protected just for MatchChessAdjourn*/
 		std::vector<XML::Tag> _match_players;
 
 	private:
@@ -47,6 +47,10 @@ struct MatchChess : public Match {
 
 		PlayerList _players;
 
+		/*! \brief transform a Tag descriptions of a player to a player structure
+		 *!	\description if the color of the players were not chosen, then this
+		 *function will choose the color randomsly
+		*/
 		static StandardPlayerList getPlayersFromXML(const std::vector<XML::Tag>& players);
 
 };
