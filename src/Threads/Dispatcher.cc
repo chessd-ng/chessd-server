@@ -22,54 +22,49 @@
 
 namespace Threads {
 
-	Dispatcher::Dispatcher() : 
-		task(boost::bind(&Dispatcher::run, this)),
-		running(false) { }
+    Dispatcher::Dispatcher() : 
+        task(boost::bind(&Dispatcher::run, this)),
+        running(false) { }
 
-	Dispatcher::~Dispatcher() {
-	}
+    Dispatcher::~Dispatcher() {
+    }
 
-	void Dispatcher::start() {
-		this->running = true;
-		this->task.start();
-	}
+    void Dispatcher::start() {
+        this->running = true;
+        this->task.start();
+    }
 
-	void Dispatcher::run() {
+    void Dispatcher::run() {
         Message message;
-		while(this->running) {
+        while(this->running) {
             if(this->agenda.empty()) {
                 message = this->_queue.pop();
             } else {
-                if(not this->_queue.pop(message, this->agenda.begin()->first)) {
+                if(not this->_queue.try_pop(message, this->agenda.begin()->first)) {
                     message = this->agenda.begin()->second;
                     this->agenda.erase(this->agenda.begin());
                 }
             }
-			message();
-            /*message = this->_queue.pop();
-            message();*/
-		}
-	}
+            message();
+        }
+    }
 
-	void Dispatcher::stop() {
-		/* A stop message is sent to the dispatcher instead of just
-		 * setting running to false. This way we make sure the dispatcher
-		 * will stop. */
-		if(this->running == true) {
-			this->queue(boost::bind(&Dispatcher::_stop, this));
-			this->join();
-		}
-	}
+    void Dispatcher::stop() {
+        /* A stop message is sent to the dispatcher instead of just
+         * setting running to false. This way we make sure the dispatcher
+         * will stop immediately. */
+        if(this->running == true) {
+            this->queue(boost::bind(&Dispatcher::_stop, this));
+            this->join();
+        }
+    }
 
     void Dispatcher::join() {
         this->task.join();
     }
 
-	void Dispatcher::_stop() {
-		this->running = false;
-	}
-
-	void Dispatcher::dispatch() {
-	}
+    void Dispatcher::_stop() {
+        this->running = false;
+    }
 
 }

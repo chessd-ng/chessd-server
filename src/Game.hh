@@ -27,14 +27,17 @@
 #include "XML/Xml.hh"
 #include "Util/Timer.hh"
 
-enum TeamResult {
-	WINNER,
-	DRAWER,
-	LOSER,
-	UNDEFINED
+enum END_CODE {
+    END_MATE,
+    END_STALEMATE,
+    END_DRAW_AGREEMENT,
+    END_DRAW_REPETITION,
+    END_DRAW_50_MOVES,
+    END_DRAW_IMPOSSIBLE_MATE,
+    END_RESIGN,
+    END_FORFEIT,
+    END_TIME
 };
-
-typedef std::vector<std::pair<Team, TeamResult> > TeamResultList;
 
 class GameResult {
 	public:
@@ -46,33 +49,38 @@ class GameResult {
 		/*! \brief The reason why the game ended */
 		virtual const std::string& end_reason() const = 0;
 
-		/*! \brief List of all players in the game */
+		/*! \brief Return a code that says why the game has ended */
+        // virtual END_CODE end_code() const = 0;
+
+		/*! \brief Returns a list containing all players in the game */
 		virtual const PlayerResultList& players() const = 0;
 
-		/*! \brief verify if the game is rated or not*/
+		/*! \brief Is the game rated? */
 		virtual bool isRated() const = 0;
 
-		/*! \brief The game history */
+		/*! \brief Returns the game history */
 		virtual XML::Tag* history() const = 0;
 
 		/*! \brief Update the player ratings
 		 *
 		 * The given ratings must contain all players in the game.
-		 * The map is modified to match new ratings
+		 * The map is modified to match new ratings.
 		 * */
 		virtual void updateRating(std::map<Player, Rating>& ratings) const = 0;
 };
 
-//typedef XML::Tag GameState;
-
+/*! \brief A class to represent a game that was adjourned */
 class AdjournedGame {
 	public:
 		virtual ~AdjournedGame() { }
 
+        /*! \brief Returns the game's history */
 		virtual XML::Tag* history() const = 0;
 
+        /*! \brief Returns the game's category */
         virtual const std::string& category() const = 0;
 
+        /*! \brief Returns a list of players */
 		virtual const PlayerList& players() const = 0;
 };
 
@@ -108,10 +116,10 @@ class Game {
 		/*! \brief The player has called a flag. */
 		virtual void call_flag(const Util::Time& current_time) = 0;
 
-		/*! \brief The players agreed on a draw. */
+		/*! \brief Set the game as a draw. */
 		virtual void draw() = 0;
 
-		/*! \brief The players agreed on a draw. */
+		/*! \brief Adjourn the game. */
 		virtual AdjournedGame* adjourn(const Util::Time& current_time) = 0;
 
 		/*! \brief Has the game ended?  */
@@ -122,10 +130,11 @@ class Game {
 		
 		/*! \brief Make a move in the game.
 		 *
-         * \param player us the player who made the move.
+         * \param player is the player who made the move.
 		 * \param movement is the description of the movement.
          * \param time_stamp is the time of the move since the begining of the game.
          * \return A description of the move, it can be just like in the history.
+         * \throw May throw invalid_move exception if the move is invalid.
          */
 		virtual XML::Tag* move(const Player& player, const std::string& movement, const Util::Time& time_stamp) = 0;
 

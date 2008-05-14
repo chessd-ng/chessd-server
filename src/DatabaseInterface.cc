@@ -247,41 +247,41 @@ void DatabaseInterface::insertGameResult(GameResult& game_result)
     PersistentGame game;
 
     /* create a map with the player's rating */
-    std::map<Player, Rating> ratings;
-    std::map<Player, PersistentRating> pratings;
-    foreach(player, game_result.players()) {
-        std::string name = player->jid.partial();
-        rating = this->getRatingForUpdate(name, category);
-        pratings.insert(std::make_pair(player->jid, rating));
-        tmp.rating() = rating.rating;
-        tmp.volatility() = rating.volatility;
-        tmp.wins() = rating.wins;
-        tmp.draws() = rating.draws;
-        tmp.losses() = rating.defeats;
-        tmp.last_game() = rating.last_game;
-        ratings.insert(std::make_pair(player->jid, tmp));
-    }
-
-    /* update ratings */
     if(game_result.isRated()) {
-        game_result.updateRating(ratings);
-    }
-
-    /* create vector of persistent ratings */
-    foreach(it, ratings) {
-        rating.rating = it->second.rating();
-        rating.volatility = it->second.volatility();
-        rating.wins = it->second.wins();
-        rating.draws = it->second.draws();
-        rating.defeats = it->second.losses();
-        rating.max_rating = pratings[it->first].max_rating;
-        rating.max_timestamp = pratings[it->first].max_timestamp;
-        rating.last_game = Util::ptime_to_time_t(boost::posix_time::second_clock::local_time());
-        if(rating.rating > rating.max_rating) {
-            rating.max_rating = rating.rating;
-            rating.max_timestamp = boost::posix_time::second_clock::local_time();
+        std::map<Player, Rating> ratings;
+        std::map<Player, PersistentRating> pratings;
+        foreach(player, game_result.players()) {
+            std::string name = player->jid.partial();
+            rating = this->getRatingForUpdate(name, category);
+            pratings.insert(std::make_pair(player->jid, rating));
+            tmp.rating() = rating.rating;
+            tmp.volatility() = rating.volatility;
+            tmp.wins() = rating.wins;
+            tmp.draws() = rating.draws;
+            tmp.losses() = rating.defeats;
+            tmp.last_game() = rating.last_game;
+            ratings.insert(std::make_pair(player->jid, tmp));
         }
-        this->setRating(it->first.partial(), category, rating);
+
+        /* update ratings */
+        game_result.updateRating(ratings);
+
+        /* create vector of persistent ratings */
+        foreach(it, ratings) {
+            rating.rating = it->second.rating();
+            rating.volatility = it->second.volatility();
+            rating.wins = it->second.wins();
+            rating.draws = it->second.draws();
+            rating.defeats = it->second.losses();
+            rating.max_rating = pratings[it->first].max_rating;
+            rating.max_timestamp = pratings[it->first].max_timestamp;
+            rating.last_game = Util::ptime_to_time_t(boost::posix_time::second_clock::local_time());
+            if(rating.rating > rating.max_rating) {
+                rating.max_rating = rating.rating;
+                rating.max_timestamp = boost::posix_time::second_clock::local_time();
+            }
+            this->setRating(it->first.partial(), category, rating);
+        }
     }
     
     /* set game values */

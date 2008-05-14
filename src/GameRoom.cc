@@ -181,46 +181,50 @@ void GameRoom::handleState(const XMPP::Stanza& stanza) {
 
 
 void GameRoom::handleGameIq(const XMPP::Stanza& stanza) {
-    const std::string& xmlns = stanza.findChild("query").getAttribute("xmlns");
+    try {
+        const std::string& xmlns = stanza.findChild("query").getAttribute("xmlns");
 
-    /* is a room occupant? */
-    if(not this->isOccupant(stanza.from()))
-        throw XMPP::not_acceptable("Only occupants are allowed to send queries to the game");
-    
-    /* is a state iq? */
-    if(xmlns == XMLNS_GAME_STATE) {
-        this->handleState(stanza);
-        return;
-    }
+        /* is a room occupant? */
+        if(not this->isOccupant(stanza.from()))
+            throw XMPP::not_acceptable("Only occupants are allowed to send queries to the game");
 
-    /* is the sender a player and the game is active? */
-    if(not Util::has_key(this->all_players, stanza.from()))
-        throw XMPP::not_acceptable("Only players can do that");
-    if(not this->game_active)
-        throw XMPP::not_acceptable("Game is not active");
+        /* is a state iq? */
+        if(xmlns == XMLNS_GAME_STATE) {
+            this->handleState(stanza);
+            return;
+        }
 
-    /* check xmlns and call the proper handler */
-    if(xmlns == XMLNS_GAME_MOVE) {
-        this->handleMove(stanza);
-    } else if(xmlns == XMLNS_GAME_RESIGN) {
-        this->handleResign(stanza);
-    } else if(xmlns == XMLNS_GAME_DRAW) {
-        this->handleDrawAccept(stanza);
-    } else if(xmlns == XMLNS_GAME_DRAW_DECLINE) {
-        this->handleDrawDecline(stanza);
-    } else if(xmlns == XMLNS_GAME_CANCEL) {
-        this->handleCancelAccept(stanza);
-    } else if(xmlns == XMLNS_GAME_CANCEL_DECLINE) {
-        this->handleCancelDecline(stanza);
-    } else if(xmlns == XMLNS_GAME_ADJOURN) {
-        this->handleAdjournAccept(stanza);
-    } else if(xmlns == XMLNS_GAME_ADJOURN_DECLINE) {
-        this->handleAdjournDecline(stanza);
-    }
+        /* is the sender a player and the game is active? */
+        if(not Util::has_key(this->all_players, stanza.from()))
+            throw XMPP::not_acceptable("Only players can do that");
+        if(not this->game_active)
+            throw XMPP::not_acceptable("Game is not active");
 
-    /* check if the game is over */
-    if(this->game->done(this->currentTime())) {
-        this->endGame(END_TYPE_NORMAL);
+        /* check xmlns and call the proper handler */
+        if(xmlns == XMLNS_GAME_MOVE) {
+            this->handleMove(stanza);
+        } else if(xmlns == XMLNS_GAME_RESIGN) {
+            this->handleResign(stanza);
+        } else if(xmlns == XMLNS_GAME_DRAW) {
+            this->handleDrawAccept(stanza);
+        } else if(xmlns == XMLNS_GAME_DRAW_DECLINE) {
+            this->handleDrawDecline(stanza);
+        } else if(xmlns == XMLNS_GAME_CANCEL) {
+            this->handleCancelAccept(stanza);
+        } else if(xmlns == XMLNS_GAME_CANCEL_DECLINE) {
+            this->handleCancelDecline(stanza);
+        } else if(xmlns == XMLNS_GAME_ADJOURN) {
+            this->handleAdjournAccept(stanza);
+        } else if(xmlns == XMLNS_GAME_ADJOURN_DECLINE) {
+            this->handleAdjournDecline(stanza);
+        }
+
+        /* check if the game is over */
+        if(this->game->done(this->currentTime())) {
+            this->endGame(END_TYPE_NORMAL);
+        }
+    } catch (const XML::xml_error& error) {
+        throw XMPP::bad_request("Bad format");
     }
 }
 
