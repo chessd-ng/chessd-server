@@ -75,20 +75,21 @@ all: ${TARGET}
 -include ${DEPS}
 
 ${TARGET}: ${OBJECTS}
-	@echo "Linking $@..."
+	@echo "LD $@..."
 	@${CXX} -o ${TARGET} ${OBJECTS} ${CXXFLAGS} ${LDLIBS}
 
-.deps/%.d: ${SRCDIR}/%.cc
-	@echo "Checking denpendencies $<..."
+.deps/%.d:
 	@mkdir -p $(dir $@)
-	@${CXX} ${CXXFLAGS} -MM $< | sed 's/^[^:]*:/$(subst /,\/,$(patsubst ${SRCDIR}/%.cc,${OBJDIR}/%.o,$<)) $(subst /,\/,$@):/' > $@
+	@touch $@
 
-obj/%.o: ${SRCDIR}/%.cc
-	@echo "Compiling $<..."
+${OBJDIR}/%.o: ${SRCDIR}/%.cc
 	@mkdir -p $(dir $@)
-	@${CXX} -c ${CXXFLAGS} -o $@ $<
+	@echo "CC $<..."
+	@${CXX} ${CXXFLAGS} -o $@ -c $< -MMD -MP -MF $(patsubst ${OBJDIR}/%.o,${DEPSDIR}/%.d,$@)
 
 clean: clean-target clean-obj
+
+clean-all: clean-target clean-obj clean-deps
 
 clean-target:
 	@echo "Cleaning executable..."
