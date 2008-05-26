@@ -57,9 +57,9 @@ SOURCES = \
 SRCDIR = src
 OBJDIR = obj
 DEPSDIR = .deps
-#CXXFLAGS+=-Wall -ggdb3
+CXXFLAGS+=-Wall -ggdb3
 #CXXFLAGS+=-Wall -O2 -pg -march=native
-CXXFLAGS+=-Wall -O3 -fomit-frame-pointer -march=native -funroll-loops
+#CXXFLAGS+=-Wall -O3 -fomit-frame-pointer -march=native
 CXXFLAGS+=-I${SRCDIR} `pkg-config --cflags iksemel` `pkg-config --cflags libpqxx`
 LDLIBS+=-lrt -lpthread `pkg-config --libs iksemel` `pkg-config --libs libpqxx` -lboost_date_time
 TARGET=chessd
@@ -75,20 +75,21 @@ all: ${TARGET}
 -include ${DEPS}
 
 ${TARGET}: ${OBJECTS}
-	@echo "Linking $@..."
+	@echo "LD $@..."
 	@${CXX} -o ${TARGET} ${OBJECTS} ${CXXFLAGS} ${LDLIBS}
 
-.deps/%.d: ${SRCDIR}/%.cc
-	@echo "Checking denpendencies $<..."
+.deps/%.d:
 	@mkdir -p $(dir $@)
-	@${CXX} ${CXXFLAGS} -MM $< | sed 's/^[^:]*:/$(subst /,\/,$(patsubst ${SRCDIR}/%.cc,${OBJDIR}/%.o,$<)) $(subst /,\/,$@):/' > $@
+	@touch $@
 
-obj/%.o: ${SRCDIR}/%.cc
-	@echo "Compiling $<..."
+${OBJDIR}/%.o: ${SRCDIR}/%.cc
 	@mkdir -p $(dir $@)
-	@${CXX} -c ${CXXFLAGS} -o $@ $<
+	@echo "CC $<..."
+	@${CXX} ${CXXFLAGS} -o $@ -c $< -MMD -MP -MF $(patsubst ${OBJDIR}/%.o,${DEPSDIR}/%.d,$@)
 
 clean: clean-target clean-obj
+
+clean-all: clean-target clean-obj clean-deps
 
 clean-target:
 	@echo "Cleaning executable..."

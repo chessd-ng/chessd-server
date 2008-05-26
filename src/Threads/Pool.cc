@@ -55,13 +55,13 @@ namespace Threads {
             thread->queueTask(&task);
         } else {
             Thread* thread = new Thread(boost::bind(&Pool::threadIdled, this, _1));
+            thread->queueTask(&task);
             if(not thread->start()) {
                 delete thread;
                 this->task_queue.push(&task);
             } else {
                 WriteLock<vector<Thread*> > threads(this->threads);
                 threads->push_back(thread);
-                thread->queueTask(&task);
             }
         }
 	}
