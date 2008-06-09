@@ -317,9 +317,9 @@ Any date and time is in the format specified by the XEP-082.
 --!>
 
 <iq type='set' to='admin.shiva' id='12345'>
-    <query xmlns='http://c3sl.ufpr.br/chessd#admin'>
-        <kick jid='eduari@shiva'/>
-    </query>
+    <kick xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva'>
+        <reason>Stop fooling around.</reason>
+    </kick>
 </iq>
 
 <!--
@@ -327,9 +327,9 @@ Any date and time is in the format specified by the XEP-082.
 --!>
 
 <iq type='set' to='admin.shiva' id='12345'>
-    <query xmlns='http://c3sl.ufpr.br/chessd#admin'>
-        <ban jid='eduari@shiva'/>
-    </query>
+    <ban xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva'>
+        <reason>Had you listened to me you would not get banned.</reason>
+    </ban>
 </iq>
 
 <!--
@@ -337,10 +337,28 @@ Any date and time is in the format specified by the XEP-082.
 --!>
 
 <iq type='set' to='admin.shiva' id='12345'>
-    <query xmlns='http://c3sl.ufpr.br/chessd#admin'>
-        <unban jid='eduari@shiva'/>
-    </query>
+    <unban xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva'/>
 </iq>
+
+<!--
+    To list all banned users
+--!>
+
+<iq type='get' to='admin.shiva' id='12345'>
+    <banned-list xmlns='http://c3sl.ufpr.br/chessd#admin'/>
+</iq>
+
+<!--
+    The result will be like this.
+--!>
+
+<iq type='get' to='admin.shiva' id='12345'>
+    <banned-list xmlns='http://c3sl.ufpr.br/chessd#admin'>
+        <jid>buguens@shiva</jid>
+        <jid>eduari@shiva</jid>
+    </banned-list>
+</iq>
+
 
 
 <!--

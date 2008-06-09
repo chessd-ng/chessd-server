@@ -53,7 +53,7 @@ AdminComponent::~AdminComponent() {
 
 void AdminComponent::handleAdmin(const Stanza& stanza) {
     try {
-        const Tag& query = stanza.query();
+        const Tag& query = stanza.firstTag();
 
         /* check if the sender is an admin */
         if(this->admins.find(stanza.from()) == this->admins.end()) {
@@ -62,23 +62,98 @@ void AdminComponent::handleAdmin(const Stanza& stanza) {
 
         /* We need to know the user type before proceeding */
         /* parse message */
-        foreach(tag, query.tags()) {
-            XMPP::Jid target(tag->getAttribute("jid"));
-            if(tag->name() == "kick") {
-                this->kickUser(target);
-            } else if(tag->name() == "ban") {
-                this->banUser(target);
-            } else if(tag->name() == "unban") {
-                this->unbanUser(target);
-            } else {
-                throw XMPP::bad_request("Invalid format");
-            }
+        if(query.name() == "kick") {
+            this->handleKick(stanza);
+        } else if(query.name() == "ban") {
+            this->handleBan(stanza);
+        } else if(query.name() == "unban") {
+            this->handleUnban(stanza);
+        } else if(query.name() == "banned-list") {
+            this->handleBannedList(stanza);
+        } else {
+            throw XMPP::bad_request("Invalid format");
         }
 
         this->sendStanza(stanza.createIQResult());
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request("Invalid format");
     }
+}
+
+void AdminComponent::handleBannedList(const Stanza& stanza) {
+    std::auto_ptr<XMPP::Stanza> message(stanza.createIQResult());
+    XML::TagGenerator generator;
+
+    /* create result message with the users banned */
+    generator.openTag("banned-list");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
+
+    foreach(user, this->baneds) {
+        generator.openTag("jid");
+        generator.addCData(user->full());
+        generator.closeTag();
+    }
+    
+    message->children().push_back(generator.getTag());
+
+    /* Send the message */
+    this->root_node.sendIq(message.release());
+}
+
+void AdminComponent::handleKick(const Stanza& stanza) {
+    const Tag& query = stanza.firstTag();
+
+    /* get user to be kicked */
+    XMPP::Jid target(query.getAttribute("jid"));
+
+    /* get kick reason */
+    const std::string& reason = query.findChild("reason").findCData().data();
+
+    /* send kick notification */
+    TagGenerator generator;
+    generator.openTag("iq");
+    generator.addAttribute("to", target.full());
+    generator.addAttribute("type", "set");
+    generator.openTag("kick");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
+    generator.openTag("reason");
+    generator.addCData(reason);
+    std::auto_ptr<XMPP::Stanza> message(new Stanza(generator.getTag()));
+    this->root_node.sendIq(message.release());
+
+    /* kick user */
+    this->kickUser(target);
+}
+
+void AdminComponent::handleBan(const Stanza& stanza) {
+    const Tag& query = stanza.firstTag();
+
+    /* get user to be baned */
+    XMPP::Jid target(query.getAttribute("jid"));
+
+    /* get ban reason */
+    const std::string& reason = query.findChild("reason").findCData().data();
+
+    /* send ban notification */
+    TagGenerator generator;
+    generator.openTag("iq");
+    generator.addAttribute("to", target.full());
+    generator.addAttribute("type", "set");
+    generator.openTag("ban");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
+    generator.openTag("reason");
+    generator.addCData(reason);
+    std::auto_ptr<XMPP::Stanza> message(new Stanza(generator.getTag()));
+    this->root_node.sendIq(message.release());
+
+    /* ban user */
+    this->banUser(target);
+}
+
+void AdminComponent::handleUnban(const Stanza& stanza) {
+    const Tag& query = stanza.firstTag();
+    XMPP::Jid target(query.getAttribute("jid"));
+    this->unbanUser(target);
 }
 
 void AdminComponent::kickUser(const XMPP::PartialJid& user) {

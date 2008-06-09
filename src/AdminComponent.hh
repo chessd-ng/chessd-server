@@ -71,6 +71,18 @@ class AdminComponent : public ComponentBase {
         /*! \brief Set the admin list */
         void setAdmins(const std::set<XMPP::PartialJid>& admins);
 
+        /*! \brief Handle a request for the banned user list */
+        void handleBannedList(const XMPP::Stanza& stanza);
+
+        /*! \brief handle kick request */
+        void handleKick(const XMPP::Stanza& stanza);
+
+        /*! \brief handle ban request */
+        void handleBan(const XMPP::Stanza& stanza);
+
+        /*! \brief handle unban request */
+        void handleUnban(const XMPP::Stanza& stanza);
+
         void setAccessRules();
 
         void updateAcl();
