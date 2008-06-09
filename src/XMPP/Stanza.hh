@@ -88,6 +88,20 @@ namespace XMPP {
             XML::Tag& query() { return this->findChild("query"); }
             const XML::Tag& query() const { return this->findChild("query"); }
 
+            XML::Tag& firstTag() {
+                if(this->children().tags().begin() == this->children().tags().end()) {
+                    throw XML::child_not_found("Child not found");
+                }
+                return *this->children().tags().begin();
+            }
+
+            const XML::Tag& firstTag() const {
+                if(this->children().tags().begin() == this->children().tags().end()) {
+                    throw XML::child_not_found("Child not found");
+                }
+                return *this->children().tags().begin();
+            }
+
 		private:
 		    ChildrenList _children;
 
