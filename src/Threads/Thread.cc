@@ -29,10 +29,11 @@ namespace Threads {
         pthread_attr_init(&thread_attr);
         pthread_attr_setstacksize(&thread_attr, StackSize);
         if(pthread_create(&this->thread, &thread_attr, start_routine, static_cast<void*>(this))==0) {
-            return this->running = true;
+            this->running = true;
         } else {
-            return this->running = false;
+            this->running = false;
         }
+        return this->running;
     }
 
     void Thread::run() {
