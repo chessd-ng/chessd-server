@@ -317,7 +317,7 @@ Any date and time is in the format specified by the XEP-082.
 --!>
 
 <iq type='set' to='admin.shiva' id='12345'>
-    <kick xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva'>
+    <kick xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva/ChessD'>
         <reason>Stop fooling around.</reason>
     </kick>
 </iq>
@@ -327,9 +327,25 @@ Any date and time is in the format specified by the XEP-082.
 --!>
 
 <iq type='set' to='admin.shiva' id='12345'>
-    <ban xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva'>
+    <ban xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva/ChessD'>
         <reason>Had you listened to me you would not get banned.</reason>
     </ban>
+</iq>
+
+<!--
+    The user will get a ban or kicknotification with the following message:
+--!>
+    
+<iq type='set' to='eduari@shiva/ChessD' from='admin@shiva' id='12345'>
+    <ban xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva/ChessD'>
+        <reason>You have been banned.</reason>
+    </ban>
+</iq>
+
+<iq type='set' to='eduari@shiva/ChessD' from='admin@shiva' id='12345'>
+    <kick xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva/ChessD'>
+        <reason>You have been kicked.</reason>
+    </kick>
 </iq>
 
 <!--
