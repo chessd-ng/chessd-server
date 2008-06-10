@@ -74,7 +74,6 @@ void AdminComponent::handleAdmin(const Stanza& stanza) {
             throw XMPP::bad_request("Invalid format");
         }
 
-        this->sendStanza(stanza.createIQResult());
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request("Invalid format");
     }
@@ -123,6 +122,13 @@ void AdminComponent::handleKick(const Stanza& stanza) {
 
     /* kick user */
     this->kickUser(target);
+
+    /* send result */
+    auto_ptr<Stanza> result(stanza.createIQResult());
+    generator.openTag("kick");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
+    result->children().push_back(generator.getTag());
+    this->sendStanza(result.release());
 }
 
 void AdminComponent::handleBan(const Stanza& stanza) {
@@ -148,12 +154,27 @@ void AdminComponent::handleBan(const Stanza& stanza) {
 
     /* ban user */
     this->banUser(target);
+
+    /* send result */
+    auto_ptr<Stanza> result(stanza.createIQResult());
+    generator.openTag("ban");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
+    result->children().push_back(generator.getTag());
+    this->sendStanza(result.release());
 }
 
 void AdminComponent::handleUnban(const Stanza& stanza) {
     const Tag& query = stanza.firstTag();
     XMPP::Jid target(query.getAttribute("jid"));
     this->unbanUser(target);
+
+    /* send result */
+    auto_ptr<Stanza> result(stanza.createIQResult());
+    TagGenerator generator;
+    generator.openTag("ban");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
+    result->children().push_back(generator.getTag());
+    this->sendStanza(result.release());
 }
 
 void AdminComponent::kickUser(const XMPP::PartialJid& user) {
