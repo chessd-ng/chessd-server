@@ -174,9 +174,9 @@ namespace XMPP {
 
 			void presentUsers(const Jid& jid);
 
-			void addUser(const std::string& nick, const Jid& user_jid, const Stanza& presence);
+			void addUser(const Stanza& presence);
 
-			void removeUser(const Jid& user_jid, const std::string& status, const Stanza& presence);
+			void removeUser(const Stanza& presence);
 
 			Stanza* createPresenceStanza(const MucUser& user);
 
