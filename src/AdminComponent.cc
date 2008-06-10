@@ -171,7 +171,7 @@ void AdminComponent::handleUnban(const Stanza& stanza) {
     /* send result */
     auto_ptr<Stanza> result(stanza.createIQResult());
     TagGenerator generator;
-    generator.openTag("ban");
+    generator.openTag("unban");
     generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
     result->children().push_back(generator.getTag());
     this->sendStanza(result.release());
