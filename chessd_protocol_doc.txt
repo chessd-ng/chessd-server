@@ -333,17 +333,17 @@ Any date and time is in the format specified by the XEP-082.
 </iq>
 
 <!--
-    The user will get a ban or kicknotification with the following message:
+    The user will get a ban or kick notification with the following message:
 --!>
     
 <iq type='set' to='eduari@shiva/ChessD' from='admin@shiva' id='12345'>
-    <ban xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva/ChessD'>
+    <ban xmlns='http://c3sl.ufpr.br/chessd#admin'>
         <reason>You have been banned.</reason>
     </ban>
 </iq>
 
 <iq type='set' to='eduari@shiva/ChessD' from='admin@shiva' id='12345'>
-    <kick xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva/ChessD'>
+    <kick xmlns='http://c3sl.ufpr.br/chessd#admin'>
         <reason>You have been kicked.</reason>
     </kick>
 </iq>
