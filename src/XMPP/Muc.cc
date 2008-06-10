@@ -54,15 +54,17 @@ namespace XMPP {
 
 	void Muc::handlePresence(const Stanza& stanza) {
 		if(stanza.subtype().empty()) {
-			this->addUser(stanza.to().resource(), stanza.from(), stanza);
+			this->addUser(stanza);
 		} else if(stanza.subtype() == "unavailable") {
-			this->removeUser(stanza.from(), "", stanza);
+			this->removeUser(stanza);
 		} else {
             throw bad_request("Invalid presence type");
 		}
 	}
 
-	void Muc::addUser(const std::string& nick, const Jid& user_jid, const Stanza& presence) {
+	void Muc::addUser(const Stanza& presence) {
+        const std::string& nick = presence.to().resource();
+        const Jid& user_jid = presence.from();
 		if(nick.empty()) {
             throw bad_request("Invalid nick");
 		} else {
@@ -132,7 +134,8 @@ namespace XMPP {
 		return stanza;
 	}
 
-	void Muc::removeUser(const Jid& user_jid, const std::string& status, const Stanza& presence) {
+	void Muc::removeUser(const Stanza& presence) {
+        const Jid& user_jid = presence.from();
 		MucUserSet::iterator it = this->users().find_jid(user_jid);
 		if(it != this->users().end()) {
             it->presence() = std::auto_ptr<Stanza>(new Stanza(presence));

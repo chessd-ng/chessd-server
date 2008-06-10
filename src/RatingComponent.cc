@@ -224,7 +224,9 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
         } catch (const XML::xml_error& error) {
             throw XMPP::xmpp_exception("Bad format");
         } catch (const boost::bad_lexical_cast& error) {
-            throw XMPP::xmpp_exception("Bad format");
+            throw XMPP::xmpp_exception("Bad date");
+        } catch (const std::out_of_range& error) {
+            throw XMPP::xmpp_exception("Date is out of range");
         }
     } catch (const XMPP::xmpp_exception& error) {
         this->sendStanza(error.getErrorStanza(new Stanza(stanza)));
