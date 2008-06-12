@@ -21,8 +21,6 @@
 
 #include "Stream.hh"
 
-#include <iostream>
-
 #include <iksemel.h>
 
 #include "Util/Log.hh"

@@ -17,7 +17,6 @@
  */
 
 #include <memory>
-#include <iostream>
 #include "MatchManager.hh"
 #include "Threads/Task.hh"
 #include "Util/utils.hh"

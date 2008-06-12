@@ -16,10 +16,6 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#include <iostream>
-
-#include <ctime>
-
 #include "Core.hh"
 
 

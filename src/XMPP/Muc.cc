@@ -16,7 +16,6 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#include <iostream>
 #include <algorithm>
 #include <boost/bind.hpp>
 

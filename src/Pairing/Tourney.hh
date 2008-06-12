@@ -39,9 +39,6 @@
 #ifndef _TOURNEY_
 #define _TOURNEY_
 
-#include <fstream>
-#include <iostream>
-
 //#include <sys/param.h>
 //#include <sys/types.h>
 

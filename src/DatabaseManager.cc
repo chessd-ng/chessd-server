@@ -22,7 +22,10 @@
 
 #include <boost/bind.hpp>
 
-#include <iostream>
+#include "Util/Log.hh"
+
+using namespace Util;
+using namespace std;
 
 struct pqxx_transaction : public pqxx::transactor<>
 {
@@ -38,7 +41,7 @@ struct pqxx_transaction : public pqxx::transactor<>
 
         void on_abort(const char* msg) throw()
         {
-            std::cout << "Transaction aborted: " << msg << std::endl;
+            Util::log.log(string("Transaction aborted: ") + msg);
         }
 
     private:
@@ -90,7 +93,6 @@ void DatabaseManager::execTransaction(const Transactor& transactor)
     /* get a connection to the database */
     try {
         if(not this->free_connections.try_pop(conn)) {
-            std::cout << "new connection to the database" << std::endl;
             conn = new pqxx::connection(this->connection_string);
         }
     } catch (pqxx::broken_connection) {

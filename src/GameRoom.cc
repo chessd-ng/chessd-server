@@ -26,8 +26,6 @@
 
 #include "I18n.hh"
 
-#include <iostream>
-
 #define XMLNS_GAME                  "http://c3sl.ufpr.br/chessd#game"
 #define XMLNS_GAME_MOVE             "http://c3sl.ufpr.br/chessd#game#move"
 #define XMLNS_GAME_RESIGN           "http://c3sl.ufpr.br/chessd#game#resign"

@@ -18,6 +18,7 @@
 
 #include "Board.hh"
 #include <string>
+#include <typeinfo>
 
 
 Board::Board(int n,int m) : nlines(n),ncolums(m) {
