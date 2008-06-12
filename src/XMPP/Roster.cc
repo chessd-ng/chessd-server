@@ -20,8 +20,6 @@
 
 #include "Exception.hh"
 
-#include <iostream>
-
 using namespace std;
 
 namespace XMPP {
@@ -44,10 +42,6 @@ namespace XMPP {
     void Roster::setUserStatus(const Jid& user, bool available) {
         this->status_handler(user, available);
         user_map::iterator it = this->users.find(user);
-        if(available)
-            std::cout << user.full() << " is Available" << endl;
-        else
-            std::cout << user.full() << " is Unavailable" << endl;
         if(it == this->users.end()) {
             this->users.insert(make_pair(user, UserInfo(available)));
         } else {
