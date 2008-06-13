@@ -678,7 +678,7 @@ void DatabaseInterface::unbanUser(const string& username) {
 }
 
 
-vector<pair<string, string> > DatabaseInterface::getBannedUsers(
+vector<pair<string, string> > DatabaseInterface::searchBannedUsers (
         const std::string& username,
         int offset,
         int max_results) {
