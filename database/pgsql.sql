@@ -11,6 +11,11 @@ BEGIN;
 
     CREATE INDEX users_type_idx ON users ("user_type");
 
+    CREATE TABLE banned_users (
+        user_id     integer PRIMARY KEY REFERENCES users,
+        reason      varchar
+    );
+
 
     CREATE TABLE adjourned_games (
         game_id     serial PRIMARY KEY,

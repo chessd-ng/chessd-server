@@ -624,9 +624,14 @@ int DatabaseInterface::getOnlineTime(const string& user) {
     return time;
 }
 
-void DatabaseInterface::insertBannedUser(const string& username,
-                                         const string& reason) {
-    int user_id = getUserId(username, false);
+void DatabaseInterface::banUser(const string& username,
+                                const string& reason) {
+    int user_id;
+    try {
+        user_id = getUserId(username, false);
+    } catch (const user_not_found& error) {
+        return;
+    }
     /* If the user user is already banned, we just update the reason */
 
     /* Try to update first */
@@ -654,8 +659,13 @@ void DatabaseInterface::insertBannedUser(const string& username,
     }
 }
 
-void DatabaseInterface::eraseBannedUser(const string& username) {
-    int user_id = getUserId(username, false);
+void DatabaseInterface::unbanUser(const string& username) {
+    int user_id;
+    try {
+        user_id = getUserId(username, false);
+    } catch (const user_not_found& error) {
+        return;
+    }
     /* Just delete the row with the user_id */
 
     /* prepare query */
@@ -668,7 +678,7 @@ void DatabaseInterface::eraseBannedUser(const string& username) {
 }
 
 
-vector<pair<string, string> > DatabaseInterface::searchBannedUsers(
+vector<pair<string, string> > DatabaseInterface::getBannedUsers(
         const std::string& username,
         int offset,
         int max_results) {
@@ -694,8 +704,8 @@ vector<pair<string, string> > DatabaseInterface::searchBannedUsers(
     vector<pair<string, string> > ret;
 
     foreach(res, results) {
-        ret.push_back(make_pair(res->at("user.user_name").c_str(),
-                                res->at("banned_users.reason").c_str()));
+        ret.push_back(make_pair(res->at("user_name").c_str(),
+                                res->at("reason").c_str()));
     }
 
     return ret;
