@@ -21,17 +21,18 @@
 #include "Util/Date.hh"
 
 using namespace boost::posix_time;
+using namespace std;
 
 DatabaseInterface::DatabaseInterface(pqxx::work& work) :
     work(work) { }
 
-int DatabaseInterface::getUserId(const std::string& _username, bool create) {
+int DatabaseInterface::getUserId(const string& _username, bool create) {
     int user_id;
     pqxx::result result;
-    std::string username = this->work.esc(_username);
+    string username = this->work.esc(_username);
     
     /* prepare the query */
-    std::string query = "SELECT user_id "
+    string query = "SELECT user_id "
                         "FROM users "
                         "WHERE user_name ='" + this->work.esc(username) + "'";
     
@@ -45,7 +46,7 @@ int DatabaseInterface::getUserId(const std::string& _username, bool create) {
     } else if(result.empty() and create) {
         /* prepare query */
         query = "INSERT INTO users (user_name) "
-            "VALUES ('" + username + "') ";
+                "VALUES ('" + username + "') ";
         /* execute query */
         this->work.exec(query);
         /* get the id */
@@ -57,9 +58,9 @@ int DatabaseInterface::getUserId(const std::string& _username, bool create) {
     return user_id;
 }
 
-std::string DatabaseInterface::getUsername(int user_id) {
-    std::string query;
-    std::string username;
+string DatabaseInterface::getUsername(int user_id) {
+    string query;
+    string username;
     pqxx::result result;
 
     /* prepare the query */
@@ -81,12 +82,12 @@ std::string DatabaseInterface::getUsername(int user_id) {
     return username;
 }
 
-std::vector<std::pair<std::string, PersistentRating> >
-    DatabaseInterface::getRatings(const std::string& username,
-                                  const std::string& category)
+vector<pair<string, PersistentRating> >
+    DatabaseInterface::getRatings(const string& username,
+                                  const string& category)
 {
-    std::string query;
-    std::vector<std::pair<std::string, PersistentRating> > ratings;
+    string query;
+    vector<pair<string, PersistentRating> > ratings;
     int user_id;
 
     try {
@@ -113,7 +114,7 @@ std::vector<std::pair<std::string, PersistentRating> >
         /* read results */
         foreach(r, result) {
             PersistentRating rating;
-            std::string category;
+            string category;
             time_t t;
             r->at("category").to(category);
             r->at("rating").to(rating.rating);
@@ -125,7 +126,7 @@ std::vector<std::pair<std::string, PersistentRating> >
             r->at("max_timestamp").to(t);
             r->at("last_game").to(rating.last_game);
             rating.max_timestamp = from_time_t(t);
-            ratings.push_back(std::make_pair(category, rating));
+            ratings.push_back(make_pair(category, rating));
         }
     } catch (const user_not_found&) {
         /* if the user is not found return an empty list */
@@ -133,10 +134,10 @@ std::vector<std::pair<std::string, PersistentRating> >
     return ratings;
 }
 
-std::string DatabaseInterface::getUserType(const std::string& user)
+string DatabaseInterface::getUserType(const string& user)
 {
     /* prepare query */
-    std::string query =
+    string query =
         "SELECT user_type"
         " FROM users"
         " WHERE user_name='" + this->work.esc(user) + "'";
@@ -154,13 +155,13 @@ std::string DatabaseInterface::getUserType(const std::string& user)
 }
 
 PersistentRating
-DatabaseInterface::getRatingForUpdate(const std::string& username,
-                                   const std::string& category)
+DatabaseInterface::getRatingForUpdate(const string& username,
+                                   const string& category)
 {
     int user_id = this->getUserId(username, true);
 
     /* prepare query */
-    std::string query =
+    string query =
         "SELECT * "
         " FROM player_rating "
         " WHERE user_id=" + pqxx::to_string(user_id) + " AND " +
@@ -191,14 +192,14 @@ DatabaseInterface::getRatingForUpdate(const std::string& username,
     }
 }
 
-void DatabaseInterface::setRating(const std::string& username,
-                               const std::string& category,
+void DatabaseInterface::setRating(const string& username,
+                               const string& category,
                                const PersistentRating& rating)
 {
     int user_id = this->getUserId(username, true);
 
     /* prepare query */
-    std::string query =
+    string query =
         " UPDATE player_rating"
         " SET rating=" + pqxx::to_string(rating.rating) +
         "    ,volatility=" + pqxx::to_string(rating.volatility) +
@@ -239,26 +240,26 @@ void DatabaseInterface::setRating(const std::string& username,
 void DatabaseInterface::insertGameResult(GameResult& game_result)
 {
 
-    std::string category = game_result.category();
+    string category = game_result.category();
     Rating tmp;
     PersistentRating rating;
     PersistentGame game;
 
     /* create a map with the player's rating */
     if(game_result.isRated()) {
-        std::map<Player, Rating> ratings;
-        std::map<Player, PersistentRating> pratings;
+        map<Player, Rating> ratings;
+        map<Player, PersistentRating> pratings;
         foreach(player, game_result.players()) {
-            std::string name = player->jid.partial();
+            string name = player->jid.partial();
             rating = this->getRatingForUpdate(name, category);
-            pratings.insert(std::make_pair(player->jid, rating));
+            pratings.insert(make_pair(player->jid, rating));
             tmp.rating() = rating.rating;
             tmp.volatility() = rating.volatility;
             tmp.wins() = rating.wins;
             tmp.draws() = rating.draws;
             tmp.losses() = rating.defeats;
             tmp.last_game() = rating.last_game;
-            ratings.insert(std::make_pair(player->jid, tmp));
+            ratings.insert(make_pair(player->jid, tmp));
         }
 
         /* update ratings */
@@ -289,7 +290,7 @@ void DatabaseInterface::insertGameResult(GameResult& game_result)
     game.result = game_result.end_reason();
 
     /* get history */
-    std::auto_ptr<XML::Tag> history(game_result.history());
+    auto_ptr<XML::Tag> history(game_result.history());
     game.history = history->xml();
 
     /* insert to the database */
@@ -299,7 +300,7 @@ void DatabaseInterface::insertGameResult(GameResult& game_result)
 void DatabaseInterface::insertGame(const PersistentGame& game) {
 
     int game_id;
-    std::string query;
+    string query;
 
     /* insert the game in the database */
     query =
@@ -329,10 +330,10 @@ void DatabaseInterface::insertGame(const PersistentGame& game) {
 }
 
 
-std::string DatabaseInterface::getGameHistory(int game_id) {
+string DatabaseInterface::getGameHistory(int game_id) {
 
     /* find the game in the database */
-    std::string query = 
+    string query = 
         "SELECT history FROM games WHERE game_id = " + pqxx::to_string(game_id);
     pqxx::result result = this->work.exec(query);
 
@@ -344,28 +345,28 @@ std::string DatabaseInterface::getGameHistory(int game_id) {
     return result[0]["history"].c_str();
 }
 
-std::vector<PersistentGame> DatabaseInterface::searchGames(
-        const std::vector<std::pair<std::string, std::string> > players,
+vector<PersistentGame> DatabaseInterface::searchGames(
+        const vector<pair<string, string> > players,
         int time_begin, int time_end,
         int offset,
         int max_results)
 {
-    std::vector<PersistentGame> games;
+    vector<PersistentGame> games;
     time_t t;
 
     try {
         /* prepare sql query */
-        std::string select =
+        string select =
             " SELECT games.game_id, category, time_stamp, result ";
-        std::string from =
+        string from =
             " FROM games ";
-        std::string where;
+        string where;
 
         /* XXX this is necessary in order to
          * accept an arbitrary number of players */
         for(int i=0;i<int(players.size());++i) {
             int user_id = this->getUserId(players[i].first, false);
-            std::string id_str = Util::to_string(i);
+            string id_str = Util::to_string(i);
             from += ", game_players g" + id_str + " ";
             if(not where.empty())
                 where += " AND ";
@@ -398,7 +399,7 @@ std::vector<PersistentGame> DatabaseInterface::searchGames(
         }
 
 
-        std::string query = select + from + where +
+        string query = select + from + where +
             " ORDER BY game_id DESC " +
             " LIMIT " + pqxx::to_string(max_results) +
             " OFFSET " + pqxx::to_string(offset);
@@ -418,7 +419,7 @@ std::vector<PersistentGame> DatabaseInterface::searchGames(
             game.category = r->at("category").c_str();
 
             /* get players */
-            std::string query =
+            string query =
                 "SELECT user_id, role, score FROM game_players WHERE game_id = "
                 + Util::to_string(game.id);
             pqxx::result result = this->work.exec(query);
@@ -445,7 +446,7 @@ void DatabaseInterface::insertAdjournedGame(const PersistentAdjournedGame& game)
 {
     int game_id;
 
-    std::string query;
+    string query;
 
     /* insert game */
     query =
@@ -469,8 +470,8 @@ void DatabaseInterface::insertAdjournedGame(const PersistentAdjournedGame& game)
     }
 }
 
-std::string DatabaseInterface::getAdjournedGameHistory(int game_id) {
-    std::string query;
+string DatabaseInterface::getAdjournedGameHistory(int game_id) {
+    string query;
     
     /* find game */
     query = "SELECT history FROM adjourned_games WHERE game_id = " + Util::to_string(game_id);
@@ -483,24 +484,24 @@ std::string DatabaseInterface::getAdjournedGameHistory(int game_id) {
     return result[0][0].c_str();
 }
 
-std::vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
-                const std::vector<std::string>& players,
+vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
+                const vector<string>& players,
                 int offset,
                 int max_results)
 {
-    std::vector<PersistentAdjournedGame> games;
+    vector<PersistentAdjournedGame> games;
 
     try {
-        std::string select =
+        string select =
             " SELECT adjourned_games.game_id, category, time_stamp ";
-        std::string from =
+        string from =
             " FROM adjourned_games ";
-        std::string where;
+        string where;
 
         /* prepare sql query */
         for(int i=0;i<int(players.size());++i) {
             int user_id = this->getUserId(players[i], false);
-            std::string id_str = Util::to_string(i);
+            string id_str = Util::to_string(i);
             from += ", adjourned_game_players g" + id_str + " ";
             if(i > 0)
                 where += " AND ";
@@ -510,7 +511,7 @@ std::vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
                 + ".game_id AND g" + id_str + ".user_id = '"
                 + pqxx::to_string(user_id) + "' ";
         }
-        std::string query = select + from + where + " limit " + Util::to_string(max_results) + " offset " + Util::to_string(offset);
+        string query = select + from + where + " limit " + Util::to_string(max_results) + " offset " + Util::to_string(offset);
 
         /* search games */
         pqxx::result result = this->work.exec(query);
@@ -526,7 +527,7 @@ std::vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
             game.category = r->at("category").c_str();
 
             /* get players */
-            std::string query =
+            string query =
                 "SELECT user_id FROM adjourned_game_players WHERE game_id = "
                 + pqxx::to_string(game.id);
             pqxx::result result = this->work.exec(query);
@@ -545,7 +546,7 @@ std::vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
 }
 
 void DatabaseInterface::eraseAdjournedGame(int game_id) {
-    std::string query;
+    string query;
 
     /* erase game */
     query =
@@ -554,13 +555,13 @@ void DatabaseInterface::eraseAdjournedGame(int game_id) {
     this->work.exec(query);
 }
 
-std::vector<std::string> DatabaseInterface::getAdmins() {
+vector<string> DatabaseInterface::getAdmins() {
 
-    std::vector<std::string> admins;
-    std::string admin;
+    vector<string> admins;
+    string admin;
 
     /* prepare query */
-    std::string query =
+    string query =
         " SELECT user_name"
         " FROM users "
         " WHERE user_type='admin'";
@@ -577,8 +578,8 @@ std::vector<std::string> DatabaseInterface::getAdmins() {
     return admins;
 }
 
-void DatabaseInterface::setUserEmail(const std::string& username, const std::string& email) {
-    std::string query;
+void DatabaseInterface::setUserEmail(const string& username, const string& email) {
+    string query;
 
     /* update info game */
     query =
@@ -588,9 +589,9 @@ void DatabaseInterface::setUserEmail(const std::string& username, const std::str
     this->work.exec(query);
 }
 
-void DatabaseInterface::updateOnlineTime(const std::string& username,
+void DatabaseInterface::updateOnlineTime(const string& username,
                                          int increment) {
-    std::string query;
+    string query;
 
     /* update info game */
     query =
@@ -600,11 +601,11 @@ void DatabaseInterface::updateOnlineTime(const std::string& username,
     this->work.exec(query);
 }
 
-int DatabaseInterface::getOnlineTime(const std::string& user) {
+int DatabaseInterface::getOnlineTime(const string& user) {
     int time;
 
     /* prepare query */
-    std::string query =
+    string query =
         " SELECT online_time"
         " FROM users "
         " WHERE user_name='" + this->work.esc(user) + "'";
@@ -621,4 +622,81 @@ int DatabaseInterface::getOnlineTime(const std::string& user) {
     }
     
     return time;
+}
+
+void DatabaseInterface::insertBannedUser(const string& username,
+                                         const string& reason) {
+    int user_id = getUserId(username, false);
+    /* If the user user is already banned, we just update the reason */
+
+    /* Try to update first */
+
+    /* prepare query */
+    string query =
+        "UPDATE banned_users SET reason='" + this->work.esc(reason) + "' "
+        "WHERE user_id=" + pqxx::to_string(user_id);
+
+    /* execute query */
+    pqxx::result result = work.exec(query);
+
+    if(result.affected_rows() == 0) {
+
+        /* The update has failed, which means that the user
+         * is not in the banned list, so we add him now */
+    
+        /* prepare query */
+        query =
+            "INSERT INTO banned_users (user_id, reason) "
+            "VALUES ("  + pqxx::to_string(user_id) + "," +
+            "'" + this->work.esc(reason) + "')";
+
+        work.exec(query);
+    }
+}
+
+void DatabaseInterface::eraseBannedUser(const string& username) {
+    int user_id = getUserId(username, false);
+    /* Just delete the row with the user_id */
+
+    /* prepare query */
+    string query =
+        "DELETE FROM banned_users "
+        "WHERE user_id=" + pqxx::to_string(user_id);
+
+    /* execute query */
+    work.exec(query);
+}
+
+
+vector<pair<string, string> > DatabaseInterface::searchBannedUsers(
+        const std::string& username,
+        int offset,
+        int max_results) {
+
+    /* Search banned_users by joining it with users table */
+
+    /* prepare query */
+    string query =
+        " SELECT users.user_name, banned_users.reason FROM users, banned_users "
+        " WHERE users.user_id=banned_users.user_id "
+        " AND users.user_name LIKE '" + this->work.esc(username) + "%'";
+
+    if(max_results != -1) {
+        query +=
+            " ORDER BY users.user_id "
+            " LIMIT " + pqxx::to_string(max_results) +
+            " OFFSET " + pqxx::to_string(offset);
+    }
+
+    /* execute query */
+    pqxx::result results = work.exec(query);
+    
+    vector<pair<string, string> > ret;
+
+    foreach(res, results) {
+        ret.push_back(make_pair(res->at("user.user_name").c_str(),
+                                res->at("banned_users.reason").c_str()));
+    }
+
+    return ret;
 }
