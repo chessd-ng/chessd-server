@@ -49,6 +49,27 @@ struct pqxx_transaction : public pqxx::transactor<>
         Transactor transactor;
 };
 
+TransactorObject::TransactorObject(const Transactor& transactor) :
+    transactor(transactor),
+    finished(false) { }
+
+void TransactorObject::wait() { 
+    this->condition.lock();
+    if(not this->finished) {
+        condition.wait();
+    }
+    this->condition.unlock();
+}
+
+void TransactorObject::operator()(DatabaseInterface& interface) {
+    this->transactor(interface);
+
+    this->condition.lock();
+    finished = true;
+    this->condition.signal();
+    this->condition.unlock();
+}
+
 DatabaseManager::DatabaseManager(const XML::Tag& config) :
     colector_task(boost::bind(&DatabaseManager::colector, this))
 {
@@ -119,6 +140,11 @@ void DatabaseManager::queueTransaction(const Transactor& transaction)
     task->start();
 
     this->running_tasks.push(task);
+}
+
+void DatabaseManager::queueTransaction(TransactorObject& transaction)
+{
+    this->queueTransaction(Transactor(boost::ref(transaction)));
 }
 
 void DatabaseManager::colector()
