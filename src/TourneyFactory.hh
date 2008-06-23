@@ -22,7 +22,7 @@
 #include "ChessTourney.hh"
 #include "XML/Xml.hh"
 
-struct TourneyRule {
+struct TourneyFactory {
 	public:
 		static Tourney* create(const XML::Tag& offer) {
 			//test category
