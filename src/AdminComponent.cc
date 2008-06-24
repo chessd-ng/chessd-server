@@ -87,9 +87,9 @@ void AdminComponent::handleBannedList(const Stanza& stanza) {
     generator.openTag("banned-list");
     generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
 
-    foreach(user, this->baneds) {
+    foreach(user, this->banneds) {
         generator.openTag("jid");
-        generator.addCData(user->full());
+        generator.addCData(user->first.full());
         generator.closeTag();
     }
     
@@ -134,7 +134,7 @@ void AdminComponent::handleKick(const Stanza& stanza) {
 void AdminComponent::handleBan(const Stanza& stanza) {
     const Tag& query = stanza.firstTag();
 
-    /* get user to be baned */
+    /* get user to be banned */
     XMPP::Jid target(query.getAttribute("jid"));
 
     /* get ban reason */
@@ -153,7 +153,7 @@ void AdminComponent::handleBan(const Stanza& stanza) {
     this->root_node.sendIq(message.release());
 
     /* ban user */
-    this->banUser(target);
+    this->banUser(target, reason);
 
     /* send result */
     auto_ptr<Stanza> result(stanza.createIQResult());
@@ -203,15 +203,22 @@ void AdminComponent::kickUser(const XMPP::PartialJid& user) {
     this->root_node.sendIq(message.release());
 }
 
-void AdminComponent::banUser(const XMPP::PartialJid& user) {
+void AdminComponent::banUser(const XMPP::PartialJid& user,
+                             const string& reason) {
     this->kickUser(user);
-    this->baneds.insert(user);
+    this->banneds.insert(make_pair(user, reason));
     this->updateAcl();
+    this->database.queueTransaction(boost::bind(&DatabaseInterface::banUser,
+                _1, user.full(), reason));
 }
 
 void AdminComponent::unbanUser(const XMPP::PartialJid& user) {
-    this->baneds.erase(user);
-    this->updateAcl();
+    if(this->banneds.count(user) > 0) {
+        this->banneds.erase(user);
+        this->database.queueTransaction(boost::bind(&DatabaseInterface::unbanUser,
+                    _1, user.full()));
+        this->updateAcl();
+    }
 }
 
 void AdminComponent::onError(const std::string& error) {
@@ -252,29 +259,31 @@ void AdminComponent::onConnect() {
     this->setAccessRules();
 
     /* Load admin list from the database */
-    this->database.queueTransaction(boost::bind(&AdminComponent::loadAdmins, this, _1));
+    TransactorObject transactor(boost::bind(&AdminComponent::loadAcl, this, _1));
+    this->database.queueTransaction(transactor);
+
+    /* We have to wait to avoid race condition */
+    transactor.wait();
+
+    /* Update the acl in the jabber server */
+    this->updateAcl();
 }
 
-void AdminComponent::loadAdmins(DatabaseInterface& database) {
+void AdminComponent::loadAcl(DatabaseInterface& database) {
     /* read from database */
     std::vector<std::string> resp = database.getAdmins();
-    std::set<XMPP::PartialJid> admins;
+    std::vector<pair<std::string, string> > banneds =
+        database.searchBannedUsers();
 
     /* convert types */
     foreach(admin, resp) {
-        admins.insert(XMPP::PartialJid(*admin));
+        this->admins.insert(XMPP::PartialJid(*admin));
     }
 
-    /* update the list */
-    this->dispatcher.queue(boost::bind(&AdminComponent::setAdmins, this, admins));
-}
-
-void AdminComponent::setAdmins(const std::set<XMPP::PartialJid>& admins) {
-    /* set local list */
-    this->admins = admins;
-
-    /* update ejabberd's acl */
-    this->updateAcl();
+    foreach(banned, banneds) {
+        this->banneds.insert(make_pair(XMPP::PartialJid(banned->first),
+                                       banned->second));
+    }
 }
 
 void AdminComponent::updateAcl() {
@@ -302,9 +311,9 @@ void AdminComponent::updateAcl() {
     foreach(admin, this->admins) {
         acl += "{acl,chessd_admin,{user,\"" + admin->node() + "\",\"" + admin->domain() + "\"}},";
     }
-    /* put baned users in the blocked group */
-    foreach(ban, this->baneds) {
-        acl += "{acl,blocked,{user,\"" + ban->node() + "\",\"" + ban->domain() + "\"}},";
+    /* put banned users in the blocked group */
+    foreach(ban, this->banneds) {
+        acl += "{acl,blocked,{user,\"" + ban->first.node() + "\",\"" + ban->first.domain() + "\"}},";
     }
     /* remove extra comma */
     if(acl.size() > 1) {

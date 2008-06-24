@@ -71,6 +71,10 @@ following lines after the square bracket:
           {access, all},
           {host, "admin.localhost", [{password, "secret"}]}]},
 
+  {<port4>, ejabberd_service, [{ip, {127, 0, 0, 1}},
+          {access, all},
+          {host, "tourney.localhost", [{password, "secret"}]}]},
+
 
 Replace <port1> to <port4> to unused TCP ports. You should replace
 the ocurrences og localhost to name for your server. Remember
@@ -126,13 +130,18 @@ config.xml. It should look like this:
         server_password="secret"
         node_name="match.shiva"
     />
-
     <admin-component
         server_address="localhost"
         server_port="<port4>"
         server_password="secret"
         node_name="admin.shiva"
         server_name="shiva"
+    />
+    <tourney-component
+        server_address="localhost"
+        server_port="<port4>"
+        server_password="secret"
+        node_name="admin.shiva"
     />
 
     <database

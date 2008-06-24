@@ -66,7 +66,7 @@ class AdminComponent : public ComponentBase {
 		void fetchUserType(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
         /*! \brief Load admins names from the database */
-        void loadAdmins(DatabaseInterface& database);
+        void loadAcl(DatabaseInterface& database);
 
         /*! \brief Set the admin list */
         void setAdmins(const std::set<XMPP::PartialJid>& admins);
@@ -91,7 +91,7 @@ class AdminComponent : public ComponentBase {
 
         void kickUser(const XMPP::PartialJid& user);
 
-        void banUser(const XMPP::PartialJid& user);
+        void banUser(const XMPP::PartialJid& user, const std::string& reason);
 
         void unbanUser(const XMPP::PartialJid& user);
 
@@ -103,7 +103,7 @@ class AdminComponent : public ComponentBase {
 
         std::set<XMPP::PartialJid> admins;
 
-        std::set<XMPP::PartialJid> baneds;
+        std::map<XMPP::PartialJid, std::string> banneds;
 };
 
 #endif

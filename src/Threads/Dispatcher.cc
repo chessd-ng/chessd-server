@@ -18,8 +18,6 @@
 
 #include "Dispatcher.hh"
 
-#include <iostream>
-
 namespace Threads {
 
     Dispatcher::Dispatcher() : 

@@ -141,6 +141,20 @@ namespace XML {
 
             Tag& operator=(const Tag& tag);
 
+            const Tag& firstTag() const {
+                if(this->tags().begin() == this->tags().end()) {
+                    throw XML::child_not_found("Child not found");
+                }
+                return *this->tags().begin();
+            }
+
+            Tag& firstTag() {
+                if(this->tags().begin() == this->tags().end()) {
+                    throw XML::child_not_found("Child not found");
+                }
+                return *this->tags().begin();
+            }
+
 		private:
 
 

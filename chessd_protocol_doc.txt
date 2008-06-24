@@ -410,6 +410,55 @@ Any date and time is in the format specified by the XEP-082.
 </iq>
 
 <!--
+    To create a tourney in the server
+    start_time is when the tourney will start in seconds elapsed
+                from the time the message was sent
+    time is the time of the game
+    inc is the game time inrement
+    rounds is the number of rounds in the tourney
+-->
+
+<iq type='set' to='tourneydev.shiva' id='1234'>
+    <create xmlns='http://c3sl.ufpr.br/chessd#tourney'>
+        <tourney category='standard' start_time='300' time='900' inc='5' rounds='6'/>
+    </create>
+</iq>
+
+<!--
+    To list all active tourneys.
+--!>
+
+<iq type='set' to='tourneydev.shiva' id='1234'>
+    <list xmlns='http://c3sl.ufpr.br/chessd#tourney'/>
+</iq>
+
+<!--
+    The result
+--!>
+
+<iq from="tourneydev.shiva" type="result" id="1234" to="raphaelhr@shiva/guinness" >
+    <list xmlns="http://c3sl.ufpr.br/chessd#tourney">
+        <tourney id="0" />
+    </list>
+</iq>
+
+<!-- To join a tournet --!>
+
+<iq type='set' to='tourneydev.shiva' id='1234'>
+    <join xmlns='http://c3sl.ufpr.br/chessd#tourney'>
+        <tourney id='0'/>
+    </join>
+</iq>
+
+<!-- When a round begins the players will receive a notification with their game rooms --!>
+
+<iq from="tourneydev.shiva" type="set" id="0" to="raphaelhr@shiva/guinness" >
+    <game xmlns="http://c3sl.ufpr.br/chessd#tourney" room="game_0@gamesdev.shiva" >
+        <tourney id="0" />
+    </game>
+</iq>
+
+<!--
     History.
 --!>
 

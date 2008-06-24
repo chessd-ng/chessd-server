@@ -40,7 +40,7 @@
 
 typedef uint64_t GameId;
 
-typedef boost::function<void (const XMPP::Jid& gmae_room)> OnGameStart;
+typedef boost::function<void (const XMPP::Jid& game_room)> OnGameStart;
 
 /*! \brief Manage all games in the server plus control the game component. */
 class GameManager : public ComponentBase {
@@ -49,7 +49,9 @@ class GameManager : public ComponentBase {
 		 *
 		 * \param config is the configuration for this component.
 		 */
-		GameManager(const XML::Tag& config, DatabaseManager& database_manager, const XMPP::ErrorHandler& handle_error);
+		GameManager(const XML::Tag& config,
+                    DatabaseManager& database_manager,
+                    const XMPP::ErrorHandler& handle_error);
 
 		/*! \brief Destructor.
 		 *
@@ -63,7 +65,9 @@ class GameManager : public ComponentBase {
 		 * \param on_game_start is a notifier for the game jid.
 		 * This is a tunnel the real one.
 		 */
-		void createGame(Game* game, const OnGameStart& on_game_start = OnGameStart());
+		void createGame(Game* game,
+                        const OnGameStart& on_game_start = OnGameStart(),
+                        const OnGameEnd& on_game_end = OnGameEnd());
 
     private:
 
@@ -71,7 +75,9 @@ class GameManager : public ComponentBase {
 		 *
 		 * This one is not thread safe.
 		 */
-		void _createGame(Game* game, const OnGameStart& on_game_start = OnGameStart());
+		void _createGame(Game* game,
+                         const OnGameStart& on_game_start = OnGameStart(),
+                         const OnGameEnd& on_game_end = OnGameEnd());
 
 		/*! \brief Close a game room.
          *

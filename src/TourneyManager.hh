@@ -21,80 +21,104 @@
 
 #include <map>
 #include <set>
-#include <sigc++/sigc++.h>
-#include "core_interface.hh"
-#include "component.hh"
-#include "jabbernode.hh"
-#include "dispatch.hh"
-#include "stream_listener.hh"
-#include "disco.hh"
-#include "timer.hh"
+#include <memory>
+#include <boost/ptr_container/ptr_map.hpp>
 
-#include "match.hh"
-#include "matchrule.hh"
+#include <stdint.h>
 
-#include "sdb.hh"
+#include "Tourney.hh"
 
-#include "identifier.hh"
+#include "ComponentBase.hh"
 
-class TourneyManager: public Dispatcher {
+#include "GameManager.hh"
+#include "DatabaseManager.hh"
+
+/*! \brief This class manages all the matchs int the server. */
+class TourneyManager : public ComponentBase {
 	public:
-		TournetManager(CoreInterface* core_interface, const JID& jid);
+		/*! \brief Constructor
+		 *
+		 * \param core_interface is the interface to the core.
+		 * \param config is the configuration for this component.
+		 */
+		TourneyManager(const XML::Tag& config,
+                     GameManager& game_manager,
+                     DatabaseManager& database_manager,
+                     const XMPP::ErrorHandler& handleError);
 
-		~TournetManager();
-
-		void connect(const std::string& host, const std::string& password, int port);
-
-		void insertMatchRule(const MatchRule& rule);
-
+		/*! \brief Destructor
+		 *
+		 * Closes server connection if available
+		 */
+		~TourneyManager();
 
 	private:
 
-		/* Keep a relation from JID and ID */
-		typedef Identifier<JID> JidIdentifier;
-		JidIdentifier jid_identifier;
+		/*! \brief Handle an incoming tourney iq. */
+		void handleTourney(const XMPP::Stanza& query);
 
-		/* several handlers for the incoming events */
+		/*! \brief Handle an incoming request to create a tourney. */
+		void handleCreate(const XMPP::Stanza& query);
 
-		/* handle the conenction status */
-		void handleConnection(int status);
+		/*! \brief Handle an incoming request to list all tourneys. */
+		void handleList(const XMPP::Stanza& query);
 
-		/* handle an incoming match offer */
-		void handleMatchOffer(Stanza* stanza);
-		/* handle an incoming match acceptance */
-		void handleMatchAccept(Stanza* stanza);
-		/* handle an incoming match declinance */
-		void handleMatchDecline(Stanza* stanza);
+		/*! \brief Handle an incoming request to join a tourney. */
+		void handleJoin(const XMPP::Stanza& query);
 
-		/* all required structures for jabber */
-		CoreInterface* core_interface;
-		Stream stream;
-		StreamListener listener;
-		Component component;
-		Jabbernode node;
-		Disco disco;
+        /*! \brief Start the tourney */
+        void startTourney(uint64_t tourney_id);
 
-		/* Team database */
-		typedef std::vector<PlayerID> Team;
-		typedef SimpleDatabase<Team> TeamDB;
-		TeamDB teams;
+        /*! \brief Start a tourney's next round */
+        void startNextRound(uint64_t tourney_id);
 
-		/* types and members used to store the match rules */
-		typedef std::map<std::stream, MatchRule*>  RuleMap;
-		RuleMap rules;
+        /*! \brief Notify a game tourney to the players.
+         *
+         * This is just a tunnel to the real one
+         * */
+        void notifyGame(uint64_t tourney_id,
+                        const std::vector<XMPP::Jid>& players,
+                        const XMPP::Jid& game_room);
 
-		/* search for a match rule */
-		/* Returns NULL if category is not found */
-		RuleMap* getMatchRule(const std::string& category);
-		void insertMatchRule(MatchRule* rule, const std::string& category);
+        /*! \brief Notify a game tourney to the players. */
+        void _notifyGame(uint64_t tourney_id,
+                         const std::vector<XMPP::Jid>& players,
+                         const XMPP::Jid& game_room);
 
-		/* types and members used to store current matchs */
-		typedef SimpleDatabase<Match*> MatchDB;
-		MatchDB matchs;
+        /*! \brief Take a result of a tourney game
+         *
+         * This is a tunnel to the real one
+         * */
+        void reportResult(uint64_t tourney_id, const PlayerResultList& results);
 
-		/* keep track of monitored users */
-		typedef std::set<PlayerID> IDSet;
-		IDSet monitored_users;
+        /*! \brief Take a result of a tourney game */
+        void _reportResult(uint64_t tourney_id,
+                           const PlayerResultList& results);
+
+        /*! \brief Receive a close notification. */
+        void onClose();
+
+        /*! \brief Receive a error notification. */
+        void onError(const std::string& error);
+
+        struct TourneyStatus {
+            Util::Time start_time;
+            Util::Time round_interval;
+            bool running;
+            XMPP::Jid owner;
+            std::auto_ptr<Tourney> tourney;
+        };
+
+		/*! \brief Team database */
+        boost::ptr_map<uint64_t, TourneyStatus> tourneys;
+
+		uint64_t tourney_ids;
+
+        GameManager& game_manager;
+
+        DatabaseManager& database;
+
+		XMPP::ErrorHandler handleError;
 };
 
 #endif

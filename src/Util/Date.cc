@@ -22,7 +22,7 @@ namespace Util {
         return boost::posix_time::to_iso_extended_string(pt) + "Z";
     }
 
-    int xmpp_date_time_to_time_t(const std::string& _date) {
+    time_t xmpp_date_time_to_time_t(const std::string& _date) {
         /* FIXME don't igore time zone */
         std::string date = _date.substr(0, _date.size()-1);
 

@@ -19,8 +19,6 @@
 #ifndef PIECE_HH
 #define PIECE_HH
 
-#include <iostream>
-
 class Piece {
 	public:
 		Piece(int type,int color);

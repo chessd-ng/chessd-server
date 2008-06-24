@@ -137,6 +137,21 @@ class DatabaseInterface : public pqxx::transactor<>
         /*! \brief Get user's onlime time */
         int getOnlineTime(const std::string& user);
 
+        /*! \brief Insert a user to the banned list */
+        void banUser(const std::string& name, const std::string& reason);
+
+        /*! \brief Remove a user to the banned list */
+        void unbanUser(const std::string& name);
+
+        /*! \brief Search the banned list
+         *
+         * \return Returns a list of pairs which the first element is the
+         *         user name and the secondis the ban reason */
+        std::vector<std::pair<std::string, std::string> > searchBannedUsers
+            (const std::string& name = "",
+             int offset = 0,
+             int max_results = -1);
+
     private:
 
         /*! \brief Get the user's id by his name */

@@ -20,7 +20,6 @@
 #include "Jid.hh"
 
 #include <iksemel.h>
-#include <iostream>
 #include <memory>
 
 using namespace XML;

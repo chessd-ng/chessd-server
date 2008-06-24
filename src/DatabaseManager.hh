@@ -29,11 +29,42 @@
 
 #include "Threads/Queue.hh"
 
+#include "Threads/Condition.hh"
+
 #include "XML/Xml.hh"
 
 #include "DatabaseInterface.hh"
 
 typedef boost::function<void (DatabaseInterface&)> Transactor;
+
+/*! \brief A more robust transactor
+ *
+ * This class has he same purpose of the transacotr type
+ * but it has aditional functionality.
+ */
+class TransactorObject {
+    public:
+
+        /*! \brief Constructor.
+         * \param transactor is the function that
+         *        will execute the transaction
+         */
+        TransactorObject(const Transactor& transactor);
+
+        /*! \brief Wait for the transaction to complete */
+        void wait();
+
+        /*! \brief Execute the transaction */
+        void operator()(DatabaseInterface&);
+
+    private:
+
+        Transactor transactor;
+
+        Threads::Condition condition;
+
+        volatile bool finished;
+};
 
 /*! \brief Controls access to the database. 
  *
@@ -48,7 +79,7 @@ class DatabaseManager {
         /*! \brief Destructor. */
         ~DatabaseManager();
 
-        /*! \brief Queue a trnasaction.
+        /*! \brief Queue a transaction.
          *
          * \param transaction is a function that performs the transation.
          * The transaction is executed in a separated thread.
@@ -56,6 +87,13 @@ class DatabaseManager {
          * in case ofa a rollback.
          * */
         void queueTransaction(const Transactor& transaction);
+
+        /*! \brief Queue a transaction
+         *
+         * Same as the other form, but take a TransactorObject 
+         * as parameter, it does not copy it and the insance passed
+         * must exist until the transaction is over */
+        void queueTransaction(TransactorObject& transaction);
 
     private:
 

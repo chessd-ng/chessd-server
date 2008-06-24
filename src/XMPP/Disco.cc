@@ -19,8 +19,6 @@
 #include "Disco.hh"
 #include "Util/utils.hh"
 
-#include <iostream>
-
 using namespace std;
 using namespace XML;
 

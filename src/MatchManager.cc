@@ -17,7 +17,6 @@
  */
 
 #include <memory>
-#include <iostream>
 #include "MatchManager.hh"
 #include "Threads/Task.hh"
 #include "Util/utils.hh"
@@ -339,7 +338,8 @@ void MatchManager::closeMatch(int id, bool accepted) {
         Game* game = match->createGame();
         this->game_manager.createGame(
                 game,
-                boost::bind(&MatchManager::notifyGameStart, this, id, match.release(), _1));
+                boost::bind(&MatchManager::notifyGameStart,
+                    this, id, match.release(), _1));
     } else {
         this->notifyResult(*match, id, accepted);
     }
