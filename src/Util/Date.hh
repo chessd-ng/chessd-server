@@ -15,7 +15,7 @@ namespace Util {
 
     std::string ptime_to_xmpp_date_time(boost::posix_time::ptime pt);
 
-    int xmpp_date_time_to_time_t(const std::string& _date);
+    time_t xmpp_date_time_to_time_t(const std::string& _date);
 }
 
 #endif
