@@ -46,49 +46,55 @@ void GameManager::onError(const string& msg) {
     this->handle_error(msg);
 }
 
-void GameManager::createGame(Game* game, const OnGameStart& on_game_start) {
-	this->dispatcher.queue(boost::bind(&GameManager::_createGame, this, game, on_game_start));
+void GameManager::createGame(Game* game,
+        const OnGameStart& on_game_start,
+        const OnGameEnd& on_game_end) {
+    this->dispatcher.queue(boost::bind(&GameManager::_createGame,
+                this, game, on_game_start, on_game_end));
 }
 
-void GameManager::_createGame(Game* game, const OnGameStart& on_game_start) {
-	GameId game_id = game_ids ++;
-	Jid room_jid = Jid("game_" + Util::to_string(game_id), this->node_name);
-	/* Create the game room */
-	GameRoom* game_room = new GameRoom(game, room_jid, this->database_manager,
+void GameManager::_createGame(Game* game,
+        const OnGameStart& on_game_start,
+        const OnGameEnd& on_game_end) {
+    GameId game_id = game_ids ++;
+    Jid room_jid = Jid("game_" + Util::to_string(game_id), this->node_name);
+    /* Create the game room */
+    GameRoom* game_room = new GameRoom(game, room_jid, this->database_manager,
             this->dispatcher,
-			GameRoomHandlers(boost::bind(&ComponentBase::sendStanza, this, _1),
-				boost::bind(&GameManager::closeGame, this, game_id),
-                boost::bind(&GameManager::hideGame, this, game_id)));
+            GameRoomHandlers(boost::bind(&ComponentBase::sendStanza, this, _1),
+                boost::bind(&GameManager::closeGame, this, game_id),
+                boost::bind(&GameManager::hideGame, this, game_id),
+                on_game_end));
     /* Register the node */
     this->root_node.setNodeHandler(room_jid.node(),
             boost::bind(&GameRoom::handleStanza, game_room, _1));
-	/* Add the new jabber node to the disco */
-	this->root_node.disco().items().insert(new XMPP::DiscoItem(game->title(),
-				room_jid));
-	game_rooms.insert(game_id, game_room);
+    /* Add the new jabber node to the disco */
+    this->root_node.disco().items().insert(new XMPP::DiscoItem(game->title(),
+                room_jid));
+    game_rooms.insert(game_id, game_room);
     /* Notify game ceation */
     if(not on_game_start.empty())
         on_game_start(room_jid);
 }
 
 void GameManager::hideGame(GameId room_id) {
-	this->dispatcher.queue(boost::bind(&GameManager::_hideGame, this, room_id));
+    this->dispatcher.queue(boost::bind(&GameManager::_hideGame, this, room_id));
 }
 
 void GameManager::_hideGame(GameId room_id) {
-	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
+    Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
     /* erase the room from the disco items
      * so it is not visible anymore */
-	this->root_node.disco().items().erase(room_jid);
+    this->root_node.disco().items().erase(room_jid);
 }
 
 void GameManager::closeGame(GameId room_id) {
-	this->dispatcher.queue(boost::bind(&GameManager::_closeGame, this, room_id));
+    this->dispatcher.queue(boost::bind(&GameManager::_closeGame, this, room_id));
 }
 
 void GameManager::_closeGame(GameId room_id) {
-	Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
-	this->root_node.removeNodeHandler(room_jid.node());
-	this->root_node.disco().items().erase(room_jid);
-	this->game_rooms.erase(room_id);
+    Jid room_jid = Jid("game_" + Util::to_string(room_id), this->node_name);
+    this->root_node.removeNodeHandler(room_jid.node());
+    this->root_node.disco().items().erase(room_jid);
+    this->game_rooms.erase(room_id);
 }

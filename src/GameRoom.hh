@@ -32,17 +32,22 @@ enum GameStatus {
 	GAME_ENDED
 };
 
+typedef boost::function<void (const PlayerResultList& result)> OnGameEnd;
+
 struct GameRoomHandlers {
 	typedef boost::function<void ()> callback;
 	XMPP::StanzaHandler send_stanza;
 	callback close_game;
 	callback hide_game;
+    OnGameEnd report_result;
 	GameRoomHandlers(const XMPP::StanzaHandler& send_stanza,
                      const callback& close_game,
-                     const callback& hide_game) :
+                     const callback& hide_game,
+                     const OnGameEnd& report_result) :
         send_stanza(send_stanza),
         close_game(close_game),
-        hide_game(hide_game) { }
+        hide_game(hide_game),
+        report_result(report_result) { }
 };
 
 /*! \brief A game room. */

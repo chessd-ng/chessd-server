@@ -26,7 +26,10 @@ struct TourneyFactory {
 	public:
 		static Tourney* create(const XML::Tag& offer) {
 			//test category
-			return new ChessTourney(offer.getAttribute("category"),Util::Time(offer.getAttribute("initial_time"),Util::Minutes),Util::Time(offer.getAttribute("inc"),Util::Minutes),Util::parse_string<int>(offer.getAttribute("rounds")));
+			return new ChessTourney(offer.getAttribute("category"),
+                                    Util::Time(offer.getAttribute("time"),Util::Minutes),
+                                    Util::Time(offer.getAttribute("inc"),Util::Minutes),
+                                    Util::parse_string<int>(offer.getAttribute("rounds")));
 			/*
 			 * throw ;4
 			*/

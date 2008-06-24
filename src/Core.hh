@@ -25,6 +25,7 @@
 
 #include "MatchManager.hh"
 #include "GameManager.hh"
+#include "TourneyManager.hh"
 #include "RatingComponent.hh"
 #include "AdminComponent.hh"
 
@@ -47,7 +48,6 @@ typedef boost::function<void (UserRatings*)> RatingCallback;
  *  the server. */
 class Core {
 	public:
-
 
 		~Core();
 
@@ -76,6 +76,7 @@ class Core {
 
 		GameManager game_manager;
 		MatchManager match_manager;
+        TourneyManager tourney_manager;
 		RatingComponent rating_component;
 		AdminComponent admin_component;
 

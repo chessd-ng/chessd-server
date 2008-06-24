@@ -429,11 +429,17 @@ void GameRoom::endGame(GameEndType type) {
         /* set result */
         this->setResult(*result);
 
+        /* set result list */
+        if(not handlers.report_result.empty()) {
+            handlers.report_result(result->players());
+        }
+
         /* store game in the database */
         this->database_manager.queueTransaction(boost::bind(storeResult, result.release(), _1));
     } else if(type == END_TYPE_CANCELED) {
         /* set result */
         this->result_reason = "The game was canceled";
+
     } else if(type == END_TYPE_ADJOURNED) {
         /* get the adjourned game */
         std::auto_ptr<AdjournedGame> adj_game(this->game->adjourn(this->currentTime()));

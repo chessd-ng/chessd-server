@@ -30,6 +30,10 @@ Core::Core(const XML::Tag& config_xml) :
         this->game_manager,
         this->database_manager,
         boost::bind(&Core::handleError, this, _1)),
+	tourney_manager(config_xml.findChild("tourney-component"),
+        this->game_manager,
+        this->database_manager,
+        boost::bind(&Core::handleError, this, _1)),
 	rating_component(config_xml.findChild("rating-component"),
         boost::bind(&Core::handleError, this, _1),
             this->database_manager),
@@ -44,6 +48,7 @@ void Core::start() {
 	this->dispatcher.start();
 	this->match_manager.connect();
 	this->game_manager.connect();
+    this->tourney_manager.connect();
 	this->rating_component.connect();
 	this->admin_component.connect();
 }
@@ -56,6 +61,7 @@ Core::~Core() {
     /* close all components */
 	this->admin_component.close();
 	this->rating_component.close();
+    this->tourney_manager.close();
 	this->game_manager.close();
 	this->match_manager.close();
 	this->dispatcher.stop();
