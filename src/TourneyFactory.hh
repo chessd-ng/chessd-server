@@ -16,8 +16,8 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef TOURNEYRULE_HH
-#define TOURNEYRULE_HH
+#ifndef TOURNEYFACTORY_HH
+#define TOURNEYFACTORY_HH
 
 #include "ChessTourney.hh"
 #include "XML/Xml.hh"
