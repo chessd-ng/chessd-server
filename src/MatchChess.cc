@@ -69,9 +69,9 @@ std::vector<GamePlayer> MatchChess::getPlayersFromXML(const std::vector<XML::Tag
 		Util::Time time,inc;
 		XMPP::Jid aux(c_it->getAttribute("jid"));
 		if(c_it->hasAttribute("time"))
-			time=Util::Time(c_it->getAttribute("time"),Util::Seconds);
+			time=Util::Time::Seconds(c_it->getAttribute("time"));
 		if(c_it->hasAttribute("inc"))
-			inc=Util::Time(c_it->getAttribute("inc"),Util::Seconds);
+			inc=Util::Time::Seconds(c_it->getAttribute("inc"));
 		if(c_it->hasAttribute("color"))
 			color=(c_it->getAttribute("color")=="white"?0:1);
 		players.push_back(GamePlayer(aux,time,inc,(PLAYER_COLOR)color));

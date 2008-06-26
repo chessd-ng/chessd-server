@@ -83,18 +83,19 @@ void TourneyManager::handleCreate(const Stanza& stanza) {
     const Tag& query = stanza.firstTag();
     const Tag& tourney_attributes = query.firstTag();
 
-    Time start_time = parse_string<int>(
-            (tourney_attributes.getAttribute("start_time"))) * Seconds;
+    Time start_time = ptime_to_systime(xmpp_date_time_to_ptime(
+            (tourney_attributes.getAttribute("start_time"))));
 
-    if(start_time < 1 * Minutes) {
+    if(start_time < Timer::now() + Time::Minutes(1)) {
         throw bad_request("Start time is too close");
     }
-
-    start_time += Timer::now();
 
     /* create tourney */
     auto_ptr<TourneyStatus> tourney(new TourneyStatus);
 
+    tourney->name = tourney_attributes.findChild("name").getCData();
+    tourney->description =
+        tourney_attributes.findChild("description").getCData();
     tourney->running = false;
     tourney->start_time = start_time;
     tourney->tourney = auto_ptr<Tourney>(
@@ -128,9 +129,11 @@ void TourneyManager::startTourney(uint64_t tourney_id) {
         return;
     }
 
+    /* Set tourney status */
     TourneyStatus& tourney = *this->tourneys.find(tourney_id)->second;
     tourney.running = true;
 
+    /* Start first round */
     this->startNextRound(tourney_id);
 }
 
@@ -156,7 +159,7 @@ void TourneyManager::startNextRound(uint64_t tourney_id) {
                     boost::bind(&TourneyManager::notifyGame, this,
                         tourney_id, (*game)->players(), _1),
                     boost::bind(&TourneyManager::reportResult, this,
-                        tourney_id, _1) );
+                        tourney_id, _1, _2) );
         }
     } catch(const tourney_over& over) {
         /* the tourney is over */
@@ -166,6 +169,9 @@ void TourneyManager::startNextRound(uint64_t tourney_id) {
 void TourneyManager::notifyGame(uint64_t tourney_id,
                                 const vector<Jid>& players,
                                 const Jid& game_room) {
+    /* tunnel to the manager's thread,
+     * this function may be called from
+     * another thread */
     this->dispatcher.queue(boost::bind(&TourneyManager::_notifyGame,
                 this, tourney_id, players, game_room));
 }
@@ -173,6 +179,9 @@ void TourneyManager::notifyGame(uint64_t tourney_id,
 void TourneyManager::_notifyGame(uint64_t tourney_id,
                                 const vector<Jid>& players,
                                 const Jid& game_room) {
+
+
+    /* create the notification message */
     auto_ptr<Stanza> notification(new Stanza("iq"));
     notification->subtype() = "set";
     TagGenerator generator;
@@ -183,6 +192,7 @@ void TourneyManager::_notifyGame(uint64_t tourney_id,
     generator.addAttribute("id", to_string(tourney_id));
     notification->children().push_back(generator.getTag());
 
+    /* send int to the players */
     foreach(player, players) {
         notification->to() = *player;
         this->root_node.sendIq(new Stanza(*notification));
@@ -190,12 +200,17 @@ void TourneyManager::_notifyGame(uint64_t tourney_id,
 }
 
 void TourneyManager::reportResult(uint64_t tourney_id,
+                                  int game_id,
                                   const PlayerResultList& results) {
+    /* tunnel to the manager's thread,
+     * this function may be called from
+     * another thread */
     this->dispatcher.queue(boost::bind(&TourneyManager::_reportResult,
-                this, tourney_id, results));
+                this, tourney_id, game_id, results));
 }
 
 void TourneyManager::_reportResult(uint64_t tourney_id,
+                                   int game_id,
                                    const PlayerResultList& results) {
 
     if(this->tourneys.count(tourney_id) == 0) {
@@ -203,10 +218,13 @@ void TourneyManager::_reportResult(uint64_t tourney_id,
         return;
     }
 
+    /* the the tourney instance */
     TourneyStatus& tourney = *this->tourneys.find(tourney_id)->second;
 
+    /* add the result in the tourney */
     tourney.tourney->addResult(results);
 
+    /* start the next round if all games are over */
     this->startNextRound(tourney_id);
 }
 
@@ -221,6 +239,10 @@ void TourneyManager::handleList(const Stanza& stanza) {
     foreach(tourney, this->tourneys) {
         generator.openTag("tourney");
         generator.addAttribute("id", to_string(tourney->first));
+        generator.addAttribute("running", tourney->second->running?"true":"false");
+        generator.addAttribute("start_time",
+                ptime_to_xmpp_date_time(
+                    systime_to_ptime(tourney->second->start_time)));
         generator.closeTag();
     }
     result->children().push_back(generator.getTag());

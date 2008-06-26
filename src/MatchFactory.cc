@@ -32,17 +32,17 @@ bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& catego
 		return false;
 
 	if(category=="standard") {
-		if(11u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Seconds))
+		if(Util::Time::Minutes(11) <= Util::Time::Seconds(_player.getAttribute("time")))
 			return true;
 	}
 	else if(category=="blitz") {
-		if((3u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Seconds)) and
-				(10u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Seconds)))
+		if((Util::Time::Minutes(3) <= Util::Time::Seconds(_player.getAttribute("time"))) and
+				(Util::Time::Minutes(10) >= Util::Time::Seconds(_player.getAttribute("time"))))
 			return true;
 	}
 	else if(category=="lightning") {
-		if((1u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Seconds)) and
-				(2u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Seconds)))
+		if((Util::Time::Minutes(1) <= Util::Time::Seconds(_player.getAttribute("time"))) and
+				(Util::Time::Minutes(2) >= Util::Time::Seconds(_player.getAttribute("time"))))
 			return true;
 	}
 	else if(category=="untimed")

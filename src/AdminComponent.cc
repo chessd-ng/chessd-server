@@ -259,11 +259,7 @@ void AdminComponent::onConnect() {
     this->setAccessRules();
 
     /* Load admin list from the database */
-    TransactorObject transactor(boost::bind(&AdminComponent::loadAcl, this, _1));
-    this->database.queueTransaction(transactor);
-
-    /* We have to wait to avoid race condition */
-    transactor.wait();
+    this->database.execTransaction(boost::bind(&AdminComponent::loadAcl, this, _1));
 
     /* Update the acl in the jabber server */
     this->updateAcl();
@@ -271,12 +267,12 @@ void AdminComponent::onConnect() {
 
 void AdminComponent::loadAcl(DatabaseInterface& database) {
     /* read from database */
-    std::vector<std::string> resp = database.getAdmins();
+    std::vector<std::string> admins = database.getAdmins();
     std::vector<pair<std::string, string> > banneds =
         database.searchBannedUsers();
 
     /* convert types */
-    foreach(admin, resp) {
+    foreach(admin, admins) {
         this->admins.insert(XMPP::PartialJid(*admin));
     }
 

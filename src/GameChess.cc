@@ -363,8 +363,8 @@ GameChess::GameChess(XML::Tag* adjourned_game) : GameChessUntimed(adjourned_game
 	//this XML is specified in chessd protocol
 	foreach(it,adjourned_game->tags()) {
 		if(it->name()=="player") {
-			this->_players[it->getAttribute("color")=="white"?WHITE:BLACK].time=Util::Time(it->getAttribute("time_left"),Util::Seconds),
-			this->_players[it->getAttribute("color")=="white"?WHITE:BLACK].inc=Util::Time(it->getAttribute("inc"),Util::Seconds);
+			this->_players[it->getAttribute("color")=="white"?WHITE:BLACK].time=Util::Time::Seconds(it->getAttribute("time_left")),
+			this->_players[it->getAttribute("color")=="white"?WHITE:BLACK].inc=Util::Time::Seconds(it->getAttribute("inc"));
 			this->initial_time=Util::parse_string<int>(it->getAttribute("time"));
 		}
 	}

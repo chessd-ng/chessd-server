@@ -89,10 +89,13 @@ class TourneyManager : public ComponentBase {
          *
          * This is a tunnel to the real one
          * */
-        void reportResult(uint64_t tourney_id, const PlayerResultList& results);
+        void reportResult(uint64_t tourney_id,
+                          int game_id,
+                          const PlayerResultList& results);
 
         /*! \brief Take a result of a tourney game */
         void _reportResult(uint64_t tourney_id,
+                           int game_id,
                            const PlayerResultList& results);
 
         /*! \brief Receive a close notification. */
@@ -102,8 +105,9 @@ class TourneyManager : public ComponentBase {
         void onError(const std::string& error);
 
         struct TourneyStatus {
+            std::string name;
+            std::string description;
             Util::Time start_time;
-            Util::Time round_interval;
             bool running;
             XMPP::Jid owner;
             std::auto_ptr<Tourney> tourney;
