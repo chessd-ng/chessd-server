@@ -35,7 +35,7 @@ struct Match {
 		virtual ~Match() { }
 
 		/*! \brief The players involved in the match */
-		virtual const PlayerList& players() const = 0;
+		virtual const std::vector<GamePlayer>& players() const = 0;
 
         /*! \brief Return the game category. */
 		virtual const std::string& category() const = 0;

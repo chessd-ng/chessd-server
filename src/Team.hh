@@ -22,14 +22,18 @@
 #include <vector>
 #include "XMPP/Jid.hh"
 #include "Util/Timer.hh"
-enum StandardPlayerColor {
-	White=0,
-	Black=1,
-	Undefined=-1
+enum PLAYER_COLOR {
+	WHITE=0,
+	BLACK=1,
+	UNDEFINED=-1
 };
-/*! \brief All the info necessary for a player
-*/
-struct StandardPlayer {
+
+enum GAME_RESULT {
+	WIN,LOSE,DRAW,NORESULT
+};
+
+/*! \brief All the info necessary for a player*/
+struct GamePlayer {
 	/* \brief creates a Player for Standard Chess
 	 *
 	 * \param jid: Jabber id from the player
@@ -37,36 +41,34 @@ struct StandardPlayer {
 	 * inc: lag stuff
 	 * color: the collor from the player in acord to StandardPlayerColor, it must be "black" or "white"
 	 */
-	StandardPlayer(const XMPP::Jid &jid, const Util::Time &time, const Util::Time &inc, const StandardPlayerColor& color) :
+	GamePlayer(const XMPP::Jid &jid, const Util::Time &time, const Util::Time &inc, const PLAYER_COLOR color) :
 		jid(jid),
 		time(time),
 		inc(inc),
 		color(color) { }
 	XMPP::Jid jid;
 	Util::Time time, inc;
-	StandardPlayerColor color;
+	PLAYER_COLOR color;
 	/* \brief a Player is recognized by it's jid, so the less comparable signal is just comparing jids,
 	 * considering that a player has a unique jid.
 	 */
-	bool operator <(const StandardPlayer& p) const {
+	bool operator <(const GamePlayer& p) const {
 		return jid<p.jid;
 	}
 };
 
-struct PlayerResult {
-	PlayerResult(const XMPP::Jid& _jid, const std::string& _role, const std::string& _score) : jid(_jid), role(_role), score(_score) {
-	}
-	PlayerResult() { }
-	XMPP::Jid jid;
-	std::string role;
-	std::string score;
-};
+struct GamePlayerResult {
+	GamePlayerResult(const GamePlayer& _player, const GAME_RESULT _result) : player(_player), result(_result) { }
 
+	GamePlayer player;
+	GAME_RESULT result;
+};
+/*
 typedef XMPP::Jid Player;
 typedef std::vector<Player> PlayerList; 
 typedef std::vector<Player> Team;
 typedef std::vector<Team> TeamList;
 typedef std::vector<StandardPlayer> StandardPlayerList; 
 typedef std::vector<PlayerResult> PlayerResultList;
-
+*/
 #endif

@@ -27,16 +27,15 @@
 
 MatchChess::MatchChess(const std::vector<XML::Tag>& players, const XML::AttributeMap& __attributes) : 
 	_match_players(players) ,
-	_attributes(__attributes)
+	_attributes(__attributes) ,
+	_players(getPlayersFromXML(players))
 {
-	foreach(it,players)
-		this->_players.push_back(Player(it->getAttribute("jid")));
 }
 
 MatchChess::~MatchChess(){
 }
 
-const PlayerList& MatchChess::players() const {
+const std::vector<GamePlayer>& MatchChess::players() const {
 	return this->_players;
 }
 
@@ -62,8 +61,8 @@ XML::Tag* MatchChess::notification() const {
 	return t.getTag();
 }
 
-StandardPlayerList MatchChess::getPlayersFromXML(const std::vector<XML::Tag>& xml_players) {
-	StandardPlayerList players;
+std::vector<GamePlayer> MatchChess::getPlayersFromXML(const std::vector<XML::Tag>& xml_players) {
+	std::vector<GamePlayer> players;
 	srand(time(NULL));
 	int color=rand()%2;
 	foreach(c_it,xml_players) {
@@ -75,7 +74,7 @@ StandardPlayerList MatchChess::getPlayersFromXML(const std::vector<XML::Tag>& xm
 			inc=Util::Time(c_it->getAttribute("inc"),Util::Seconds);
 		if(c_it->hasAttribute("color"))
 			color=(c_it->getAttribute("color")=="white"?0:1);
-		players.push_back(StandardPlayer(aux,time,inc,(StandardPlayerColor)color));
+		players.push_back(GamePlayer(aux,time,inc,(PLAYER_COLOR)color));
 		color=(color+1)%2;
 	}
 	return players;

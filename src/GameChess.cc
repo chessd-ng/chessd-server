@@ -27,7 +27,7 @@
 /*
  * Set initial variables.
 */
-GameChessUntimed::GameChessUntimed(const StandardPlayerList& _players, const XML::AttributeMap& _game_attributes) {
+GameChessUntimed::GameChessUntimed(const std::vector<GamePlayer>& _players, const XML::AttributeMap& _game_attributes) {
 	this->game_attributes=_game_attributes;
 	if(this->game_attributes.find("category")==this->game_attributes.end())
 		this->game_attributes["category"]="standard";
@@ -39,14 +39,12 @@ GameChessUntimed::GameChessUntimed(const StandardPlayerList& _players, const XML
 	 * 0 is white
 	 * 1 is black
 	*/
-	if(this->_players[0].color==Black)
+	if(this->_players[0].color==BLACK)
 		std::swap(this->_players[0],this->_players[1]);
 
-	//fill players list
-	foreach(it,this->_players) {
+	//fill player map
+	foreach(it,this->_players)
 		standard_player_map[it->jid]=&(*it);
-        _simple_players.push_back(it->jid);
-    }
 
 	this->setInitialVariables();
 }
@@ -59,12 +57,11 @@ GameChessUntimed::GameChessUntimed(XML::Tag* adjourned_game) {
 	//this XML is specified in chessd protocol
 	foreach(it,adjourned_game->tags()) {
 		if(it->name()=="player") {
-			this->_players.push_back(StandardPlayer(XMPP::Jid(it->getAttribute("jid")),
+			this->_players.push_back(GamePlayer(XMPP::Jid(it->getAttribute("jid")),
 						Util::Time(),
 						Util::Time(),
-						StandardPlayerColor(it->getAttribute("color")=="white"?White:Black)));
-			this->colormap[this->_players.rbegin()->jid]=this->_players.rbegin()->color==White?Chess::WHITE:Chess::BLACK;
-        	_simple_players.push_back(XMPP::Jid(it->getAttribute("jid")));
+						PLAYER_COLOR(it->getAttribute("color")=="white"?WHITE:BLACK)));
+			this->colormap[this->_players.rbegin()->jid]=this->_players.rbegin()->color==WHITE?Chess::WHITE:Chess::BLACK;
 		}
 		else {
 			this->history_moves=it->getAttribute("movetext")+" ";
@@ -74,10 +71,8 @@ GameChessUntimed::GameChessUntimed(XML::Tag* adjourned_game) {
 	 * 0 is white
 	 * 1 is black
 	 */
-	if(this->_players[0].color==Black)
+	if(this->_players[0].color==BLACK)
 		std::swap(this->_players[0],this->_players[1]);
-	if(colormap[_simple_players[0]]==Chess::BLACK)
-		std::swap(this->_simple_players[0],this->_simple_players[1]);
 
 	foreach(it,this->_players)
 		standard_player_map[it->jid]=&(*it);
@@ -110,14 +105,14 @@ void GameChessUntimed::setInitialVariables() {
 
 	//Assumes that this->_players is already set
 	//initiates colormap
-	this->colormap[this->_players[0].jid]=this->_players[0].color==White?Chess::WHITE:Chess::BLACK;
-	this->colormap[this->_players[1].jid]=this->_players[1].color==White?Chess::WHITE:Chess::BLACK;
+	this->colormap[this->_players[0].jid]=this->_players[0].color==WHITE?Chess::WHITE:Chess::BLACK;
+	this->colormap[this->_players[1].jid]=this->_players[1].color==WHITE?Chess::WHITE:Chess::BLACK;
 
 	this->_title=this->_players[0].jid.node()+" x "+this->_players[1].jid.node();
 }
 
-const std::vector<XMPP::Jid>& GameChessUntimed::players() const {
-    return this->_simple_players;
+const std::vector<GamePlayer>& GameChessUntimed::players() const {
+    return this->_players;
 }
 
 XML::Tag* GameChessUntimed::state(const Util::Time& current_time) const {
@@ -146,7 +141,7 @@ XML::Tag* GameChessUntimed::state(const Util::Time& current_time) const {
 		{   
 			t.addAttribute("jid",it->jid.full());
 
-			t.addAttribute("color",it->color==White?"white":"black");
+			t.addAttribute("color",it->color==WHITE?"white":"black");
 
 			t.closeTag();
 		}
@@ -174,7 +169,7 @@ const std::string& GameChessUntimed::title() const {
 	return this->_title;
 }
 
-void GameChessUntimed::resign(const Player& player) {
+void GameChessUntimed::resign(const XMPP::Jid& player) {
 	this->_resign=colormap[player]; //set the player who resigned
 	this->_done=RESIGNED; //the game is over and the reason is one of the players resigned
 }
@@ -185,7 +180,7 @@ void GameChessUntimed::call_flag(const Util::Time& current_time) {
 		if((aux=chess.verifyDraw())!=0)
 			//there are 3 reasons for drawing and chess.verifyDraw()
 			//returns an int between 0 and 3 and the draw reasons begin
-			//at value 5, that's whi +4 
+			//at value 5, that's why +4 
 			this->_done=(end_reason)(aux+4);
 	}
 }
@@ -200,14 +195,14 @@ AdjournedGame* GameChessUntimed::adjourn(const Util::Time& current_time) {
 	if(this->_done!=NOREASON)
 		throw game_over("cannot adjourn, game already over");
 
-	//the history of adjourned games only diffes of the history of the game
+	//the history of adjourned games only differ of the history of the game
 	//only by the score attribute, so it reuses code an delete the score attribute
 	XML::Tag* hist=this->generateHistoryTag(current_time-time_of_last_move);
 	foreach(it,hist->tags())
 		if(it->name()=="player")
 			it->attributes().erase("score");
 
-	return new ChessAdjournedGame(hist,this->_simple_players,this->category());
+	return new ChessAdjournedGame(hist,this->_players,this->category());
 }
 
 bool GameChessUntimed::done(const Util::Time& current_time) {
@@ -243,7 +238,7 @@ std::string GameChessUntimed::doneEndReason() const {
 			return "The players agreed on a draw";
 			break;
 		case TIMEOVER:
-			return std::string("Time of ")+std::string((this->whoTimedOver()==int(White))?"white":"black")+std::string(" has ended");
+			return std::string("Time of ")+std::string((this->whoTimedOver()==int(WHITE))?"white":"black")+std::string(" has ended");
 			break;
 		case DRAWREPETITION:
 			return "Draw by three fold repetition rule";
@@ -268,25 +263,25 @@ std::string GameChessUntimed::doneEndReason() const {
 	return "";
 }
 
-PlayerResultList GameChessUntimed::donePlayerResultList() const {
+std::vector<GamePlayerResult> GameChessUntimed::donePlayerResultList() const {
 	/* prl is indexed for
 	 * 0 is white
 	 * 1 is black*/
-	PlayerResultList prl(2);
+	std::vector<GamePlayerResult> prl;
 	foreach(it,_players)
-		prl[(colormap.find(it->jid)->second==Chess::WHITE)?0:1]=PlayerResult(it->jid,(it->color==White?"white":"black"),(""));
+		prl.push_back(GamePlayerResult(*it,NORESULT));
 
 	if(this->_done==3 or this->_done>=5) //if it is a draw
-		prl[0].score=prl[1].score="1/2";
+		prl[0].result=prl[1].result=DRAW;
 	else if (this->_done!=NOREASON) { //if the game ended
 		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->whoTimedOver()==1/*black*/);
-		prl[0].score=(aux==true)?"1":"0";
-		prl[1].score=(aux==true)?"0":"1";
+		prl[0].result=(aux==true)?WIN:LOSE;
+		prl[1].result=(aux==true)?WIN:LOSE;
 	}
 	return prl;
 }
 
-XML::Tag* GameChessUntimed::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
+XML::Tag* GameChessUntimed::move(const XMPP::Jid& player, const std::string& movement, const Util::Time& time_stamp) {
 	//can't make a move if the game is already over
 	if(this->_done!=0)
 		throw game_over("The game is already over");
@@ -329,15 +324,15 @@ XML::Tag* GameChessUntimed::generateHistoryTag(Util::Time time_passed) const {
 			gen.addAttribute("movetext",this->history_moves.substr(0, this->history_moves.size()-1));
 			gen.closeTag();
 		}
-		PlayerResultList prl=this->donePlayerResultList();
+		std::vector<GamePlayerResult> prl=this->donePlayerResultList();
 		foreach(it,prl) {
 			gen.openTag("player");
 
-			gen.addAttribute("jid",it->jid.full());
+			gen.addAttribute("jid",it->player.jid.full());
 
-			gen.addAttribute("color",it->role);
+			gen.addAttribute("color",it->player.color==WHITE?"white":"black");
 
-			gen.addAttribute("score",it->score);
+			gen.addAttribute("score",(it->result==WIN?"1":(it->result==DRAW?"1/2":"0") ));
 
 			gen.closeTag();
 		}
@@ -350,7 +345,7 @@ XML::Tag* GameChessUntimed::generateHistoryTag(Util::Time time_passed) const {
  * Game Chess Stuff
 */
 
-GameChess::GameChess(const StandardPlayerList& _players, const XML::AttributeMap& _game_attributes) : GameChessUntimed(_players,_game_attributes) {
+GameChess::GameChess(const std::vector<GamePlayer>& _players, const XML::AttributeMap& _game_attributes) : GameChessUntimed(_players,_game_attributes) {
 	this->initial_time=int(this->_players[0].time.getSeconds()+0.001);
 
 	//time is not over for anyone
@@ -368,8 +363,8 @@ GameChess::GameChess(XML::Tag* adjourned_game) : GameChessUntimed(adjourned_game
 	//this XML is specified in chessd protocol
 	foreach(it,adjourned_game->tags()) {
 		if(it->name()=="player") {
-			this->_players[it->getAttribute("color")=="white"?White:Black].time=Util::Time(it->getAttribute("time_left"),Util::Seconds),
-			this->_players[it->getAttribute("color")=="white"?White:Black].inc=Util::Time(it->getAttribute("inc"),Util::Seconds);
+			this->_players[it->getAttribute("color")=="white"?WHITE:BLACK].time=Util::Time(it->getAttribute("time_left"),Util::Seconds),
+			this->_players[it->getAttribute("color")=="white"?WHITE:BLACK].inc=Util::Time(it->getAttribute("inc"),Util::Seconds);
 			this->initial_time=Util::parse_string<int>(it->getAttribute("time"));
 		}
 	}
@@ -392,8 +387,8 @@ XML::Tag* GameChess::state(const Util::Time& current_time) const {
 
 	foreach(it,ans->tags()) {
 		if(it->name()=="player") {
-			Util::Time aux=this->_players[colormap.find(Player(it->getAttribute("jid")))->second].time;
-			if( ( chess.turn()==(colormap.find(Player(it->getAttribute("jid")))->second) ) and (this->turns_restart >= 2) and (this->_done==NOREASON or this->_done==TIMEOVER))
+			Util::Time aux=this->_players[colormap.find(XMPP::Jid(it->getAttribute("jid")))->second].time;
+			if( ( chess.turn()==(colormap.find(XMPP::Jid(it->getAttribute("jid")))->second) ) and (this->turns_restart >= 2) and (this->_done==NOREASON or this->_done==TIMEOVER))
 				aux-=current_time-time_of_last_move;
 			
 			//XXX be careful with double from getSeconds
@@ -418,11 +413,11 @@ bool GameChess::done(const Util::Time& current_time) {
 	return GameChessUntimed::done(current_time);
 }
 
-XML::Tag* GameChess::move(const Player& player, const std::string& movement, const Util::Time& time_stamp) {
+XML::Tag* GameChess::move(const XMPP::Jid& player, const std::string& movement, const Util::Time& time_stamp) {
 	//check if time is over
 	if(this->auto_flag==true)
 		if(this->checkTimeOver(time_stamp))
-			throw time_over::time_over(std::string("Time of ")+std::string(this->chess.turn()==White?"white":"black")+std::string(" is over"));
+			throw time_over::time_over(std::string("Time of ")+std::string(this->chess.turn()==WHITE?"white":"black")+std::string(" is over"));
 
 	XML::Tag* ans=GameChessUntimed::move(player,movement,time_stamp);
 
@@ -466,7 +461,7 @@ XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
 			it->attributes()["time"]=Util::to_string(this->initial_time);
 
 			if(this->_done==NOREASON) {
-				if( (this->chess.turn() == colormap.find(Player(it->getAttribute("jid")))->second) and (this->turns_restart>=2))
+				if( (this->chess.turn() == colormap.find(XMPP::Jid(it->getAttribute("jid")))->second) and (this->turns_restart>=2))
 					it->attributes()["time_left"]=Util::to_string<int>(int((this->_players[(it->getAttribute("color")=="white")?0:1].time-time_passed).getSeconds()+0.001));
 				else
 					it->attributes()["time_left"]=Util::to_string<int>(int(this->_players[(it->getAttribute("color")=="white")?0:1].time.getSeconds()+0.001));
@@ -492,7 +487,7 @@ void GameChess::interpretHistoryMoves(const std::string& moves) {
  *CHESS GAME RESULT Stuff
  *--------------------------------------*/
 
-ChessGameResult::ChessGameResult(const std::string &endreason,const PlayerResultList &prl, const XML::AttributeMap& _game_attributes, XML::Tag* hist) : _history(hist) {
+ChessGameResult::ChessGameResult(const std::string &endreason,const std::vector<GamePlayerResult>& prl, const XML::AttributeMap& _game_attributes, XML::Tag* hist) : _history(hist) {
 	this->_end_reason=endreason;
 	this->player_result_list=prl;
 	this->game_attributes=_game_attributes;
@@ -512,7 +507,7 @@ const std::string& ChessGameResult::end_reason() const {
 	return this->_end_reason;
 }
 
-const PlayerResultList& ChessGameResult::players() const {
+const std::vector<GamePlayerResult>& ChessGameResult::players() const {
 	return this->player_result_list;
 }
 
@@ -526,7 +521,7 @@ XML::Tag* ChessGameResult::history() const {
 	return new XML::Tag(*this->_history);
 }
 
-void ChessGameResult::updateRating(std::map<Player, Rating> &ratings) const {
+void ChessGameResult::updateRating(std::map<XMPP::Jid, Rating> &ratings) const {
 	foreach(it,ratings) {
 		if(it->second.countGames() == 0) {
 			it->second.rating()=1500;
@@ -537,22 +532,22 @@ void ChessGameResult::updateRating(std::map<Player, Rating> &ratings) const {
 			it->second.volatility()=GlickoSystem::InitRD(it->second);
 		}
 	}
-	std::vector<Player> playerlist;
+	std::vector<XMPP::Jid> playerlist;
 	std::vector<Rating> playerrating;
 	foreach(it,this->player_result_list) {
-		playerlist.push_back(it->jid);
-		playerrating.push_back(ratings[it->jid]);
+		playerlist.push_back(it->player.jid);
+		playerrating.push_back(ratings[it->player.jid]);
 	}
 
 	//Glicko System formulas to calculate the new rating and new rating deviation
 	int i=0,j=1;
 	foreach(it,player_result_list) {
 		double w;
-		if(it->score == "1")
+		if(it->result == WIN)
 			playerrating[i].wins()++, w=1.0;
-		else if(it->score == "1/2")
+		else if(it->result == DRAW)
 			playerrating[i].draws()++, w=0.5;
-		else //it->score == "0"
+		else //it->score == LOSE
 			playerrating[i].losses()++, w=0.0;
 		double E=GlickoSystem::E(ratings[playerlist[i]],ratings[playerlist[j]]);
 
@@ -579,7 +574,7 @@ void ChessGameResult::updateRating(std::map<Player, Rating> &ratings) const {
 //CHESS ADJOURNED GAME Stuff
 //--------------------------------------
 
-ChessAdjournedGame::ChessAdjournedGame(XML::Tag* __history, const PlayerList& __players, const std::string& category) : _history(__history), _players(__players), _category(category) {
+ChessAdjournedGame::ChessAdjournedGame(XML::Tag* __history, const std::vector<GamePlayer>& __players, const std::string& __category) : _history(__history), _players(__players), _category(__category) {
 }
 
 ChessAdjournedGame::~ChessAdjournedGame() {
@@ -590,7 +585,7 @@ XML::Tag* ChessAdjournedGame::history() const {
 	return new XML::Tag(*this->_history);
 }
 
-const PlayerList& ChessAdjournedGame::players() const {
+const std::vector<GamePlayer>& ChessAdjournedGame::players() const {
 	return this->_players;
 }
 

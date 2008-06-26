@@ -22,8 +22,9 @@
 #include "GameException.hh"
 
 Match* MatchFactory::create(const XML::Tag& match_offer,const TeamDatabase& teams) {
-	validateXML(match_offer);
-	return new MatchChess(getPlayersTag(match_offer),match_offer.attributes());
+	XML::Tag match_offer2(match_offer);
+	validateXML(match_offer2);
+	return new MatchChess(getPlayersTag(match_offer2),match_offer.attributes());
 }
 
 bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& category) {
@@ -51,12 +52,19 @@ bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& catego
 
 //FIXME
 //does not work for untimed matches
-void MatchFactory::validateXML(const XML::Tag& _match_offer) {
+void MatchFactory::validateXML(XML::Tag& _match_offer) {
 	if(_match_offer.name()!="match")
 		throw bad_information("wrong matchrule xml name");
 
 	if(_match_offer.hasAttribute("category")==false)
 		throw bad_information("category missing");
+
+	/*guarantee that _match_offer has atributes rated and autoflag*/
+	if(_match_offer.hasAttribute("rated")==false)
+		_match_offer.setAttribute("rated","true");
+
+	if(_match_offer.hasAttribute("autoflag")==false)
+		_match_offer.setAttribute("autoflag","true");
 
 	std::string category=_match_offer.getAttribute("category");
 
@@ -106,7 +114,6 @@ void MatchFactory::validateXML(const XML::Tag& _match_offer) {
 }
 
 std::vector<XML::Tag> MatchFactory::getPlayersTag(const XML::Tag& match_offer) {
-	validateXML(match_offer);
 	std::vector<XML::Tag> ans;
 	foreach(it,match_offer.tags())
 		if(it->name()=="player")
