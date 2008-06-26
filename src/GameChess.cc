@@ -101,7 +101,7 @@ void GameChessUntimed::setInitialVariables() {
 	this->_resign=Chess::UNDEFINED;
 
 	//the game is not over, it's starting or restarting
-	this->_done=NOREASON;
+	this->_done=END_NO_REASON;
 
 	//Assumes that this->_players is already set
 	//initiates colormap
@@ -171,28 +171,29 @@ const std::string& GameChessUntimed::title() const {
 
 void GameChessUntimed::resign(const XMPP::Jid& player) {
 	this->_resign=colormap[player]; //set the player who resigned
-	this->_done=RESIGNED; //the game is over and the reason is one of the players resigned
+	//the game is over and the reason is one of the players resigned
+	this->_done=(this->_resign==Chess::WHITE?END_WHITE_RESIGNED:END_BLACK_RESIGNED);
 }
 
 void GameChessUntimed::call_flag(const Util::Time& current_time) {
-	if(this->_done==NOREASON) {
+	if(this->_done==END_NO_REASON) {
 		int aux;
 		if((aux=chess.verifyDraw())!=0)
 			//there are 3 reasons for drawing and chess.verifyDraw()
-			//returns an int between 0 and 3 and the draw reasons begin
-			//at value 5, that's why +4 
-			this->_done=(end_reason)(aux+4);
+			//returns an int between 1 and 4 and the draw reasons begin
+			//at value 9, that's why +8
+			this->_done=(END_CODE)(aux+8);
 	}
 }
 
 void GameChessUntimed::draw() {
 	//the players agreed on a draw
-	this->_done=DRAWAGREED;
+	this->_done=END_DRAW_AGREEMENT;
 }
 
 AdjournedGame* GameChessUntimed::adjourn(const Util::Time& current_time) {
 	//you can't adjourn a game if it is over
-	if(this->_done!=NOREASON)
+	if(this->_done!=END_NO_REASON)
 		throw game_over("cannot adjourn, game already over");
 
 	//the history of adjourned games only differ of the history of the game
@@ -206,53 +207,55 @@ AdjournedGame* GameChessUntimed::adjourn(const Util::Time& current_time) {
 }
 
 bool GameChessUntimed::done(const Util::Time& current_time) {
-	return this->_done!=0;
+	return this->_done!=END_NO_REASON;
 }
 
 GameResult* GameChessUntimed::result() const {
-	return new ChessGameResult(this->doneEndReason(),this->donePlayerResultList(),this->game_attributes,this->generateHistoryTag());
+	return new ChessGameResult(this->_done,this->donePlayerResultList(),this->game_attributes,this->generateHistoryTag());
 }
 
 int GameChessUntimed::realDone() {
-	if(this->_done!=NOREASON)
+	if(this->_done!=END_NO_REASON)
 		return this->_done;
-	else if(chess.verifyCheckMate())
-		return CHECKMATE;
+	else if(chess.verifyCheckMate()) {
+		return (this->chess.turn()==Chess::WHITE?END_BLACK_MATE:END_WHITE_MATE);
+	}
 	else {
 		if(auto_flag==true)
 			GameChessUntimed::call_flag(Util::Time());
 	}
 	return this->_done;
 }
-
+/*
 std::string GameChessUntimed::doneEndReason() const {
+	return this->_done;
 	std::string reason;
 	switch(this->_done) {
-		case RESIGNED:
+		case END_RESIGN:
 			return std::string(this->_resign==Chess::WHITE?"White":"Black")+std::string(" has resigned");
 			break;
-		case CHECKMATE:
+		case END_MATE:
 			return std::string(this->chess.turn()==Chess::WHITE?"Black":"White")+std::string(" has won by checkmate");
 			break;
-		case DRAWAGREED:
+		case END_DRAW_AGREEMENT:
 			return "The players agreed on a draw";
 			break;
-		case TIMEOVER:
+		case END_TIME_OVER:
 			return std::string("Time of ")+std::string((this->whoTimedOver()==int(WHITE))?"white":"black")+std::string(" has ended");
 			break;
-		case DRAWREPETITION:
+		case END_DRAW_REPETITION:
 			return "Draw by three fold repetition rule";
 			break;
-		case DRAWIMPOSSIBILITYOFCHECKMATE:
+		case END_DRAW_IMPOSSIBLE_MATE:
 			return "Draw by impossibility of checkmate";
 			break;
-		case DRAWFIFTYMOVE:
+		case END_DRAW_50_MOVES:
 			return "Draw by fifty move rule";
 			break;
-		case DRAWSTALEMATE:
+		case END_STALEMATE:
 			return "Draw by stalemate";
 			break;
-		case DRAWTIMEOVER:
+		case END_DRAW_TIME_OVER:
 			return "Time of both players have ended";
 			break;
 		default:
@@ -261,7 +264,7 @@ std::string GameChessUntimed::doneEndReason() const {
 			break;
 	}
 	return "";
-}
+}*/
 
 std::vector<GamePlayerResult> GameChessUntimed::donePlayerResultList() const {
 	/* prl is indexed for
@@ -271,9 +274,9 @@ std::vector<GamePlayerResult> GameChessUntimed::donePlayerResultList() const {
 	foreach(it,_players)
 		prl.push_back(GamePlayerResult(*it,NORESULT));
 
-	if(this->_done==3 or this->_done>=5) //if it is a draw
+	if(this->_done >= 8) //if it is a draw
 		prl[0].result=prl[1].result=DRAW;
-	else if (this->_done!=NOREASON) { //if the game ended
+	else if (this->_done!=END_NO_REASON) { //if the game ended
 		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->whoTimedOver()==1/*black*/);
 		prl[0].result=(aux==true)?WIN:LOSE;
 		prl[1].result=(aux==true)?WIN:LOSE;
@@ -283,7 +286,7 @@ std::vector<GamePlayerResult> GameChessUntimed::donePlayerResultList() const {
 
 XML::Tag* GameChessUntimed::move(const XMPP::Jid& player, const std::string& movement, const Util::Time& time_stamp) {
 	//can't make a move if the game is already over
-	if(this->_done!=0)
+	if(this->_done!=END_NO_REASON)
 		throw game_over("The game is already over");
 
 	//can't move if it's not the player's turn
@@ -295,7 +298,7 @@ XML::Tag* GameChessUntimed::move(const XMPP::Jid& player, const std::string& mov
 		throw invalid_move("Invalid Move"); //if the move isn't succesfull
 
 	//set the _done variable here for optimization
-	this->_done=(end_reason)realDone();
+	this->_done=(END_CODE)realDone();
 
 	std::string realmove=movement;
 	//if there was a pawn promotion and it's not explicit
@@ -388,7 +391,7 @@ XML::Tag* GameChess::state(const Util::Time& current_time) const {
 	foreach(it,ans->tags()) {
 		if(it->name()=="player") {
 			Util::Time aux=this->_players[colormap.find(XMPP::Jid(it->getAttribute("jid")))->second].time;
-			if( ( chess.turn()==(colormap.find(XMPP::Jid(it->getAttribute("jid")))->second) ) and (this->turns_restart >= 2) and (this->_done==NOREASON or this->_done==TIMEOVER))
+			if( ( chess.turn()==(colormap.find(XMPP::Jid(it->getAttribute("jid")))->second) ) and (this->turns_restart >= 2) and (this->_done==END_NO_REASON or this->_done==END_WHITE_TIME_OVER or this->_done==END_BLACK_TIME_OVER))
 				aux-=current_time-time_of_last_move;
 			
 			//XXX be careful with double from getSeconds
@@ -408,7 +411,7 @@ void GameChess::call_flag(const Util::Time& current_time) {
 }
 
 bool GameChess::done(const Util::Time& current_time) {
-	if(this->_done==NOREASON and this->auto_flag==true)
+	if(this->_done==END_NO_REASON and this->auto_flag==true)
 		this->checkTimeOver(current_time);
 	return GameChessUntimed::done(current_time);
 }
@@ -444,13 +447,13 @@ bool GameChess::checkTimeOver(const Util::Time& current_time) {
 		for(int i=0;i<2;i++) {
 			if(this->_players[i].time+((this->chess.turn()==i)?(this->time_of_last_move-current_time):Util::Time()) <= Util::Time()) {
 				this->time_over=i;
-				this->_done=TIMEOVER;
+				this->_done=(this->whoTimedOver()==int(WHITE))?END_BLACK_TIME_OVER:END_WHITE_TIME_OVER;
 				conta++;
 			}
 		}
 	}
 	if(conta==2)
-		this->_done=DRAWTIMEOVER;
+		this->_done=END_DRAW_TIME_OVER;
 	return conta>0;
 }
 
@@ -460,7 +463,7 @@ XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
 		if(it->name()=="player") {
 			it->attributes()["time"]=Util::to_string(this->initial_time);
 
-			if(this->_done==NOREASON) {
+			if(this->_done==END_NO_REASON) {
 				if( (this->chess.turn() == colormap.find(XMPP::Jid(it->getAttribute("jid")))->second) and (this->turns_restart>=2))
 					it->attributes()["time_left"]=Util::to_string<int>(int((this->_players[(it->getAttribute("color")=="white")?0:1].time-time_passed).getSeconds()+0.001));
 				else
@@ -487,8 +490,8 @@ void GameChess::interpretHistoryMoves(const std::string& moves) {
  *CHESS GAME RESULT Stuff
  *--------------------------------------*/
 
-ChessGameResult::ChessGameResult(const std::string &endreason,const std::vector<GamePlayerResult>& prl, const XML::AttributeMap& _game_attributes, XML::Tag* hist) : _history(hist) {
-	this->_end_reason=endreason;
+ChessGameResult::ChessGameResult(const END_CODE code,const std::vector<GamePlayerResult>& prl, const XML::AttributeMap& _game_attributes, XML::Tag* hist) : _history(hist) {
+	this->_end_reason=code;
 	this->player_result_list=prl;
 	this->game_attributes=_game_attributes;
 	if(this->game_attributes.find("category")==this->game_attributes.end())
@@ -503,7 +506,7 @@ const std::string& ChessGameResult::category() const {
 	return this->game_attributes.find("category")->second;
 }
 
-const std::string& ChessGameResult::end_reason() const {
+const END_CODE ChessGameResult::end_reason() const {
 	return this->_end_reason;
 }
 

@@ -28,15 +28,24 @@
 #include "Util/Timer.hh"
 
 enum END_CODE {
-    END_MATE,
-    END_STALEMATE,
-    END_DRAW_AGREEMENT,
-    END_DRAW_REPETITION,
-    END_DRAW_50_MOVES,
-    END_DRAW_IMPOSSIBLE_MATE,
-    END_RESIGN,
-    END_FORFEIT,
-    END_TIME
+	END_NO_REASON=0,
+
+    END_WHITE_MATE=1,
+    END_BLACK_MATE=2,
+
+    END_STALEMATE=3,
+
+    END_WHITE_TIME_OVER=4,
+    END_BLACK_TIME_OVER=5,
+
+    END_WHITE_RESIGNED=6,
+    END_BLACK_RESIGNED=7,
+
+    END_DRAW_AGREEMENT=8,
+    END_DRAW_REPETITION=9,
+    END_DRAW_50_MOVES=10,
+    END_DRAW_IMPOSSIBLE_MATE=11,
+    END_DRAW_TIME_OVER=12
 };
 
 class GameResult {
@@ -46,11 +55,8 @@ class GameResult {
 		/*! \brief The game category */
 		virtual const std::string& category() const = 0;
 
-		/*! \brief The reason why the game ended */
-		virtual const std::string& end_reason() const = 0;
-
 		/*! \brief Return a code that says why the game has ended */
-        // virtual END_CODE end_code() const = 0;
+		virtual const END_CODE end_reason() const = 0;
 
 		/*! \brief Returns a list containing all players in the game */
 		virtual const std::vector<GamePlayerResult>& players() const = 0;

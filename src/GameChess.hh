@@ -25,9 +25,6 @@
 #include "XMPP/Jid.hh"
 #include <vector>
 
-enum end_reason{
-	NOREASON=0,RESIGNED=1,CHECKMATE=2,DRAWAGREED=3,TIMEOVER=4,DRAWREPETITION=5,DRAWIMPOSSIBILITYOFCHECKMATE=6,DRAWFIFTYMOVE=7,DRAWSTALEMATE=8,DRAWTIMEOVER=9
-};
 /*
  * Instead of having GameChess and GameChessUntimed,
  * there should be Game Chess, GameChessUntimed and
@@ -84,7 +81,7 @@ class GameChessUntimed : public Game {
 
 	protected:
 		/*! \brief returns the end reason if the game has ended*/
-		virtual std::string doneEndReason() const;
+		//virtual std::string doneEndReason() const;
 
 		/*! \brief returns the team result list if the game has ended*/
 		virtual std::vector<GamePlayerResult> donePlayerResultList() const;
@@ -114,7 +111,7 @@ class GameChessUntimed : public Game {
 		 * and when done is called, it's only needed to see the value of this variable
 		 * and if the time is over
 		*/
-		end_reason _done;
+		END_CODE _done;
 
 		/*
 		 * if a player resigned, stores his color
@@ -200,13 +197,13 @@ class GameChess: public GameChessUntimed {
 
 class ChessGameResult : public GameResult {
 	public:
-		ChessGameResult(const std::string& endreason,const std::vector<GamePlayerResult>& l,const XML::AttributeMap& _game_attributes,XML::Tag *hist);
+		ChessGameResult(const END_CODE endreason,const std::vector<GamePlayerResult>& l,const XML::AttributeMap& _game_attributes,XML::Tag *hist);
 
 		virtual ~ChessGameResult();
 
 		virtual const std::string& category() const;
 
-		virtual const std::string& end_reason() const;
+		virtual const END_CODE end_reason() const;
 
 		virtual const std::vector<GamePlayerResult>& players() const;
 
@@ -221,7 +218,7 @@ class ChessGameResult : public GameResult {
 		std::vector<GamePlayerResult> player_result_list;
 
 	private:
-		std::string _end_reason;
+		END_CODE _end_reason;
 
 		XML::AttributeMap game_attributes;
 
