@@ -136,6 +136,16 @@ namespace XML {
                 throw (child_not_found("CData not found"));
             }
 
+            std::string getCData() const {
+                std::string ret;
+                foreach(child, this->children()) {
+                    if(typeid(*child) == typeid(CData)) {
+                        ret += static_cast<const CData&>(*child).data();
+                    }
+                }
+                return ret;
+            }
+
 			/* generate xml string */
 			virtual void xml(std::string&) const;
 

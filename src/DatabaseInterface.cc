@@ -22,6 +22,7 @@
 
 using namespace boost::posix_time;
 using namespace std;
+using namespace Util;
 
 DatabaseInterface::DatabaseInterface(pqxx::work& work) :
     work(work) { }
@@ -237,7 +238,7 @@ void DatabaseInterface::setRating(const string& username,
     }
 }
 
-void DatabaseInterface::insertGameResult(GameResult& game_result)
+int DatabaseInterface::insertGameResult(const GameResult& game_result)
 {
 
     string category = game_result.category();
@@ -274,10 +275,10 @@ void DatabaseInterface::insertGameResult(GameResult& game_result)
             rating.defeats = it->second.losses();
             rating.max_rating = pratings[it->first].max_rating;
             rating.max_timestamp = pratings[it->first].max_timestamp;
-            rating.last_game = Util::ptime_to_time_t(boost::posix_time::second_clock::local_time());
+            rating.last_game = Util::ptime_to_time_t(ptime_local_time());
             if(rating.rating > rating.max_rating) {
                 rating.max_rating = rating.rating;
-                rating.max_timestamp = boost::posix_time::second_clock::local_time();
+                rating.max_timestamp = ptime_local_time();
             }
             this->setRating(it->first.partial(), category, rating);
         }
@@ -286,7 +287,7 @@ void DatabaseInterface::insertGameResult(GameResult& game_result)
     /* set game values */
     game.players = game_result.players();
     game.category = category;
-    game.time_stamp = boost::posix_time::second_clock::local_time();
+    game.time_stamp = ptime_local_time();
     game.result = game_result.end_reason();
 
     /* get history */
@@ -294,10 +295,10 @@ void DatabaseInterface::insertGameResult(GameResult& game_result)
     game.history = history->xml();
 
     /* insert to the database */
-    this->insertGame(game);
+    return this->insertGame(game);
 }
 
-void DatabaseInterface::insertGame(const PersistentGame& game) {
+int DatabaseInterface::insertGame(const PersistentGame& game) {
 
     int game_id;
     string query;
@@ -327,6 +328,8 @@ void DatabaseInterface::insertGame(const PersistentGame& game) {
             "   ,'" + this->work.esc(player->role) + "')";
         work.exec(query);
     }
+
+    return game_id;
 }
 
 

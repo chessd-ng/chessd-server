@@ -79,12 +79,20 @@ class DatabaseManager {
         /*! \brief Destructor. */
         ~DatabaseManager();
 
+        /*! \brief Execute the given transaction immediately.
+         *
+         * The transaction is executed in the current thread,
+         * and this method returs only when the transaction
+         * uis complete
+         * */
+        void execTransaction(const Transactor& transactor);
+
         /*! \brief Queue a transaction.
          *
-         * \param transaction is a function that performs the transation.
          * The transaction is executed in a separated thread.
-         * The transation may be executed more than once
-         * in case ofa a rollback.
+         * The transation may be called more than once in case
+         * of a a rollback.
+         * \param transaction is a function that performs the transation.
          * */
         void queueTransaction(const Transactor& transaction);
 
@@ -99,9 +107,6 @@ class DatabaseManager {
 
         /*! \brief Collects unused resources. */
         void colector();
-
-        /*! \brief Execute a transation. */
-        void execTransaction(const Transactor& transactor);
 
         std::string connection_string;
         

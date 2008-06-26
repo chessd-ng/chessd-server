@@ -51,37 +51,27 @@ namespace Util {
 	class Time {
 		private:
 
-			int _seconds;
-			int _nanoseconds;
+            long long _nanoseconds;
 
-			Time(int _seconds, int _nanoseconds) :
-				_seconds(_seconds),
+			Time(long long _nanoseconds) :
 				_nanoseconds(_nanoseconds) { }
 
 		public:
 
-			Time() : _seconds(0), _nanoseconds(0) { }
+			Time() : _nanoseconds(0) { }
 
 			Time(const Time& time) :
-				_seconds(time._seconds),
 				_nanoseconds(time._nanoseconds) { }
 
-            /* XXX This is evil!!! */
-			template <class T> 
-			Time(const std::string &_time, T m) {
-				*this=(((unsigned int)(atoi(_time.c_str()))) * m);
-			}
+            static Time Minutes(long long);
+            static Time Seconds(long long);
+            static Time Miliseconds(long long);
+            static Time Microseconds(long long);
+            static Time Nanoseconds(long long);
 
-			friend class Timer;
-
-			friend Time operator* (unsigned int constant, const _Minutes&);
-			friend Time operator* (unsigned int constant, const _Seconds&);
-			friend Time operator* (long long unsigned constant, const _Miliseconds&);
-			friend Time operator* (long long unsigned constant, const _Microseconds&);
-
-			friend Time operator* (double constant, const _Seconds&);
-			friend Time operator* (double constant, const _Miliseconds&);
-			friend Time operator* (double constant, const _Microseconds&);
+            static Time Seconds(const std::string&);
+            static Time Miliseconds(const std::string&);
+            static Time Microseconds(const std::string&);
 
 			const Time& operator+=(Time time);
 			const Time& operator-=(Time time);
@@ -99,27 +89,17 @@ namespace Util {
 			bool operator < (Time time) const;
 
 			/* returns time */
-			double getSeconds() const;
-			double getMiliseconds() const;
-			double getMicroseconds() const;
+			long long getSeconds() const;
+			long long getMiliseconds() const;
+			long long getMicroseconds() const;
 
             timespec getTimespec() const {
                 timespec ret;
-                ret.tv_sec = this->_seconds;
-                ret.tv_nsec = this->_nanoseconds;
+                ret.tv_sec = this->_nanoseconds/1000000000ll;
+                ret.tv_nsec = this->_nanoseconds%1000000000ll;
                 return ret;
             }
 	};
-
-	Time operator* (unsigned int constant, const _Minutes&);
-	Time operator* (unsigned int constant, const _Seconds&);
-	Time operator* (long long unsigned int constant, const _Miliseconds&);
-	Time operator* (long long unsigned int constant, const _Microseconds&);
-
-	/*Time operator* (double constant, const _Seconds&);
-	Time operator* (double constant, const _Miliseconds&);
-	Time operator* (double constant, const _Microseconds&);*/
-
 }
 
 #endif

@@ -32,7 +32,13 @@ enum GameStatus {
 	GAME_ENDED
 };
 
-typedef boost::function<void (const PlayerResultList& result)> OnGameEnd;
+/*! \brief The callback used to notify a game result
+ *
+ * \param game_id is the game id in the database, it is -1 if the game was not
+ *          inserted into the database
+ * \param result are the results of each player
+ */
+typedef boost::function<void (int game_id, const PlayerResultList& result)> OnGameEnd;
 
 struct GameRoomHandlers {
 	typedef boost::function<void ()> callback;
