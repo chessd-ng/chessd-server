@@ -45,6 +45,7 @@ std::vector<Game*>* ChessTourney::match() {
 		if(this->_missing_rounds==0)
 			throw tourney_over("Can't make one more round, number of rounds already reached");
 		this->_missing_rounds--;
+
 		if(tourney_started)
 			this->tourney.MakeAssignments();
 		else {
@@ -60,26 +61,26 @@ std::vector<Game*>* ChessTourney::match() {
 	return 0;
 }
 
-void ChessTourney::addResult(const PlayerResultList& prl) {
+void ChessTourney::addResult(const std::vector<GamePlayerResult>& prl) {
 	foreach(it,prl) {
-		if(result_set.find(it->jid)!=result_set.end())
+		if(result_set.find(it->player.jid)!=result_set.end())
 			throw result_error("Cannot set result, already set");
-		if(player_map.find(it->jid)==player_map.end())
+		if(player_map.find(it->player.jid)==player_map.end())
 			throw result_error("Player not found to set result");
 	}
-	result_set.insert(prl[0].jid);
-	result_set.insert(prl[1].jid);
-	missing_results=tourney.SetGameResult(this->player_map[prl[0].jid],this->player_map[prl[1].jid],(prl[0].score!="1/2"?(prl[0].score=="1"?1:0):2))!=2;
-	this->_players[player_map[prl[0].jid]].score=tourney.GetPlayerByName(this->player_map[prl[0].jid])->score;
-	this->_players[player_map[prl[1].jid]].score=tourney.GetPlayerByName(this->player_map[prl[1].jid])->score;
+	result_set.insert(prl[0].player.jid);
+	result_set.insert(prl[1].player.jid);
+	missing_results=tourney.SetGameResult(this->player_map[prl[0].player.jid],this->player_map[prl[1].player.jid],(prl[0].result!=DRAW?(prl[0].result==WIN?1:0):2))!=2;
+	this->_players[player_map[prl[0].player.jid]].score=tourney.GetPlayerByName(this->player_map[prl[0].player.jid])->score;
+	this->_players[player_map[prl[1].player.jid]].score=tourney.GetPlayerByName(this->player_map[prl[1].player.jid])->score;
 }
 
 std::vector<Game*>* ChessTourney::makeGames(const std::list<Pairing::Game>& games) const {
 	std::vector<Game*>* g = new std::vector<Game*>;
 	foreach(it,games) {
-		StandardPlayerList players;
-		players.push_back(StandardPlayer(this->_players[it->whiteName].jid,this->initial_time,this->inc,White));
-		players.push_back(StandardPlayer(this->_players[it->blackName].jid,this->initial_time,this->inc,Black));
+		std::vector<GamePlayer> players;
+		players.push_back(GamePlayer(this->_players[it->whiteName].jid,this->initial_time,this->inc,WHITE));
+		players.push_back(GamePlayer(this->_players[it->blackName].jid,this->initial_time,this->inc,BLACK));
 		g->push_back(new GameChess(players,this->game_attributes));
 	}
 	return g;
