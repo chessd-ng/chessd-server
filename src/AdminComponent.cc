@@ -96,7 +96,7 @@ void AdminComponent::handleBannedList(const Stanza& stanza) {
     message->children().push_back(generator.getTag());
 
     /* Send the message */
-    this->root_node.sendIq(message.release());
+    this->sendStanza(message.release());
 }
 
 void AdminComponent::handleKick(const Stanza& stanza) {
