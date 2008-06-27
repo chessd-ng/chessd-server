@@ -279,7 +279,7 @@ std::vector<GamePlayerResult> GameChessUntimed::donePlayerResultList() const {
 	else if (this->_done!=END_NO_REASON) { //if the game ended
 		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->whoTimedOver()==1/*black*/);
 		prl[0].result=(aux==true)?WIN:LOSE;
-		prl[1].result=(aux==true)?WIN:LOSE;
+		prl[1].result=(aux==true)?LOSE:WIN;
 	}
 	return prl;
 }
