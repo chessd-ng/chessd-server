@@ -23,7 +23,7 @@
 
 Match* MatchFactory::create(const XML::Tag& match_offer,const TeamDatabase& teams) {
 	XML::Tag match_offer2(match_offer);
-	validateXML(match_offer2);
+	validateXML(match_offer2,2);
 	return new MatchChess(getPlayersTag(match_offer2),match_offer.attributes());
 }
 
@@ -52,8 +52,8 @@ bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& catego
 
 //FIXME
 //does not work for untimed matches
-void MatchFactory::validateXML(XML::Tag& _match_offer) {
-	if(_match_offer.name()!="match")
+void MatchFactory::validateXML(XML::Tag& _match_offer,int num_players) {
+	if(_match_offer.name()!="match" and _match_offer.name()!="match_announcement")
 		throw bad_information("wrong matchrule xml name");
 
 	if(_match_offer.hasAttribute("category")==false)
@@ -107,9 +107,9 @@ void MatchFactory::validateXML(XML::Tag& _match_offer) {
 			}
 		}
 	}
-	if(count!=2)
+	if(count!=num_players)
 		throw bad_information(std::string("Invalid number of players for category ")+category);
-	if(count_color!=0 and count_color!=2)
+	if(count_color!=0 and count_color!=num_players)
 		throw bad_information(std::string("Only one player chose the color"));
 }
 

@@ -16,29 +16,33 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef MATCHFACTORY_HH
-#define MATCHFACTORY_HH
+#ifndef MATCHANNOUNCEMENT_HH
+#define MATCHANNOUNCEMENT_HH
 
-#include "Match.hh"
-#include "TeamDatabase.hh"
+#include <vector>
+#include <string>
 
-class MatchAnnouncementFactory;
+#include "Team.hh"
+#include "Game.hh"
 
-class MatchFactory {
+struct MatchAnnouncement {
 	public:
-		static Match* create(const XML::Tag& match_offer,
-				const TeamDatabase& teams) ;
 
-	private:
-		static std::vector<XML::Tag> getPlayersTag(const XML::Tag& match_offer) ;
+		/*! \brief Destructor */
+		virtual ~MatchAnnouncement() { }
 
-//		static StandardPlayerList getPlayersfromXML(const XML::Tag& _match_offer) ;
+		/*! \brief The players involved in the match */
+		virtual const std::vector<GamePlayer>& players() const = 0;
 
-		static void validateXML(XML::Tag& _match_offer, int num_players) ;
+        /*! \brief Return the game category. */
+		virtual const std::string& category() const = 0;
 
-		static bool isTimeValid(const XML::Tag& _player,const std::string& category) ;
+        /*! \brief Create a game discribed by the match. */
+		virtual Game* createGame(const XML::Tag& player) = 0;
 
-		friend class MatchAnnouncementFactory;
+		/*! \brief The offer notification */
+		virtual XML::Tag* notification() const = 0;
+
 };
 
 #endif

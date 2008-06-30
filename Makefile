@@ -52,6 +52,8 @@ SOURCES += src/MatchFactory.cc
 SOURCES += src/Util/Date.cc
 SOURCES += src/Threads/Thread.cc
 SOURCES += src/TourneyManager.cc
+SOURCES += src/ChessMatchAnnouncement.cc
+SOURCES += src/MatchAnnouncementFactory.cc
 
 
 SRCDIR = src

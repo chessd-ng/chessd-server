@@ -23,6 +23,8 @@
 #include "Match.hh"
 #include "XML/Xml.hh"
 
+class ChessMatchAnnouncemen;
+
 struct MatchChess : public Match {
 	public:
 		MatchChess(const std::vector<XML::Tag>& players, const XML::AttributeMap& __attributes);
@@ -52,6 +54,8 @@ struct MatchChess : public Match {
 		 *function will choose the color randomsly
 		*/
 		static std::vector<GamePlayer> getPlayersFromXML(const std::vector<XML::Tag>& players);
+
+		friend class ChessMatchAnnouncement;
 
 };
 
