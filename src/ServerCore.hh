@@ -16,8 +16,8 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef GAMEMANAGER_HH
-#define GAMEMANAGER_HH
+#ifndef SERVERCORE_HH
+#define SERVERCORE_HH
 
 #include "GameRoom.hh"
 
@@ -25,14 +25,11 @@
 #include <set>
 #include <memory>
 #include <boost/ptr_container/ptr_map.hpp>
-#include "XMPP/Component.hh"
-#include "XMPP/RootNode.hh"
-#include "XMPP/Disco.hh"
-#include "XMPP/Roster.hh"
-#include "Threads/Dispatcher.hh"
+#include <boost/ptr_container/ptr_vector.hpp>
+
 #include "ComponentBase.hh"
-#include "Util/Timer.hh"
-#include "Util/IDSet.hh"
+
+#include "ServerModule.hh"
 
 #include "DatabaseManager.hh"
 
@@ -43,13 +40,13 @@ typedef uint64_t GameId;
 typedef boost::function<void (const XMPP::Jid& game_room)> OnGameStart;
 
 /*! \brief Manage all games in the server plus control the game component. */
-class GameManager : public ComponentBase {
+class ServerCore : public ComponentBase {
 	public:
 		/*! \brief Constructor.
 		 *
 		 * \param config is the configuration for this component.
 		 */
-		GameManager(const XML::Tag& config,
+		ServerCore(const XML::Tag& config,
                     DatabaseManager& database_manager,
                     const XMPP::ErrorHandler& handle_error);
 
@@ -57,7 +54,7 @@ class GameManager : public ComponentBase {
 		 *
 		 * Closes server connection if available.
 		 */
-		~GameManager();
+		~ServerCore();
 
 		/*! \brief Create a game
 		 *
@@ -70,6 +67,10 @@ class GameManager : public ComponentBase {
                         const OnGameEnd& on_game_end = OnGameEnd());
 
     private:
+        void onConnect();
+
+        /*! \brief Handle an incoming presence */
+        void handlePresence(const XMPP::Stanza& stanza);
 
 		/*! \brief Create a game. The real one.
 		 *
@@ -112,6 +113,9 @@ class GameManager : public ComponentBase {
         /*! \brief Receive an error notification */
         void onError(const std::string& msg);
 
+        /*! \brief Notify all server modules the user status  */
+        void notifyUserStatus(const XMPP::Jid& user_name, const UserStatus& status);
+
 		std::string node_name;
 
 		boost::ptr_map<GameId, GameRoom> game_rooms;
@@ -121,6 +125,10 @@ class GameManager : public ComponentBase {
 		XMPP::ErrorHandler handle_error;
 
 		GameId game_ids;
+
+        boost::ptr_vector<ServerModule> modules;
+
+        std::map<XMPP::Jid, UserStatus> users_status;
 
 };
 

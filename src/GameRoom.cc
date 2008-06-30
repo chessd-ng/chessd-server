@@ -126,10 +126,10 @@ GameRoom::GameRoom(
 
     /* init agreements */
     foreach(player, game->players()) {
-        this->draw_agreement.insert(*player);
-        this->cancel_agreement.insert(*player);
-        this->adjourn_agreement.insert(*player);
-        this->all_players.insert(*player);
+        this->draw_agreement.insert(player->jid);
+        this->cancel_agreement.insert(player->jid);
+        this->adjourn_agreement.insert(player->jid);
+        this->all_players.insert(player->jid);
     }
 
     /* set time check */
@@ -348,21 +348,24 @@ XMPP::Stanza* GameRoom::createResultStanza(const string& lang) {
     stanza->lang() = lang;
     tag_generator.openTag("query");
     tag_generator.addAttribute("xmlns", XMLNS_GAME_END);
-    tag_generator.openTag("reason");
-    tag_generator.addCData(i18n.getText(this->result_reason, lang));
-    tag_generator.addAttribute("type", to_string(game_end_type_table[this->end_type]));
-    tag_generator.closeTag();
+    /* TODO */
+    tag_generator.openTag("end");
+    tag_generator.addAttribute("type", game_end_type_table[this->end_type]);
+    tag_generator.addAttribute("result", game_end_reason_table[this->result_reason]);
 
-    /* results are available only if the game ended normally */
+    /* results are available only if the game ended normally, 
+     * eg. was not canceled nor adjourned */
     if(this->end_type == END_TYPE_NORMAL) {
         foreach(player, this->players_result) {
             tag_generator.openTag("player");
-            tag_generator.addAttribute("jid", player->jid.full());
-            tag_generator.addAttribute("score", player->score);
-            tag_generator.addAttribute("role", player->role);
+            tag_generator.addAttribute("jid", player->player.jid.full());
+            tag_generator.addAttribute("role", PLAYER_ROLE_NAME[player->player.color]);
+            tag_generator.addAttribute("result", PLAYER_RESULT_NAME[player->result]);
             tag_generator.closeTag();
         }
     }
+
+    tag_generator.closeTag();
     stanza->children().push_back(tag_generator.getTag());
     return stanza.release();
 }
@@ -406,11 +409,6 @@ void storeAdjourned(AdjournedGame* adj_game, DatabaseInterface& database) {
     delete adj_game;
 }
 
-void GameRoom::setResult(const GameResult& result) {
-    this->result_reason = result.end_reason();
-    this->players_result = result.players();
-}
-
 void GameRoom::broadcastResultStanza() {
     foreach(occupant, this->occupants()) {
         this->notifyResult(occupant->jid());
@@ -427,10 +425,8 @@ void GameRoom::endGame(GameEndType type) {
 
     int game_id = -1;
 
-    PlayerResultList result_list;
-
     foreach(player, this->game->players()) {
-        result_list.push_back(PlayerResult(*player, "", "0"));
+        this->players_result.push_back(GamePlayerResult(*player));
     }
 
     if(type == END_TYPE_NORMAL) {
@@ -438,7 +434,8 @@ void GameRoom::endGame(GameEndType type) {
         auto_ptr<GameResult> result(this->game->result());
 
         /* set result */
-        this->setResult(*result);
+        this->result_reason = result->end_reason();
+        this->players_result = result->players();
 
         /* store game in the database */
         /* XXX execTransaction will wait for the transaction to end,
@@ -447,27 +444,24 @@ void GameRoom::endGame(GameEndType type) {
         this->database_manager.execTransaction(
                 boost::bind(storeResult, &*result, &game_id, _1));
 
-        /* get game result */
-        if(not handlers.report_result.empty()) {
-            result_list = result->players();
-        }
-
     } else if(type == END_TYPE_CANCELED) {
         /* set result */
-        this->result_reason = "The game was canceled";
+        this->result_reason = END_CANCELED;
 
     } else if(type == END_TYPE_ADJOURNED) {
         /* get the adjourned game */
         auto_ptr<AdjournedGame> adj_game(this->game->adjourn(this->currentTime()));
 
         /* set result */
-        this->result_reason = "The game was adjourned";
+        this->result_reason = END_ADJOURNED;
 
         /* store game */
         this->database_manager.execTransaction(boost::bind(storeAdjourned, adj_game.release(), _1));
     }
 
-    handlers.report_result(game_id, result_list);
+    if(not handlers.report_result.empty()) {
+        handlers.report_result(game_id, this->players_result);
+    }
 
     /* notify result */
     this->broadcastResultStanza();

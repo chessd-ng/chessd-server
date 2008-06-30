@@ -38,10 +38,10 @@ namespace XMPP {
 			 * \param type if the node type.
 			 */
 			Node(const StanzaHandler& send_stanza,
-					const Jid& jid,
-					const std::string& name,
-					const std::string& category,
-					const std::string& type);
+				 const Jid& jid,
+				 const std::string& name,
+				 const std::string& category,
+				 const std::string& type);
 
 			virtual ~Node();
 
@@ -104,7 +104,8 @@ namespace XMPP {
 			 * \param on_result is the result callback.
 			 * \param on_timeout is the timeout callback.
 			 * */
-			void sendIq(Stanza* stanza, const ConstStanzaHandler& on_result = ConstStanzaHandler(),
+			void sendIq(Stanza* stanza,
+                    const ConstStanzaHandler& on_result = ConstStanzaHandler(),
 					const TimeoutHandler& on_timeout = TimeoutHandler());
 
 			void sendStanza(Stanza* stanza);

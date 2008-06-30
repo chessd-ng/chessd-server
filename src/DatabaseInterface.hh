@@ -31,13 +31,12 @@
 #include "Game.hh"
 
 struct PersistentGame {
-    public:
-        int id;
-        PlayerResultList players;
-        std::string category;
-        boost::posix_time::ptime time_stamp;
-        std::string history;
-        std::string result;
+    int id;
+    std::vector<GamePlayerResult> players;
+    std::string category;
+    boost::posix_time::ptime time_stamp;
+    std::string history;
+    END_CODE result;
 };
 
 struct PersistentRating {
@@ -61,7 +60,7 @@ struct PersistentRating {
 struct PersistentAdjournedGame {
     public:
         int id;
-        PlayerList players;
+        std::vector<GamePlayer> players;
         std::string category;
         boost::posix_time::ptime time_stamp;
         std::string history;

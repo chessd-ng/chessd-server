@@ -116,7 +116,6 @@ vector<pair<string, PersistentRating> >
         foreach(r, result) {
             PersistentRating rating;
             string category;
-            time_t t;
             r->at("category").to(category);
             r->at("rating").to(rating.rating);
             r->at("volatility").to(rating.volatility);
@@ -124,9 +123,8 @@ vector<pair<string, PersistentRating> >
             r->at("defeats").to(rating.defeats);
             r->at("draws").to(rating.draws);
             r->at("max_rating").to(rating.max_rating);
-            r->at("max_timestamp").to(t);
+            rating.max_timestamp = from_time_t(r->at("max_timestamp").as<time_t>());
             r->at("last_game").to(rating.last_game);
-            rating.max_timestamp = from_time_t(t);
             ratings.push_back(make_pair(category, rating));
         }
     } catch (const user_not_found&) {
@@ -177,16 +175,14 @@ DatabaseInterface::getRatingForUpdate(const string& username,
      * default to 0 */
     if(not r.empty()) {
         PersistentRating rating;
-        time_t t;
         r[0]["rating"].to(rating.rating);
         r[0]["volatility"].to(rating.volatility);
         r[0]["wins"].to(rating.wins);
         r[0]["defeats"].to(rating.defeats);
         r[0]["draws"].to(rating.draws);
         r[0]["max_rating"].to(rating.max_rating);
-        r[0]["max_timestamp"].to(t);
+        rating.max_timestamp = from_time_t(r[0]["max_timestamp"].as<time_t>());
         r[0]["last_game"].to(rating.last_game);
-        rating.max_timestamp = from_time_t(t);
         return rating;
     } else {
         return PersistentRating();
@@ -248,19 +244,19 @@ int DatabaseInterface::insertGameResult(const GameResult& game_result)
 
     /* create a map with the player's rating */
     if(game_result.isRated()) {
-        map<Player, Rating> ratings;
-        map<Player, PersistentRating> pratings;
-        foreach(player, game_result.players()) {
-            string name = player->jid.partial();
+        map<XMPP::Jid, Rating> ratings;
+        map<XMPP::Jid, PersistentRating> pratings;
+        foreach(result, game_result.players()) {
+            string name = result->player.jid.partial();
             rating = this->getRatingForUpdate(name, category);
-            pratings.insert(make_pair(player->jid, rating));
+            pratings.insert(make_pair(result->player.jid, rating));
             tmp.rating() = rating.rating;
             tmp.volatility() = rating.volatility;
             tmp.wins() = rating.wins;
             tmp.draws() = rating.draws;
             tmp.losses() = rating.defeats;
             tmp.last_game() = rating.last_game;
-            ratings.insert(make_pair(player->jid, tmp));
+            ratings.insert(make_pair(result->player.jid, tmp));
         }
 
         /* update ratings */
@@ -310,7 +306,7 @@ int DatabaseInterface::insertGame(const PersistentGame& game) {
             "   ('" + this->work.esc(game.category) + "'" +
             "   , " + pqxx::to_string(Util::ptime_to_time_t(game.time_stamp)) + "" +
             "   ,'" + this->work.esc(game.history) + "'"
-            "   ,'" + this->work.esc(game.result) + "')";
+            "   , " + pqxx::to_string(int(game.result)) + ")";
     this->work.exec(query);
 
     /* get the game_id */
@@ -318,14 +314,17 @@ int DatabaseInterface::insertGame(const PersistentGame& game) {
 
  
     /* insert the players */
-    foreach(player, game.players) {
-        int user_id = this->getUserId(player->jid.partial(), true);
+    foreach(result, game.players) {
+        int user_id = this->getUserId(result->player.jid.partial(), true);
         query =
-            " INSERT INTO game_players VALUES"
-            "   ( " + pqxx::to_string(game_id) + "" +
-            "   ,'" + pqxx::to_string(user_id) + "'"
-            "   ,'" + this->work.esc(player->score) + "'"
-            "   ,'" + this->work.esc(player->role) + "')";
+            " INSERT INTO game_players (game_id, user_id, result, role, time, inc)"
+            " VALUES "
+            "   ( " + pqxx::to_string(game_id) +
+            "   , " + pqxx::to_string(user_id) +
+            "   , " + pqxx::to_string(int(result->result)) +
+            "   , " + pqxx::to_string(int(result->player.color)) + 
+            "   , " + pqxx::to_string(result->player.time.getSeconds()) +
+            "   , " + pqxx::to_string(result->player.inc.getSeconds()) + ")";
         work.exec(query);
     }
 
@@ -355,7 +354,6 @@ vector<PersistentGame> DatabaseInterface::searchGames(
         int max_results)
 {
     vector<PersistentGame> games;
-    time_t t;
 
     try {
         /* prepare sql query */
@@ -416,10 +414,10 @@ vector<PersistentGame> DatabaseInterface::searchGames(
 
             /*  parse values */
             r->at("game_id").to(game.id);
-            r->at("result").to(game.result);
-            r->at("time_stamp").to(t);
-            game.time_stamp = boost::posix_time::from_time_t(t);
-            game.category = r->at("category").c_str();
+            game.result = END_CODE(r->at("result").as<int>());
+            game.time_stamp = boost::posix_time::from_time_t(
+                    r->at("time_stamp").as<int>());
+            r->at("category").to(game.category);
 
             /* get players */
             string query =
@@ -427,13 +425,15 @@ vector<PersistentGame> DatabaseInterface::searchGames(
                 + Util::to_string(game.id);
             pqxx::result result = this->work.exec(query);
             foreach(r, result) {
-                PlayerResult player;
+                GamePlayerResult result;
                 int user_id;
                 r->at("user_id").to(user_id);
-                player.jid = XMPP::Jid(this->getUsername(user_id));
-                player.role = r->at("role").c_str();
-                player.score = r->at("score").c_str();
-                game.players.push_back(player);
+                result.player.jid = XMPP::Jid(this->getUsername(user_id));
+                result.player.color = PLAYER_COLOR(r->at("role").as<int>());
+                result.player.time = Time::Seconds(r->at("time").as<int>());
+                result.player.inc = Time::Seconds(r->at("inc").as<int>());
+                result.result = GAME_RESULT(r->at("result").as<int>());
+                game.players.push_back(result);
             }
 
             /* store game */
@@ -464,11 +464,15 @@ void DatabaseInterface::insertAdjournedGame(const PersistentAdjournedGame& game)
  
     /* insert players */
     foreach(player, game.players) {
-        int user_id = this->getUserId(player->partial(), true);
+        int user_id = this->getUserId(player->jid.partial(), true);
         query =
-            " INSERT INTO adjourned_game_players VALUES"
-            "   ( " + pqxx::to_string(game_id) + "" +
-            "   ,'" + pqxx::to_string(user_id) + "')";
+            " INSERT INTO adjourned_game_players (game_id, user_id, role, time, inc)"
+            " VALUES "
+            "   ( " + pqxx::to_string(game_id) +
+            "   , " + pqxx::to_string(user_id) +
+            "   , " + pqxx::to_string(int(player->color)) + 
+            "   , " + pqxx::to_string(player->time.getSeconds()) +
+            "   , " + pqxx::to_string(player->inc.getSeconds()) + ")";
         work.exec(query);
     }
 }
@@ -523,21 +527,24 @@ vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
         /* chek each result */
         foreach(r, result) {
             PersistentAdjournedGame game;
-            time_t t;
             r->at("game_id").to(game.id);
-            r->at("time_stamp").to(t);
-            game.time_stamp = boost::posix_time::from_time_t(t);
-            game.category = r->at("category").c_str();
+            game.time_stamp = boost::posix_time::from_time_t(r->at("time_stamp").as<time_t>());
+            r->at("category").to(game.category);
 
             /* get players */
             string query =
                 "SELECT user_id FROM adjourned_game_players WHERE game_id = "
                 + pqxx::to_string(game.id);
             pqxx::result result = this->work.exec(query);
+
             foreach(r, result) {
+                GamePlayer player;
                 int user_id;
                 r->at("user_id").to(user_id);
-                Player player = XMPP::Jid(this->getUsername(user_id));
+                player.jid = XMPP::Jid(this->getUsername(user_id));
+                player.color = PLAYER_COLOR(r->at("role").as<int>());
+                player.time = Time::Seconds(r->at("time").as<int>());
+                player.inc = Time::Seconds(r->at("inc").as<int>());
                 game.players.push_back(player);
             }
             games.push_back(game);
@@ -574,8 +581,7 @@ vector<string> DatabaseInterface::getAdmins() {
     
     /* read result */
     foreach(r, result) {
-        r->at("user_name").to(admin);
-        admins.push_back(admin);
+        admins.push_back(r->at("user_name").c_str());
     }
     
     return admins;
@@ -618,7 +624,6 @@ int DatabaseInterface::getOnlineTime(const string& user) {
     
     /* get result */
     if(result.empty()) {
-        //throw user_not_found("User not found");
         return 0;
     } else {
         result[0]["online_time"].to(time);

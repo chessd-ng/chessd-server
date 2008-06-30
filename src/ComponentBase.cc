@@ -26,15 +26,15 @@ using namespace Util;
 
 ComponentBase::ComponentBase(const XML::Tag& config,
 		const std::string& component_name) :
-	component(config.getAttribute("node_name")),
+	component(config.getAttribute("component_name")),
 	running(false),
 	root_node(
             boost::bind(&ComponentBase::sendStanza, this, _1),
-			XMPP::Jid(config.getAttribute("node_name")),
+			XMPP::Jid(config.getAttribute("component_name")),
 			component_name, "service", "game"),
     server_address(config.getAttribute("server_address")),
-    server_port(parse_string<int>(config.getAttribute("server_port"))),
-    server_password(config.getAttribute("server_password")),
+    server_port(parse_string<int>(config.getAttribute("component_port"))),
+    server_password(config.getAttribute("component_password")),
 	task_recv(boost::bind(&ComponentBase::run_recv, this)),
 	task_send(boost::bind(&ComponentBase::run_send, this))
 {

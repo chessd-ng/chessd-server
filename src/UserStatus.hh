@@ -16,41 +16,14 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef THREADS_HH
-#define THREADS_HH
+#ifndef USERSTATUS_HH
+#define USERSTATUS_HH
 
-#include <pthread.h>
+struct UserStatus {
+    UserStatus() : available(false), playing(false) { }
 
-#include "Task.hh"
-
-#include "Queue.hh"
-
-#include <boost/function.hpp>
-
-namespace Threads {
-
-    class Thread {
-        public:
-            Thread();
-
-            ~Thread();
-
-            bool start();
-
-            void join();
-
-        protected:
-            virtual void run() = 0;
-
-            static void* start_routine(void* thread);
-
-        private:
-            volatile bool running;
-
-            pthread_t thread;
-    };
-
-}
-
+    bool available;
+    bool playing;
+};
 
 #endif

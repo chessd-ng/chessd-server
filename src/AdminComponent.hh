@@ -23,11 +23,11 @@
 #include <set>
 #include <memory>
 
-#include "ComponentBase.hh"
+#include "ServerModule.hh"
 #include "DatabaseManager.hh"
 
 /*! \brief This is the component that handles user info requests */
-class AdminComponent : public ComponentBase {
+class AdminComponent : public ServerModule {
 	public:
 		/*! \brief Constructor
 		 *
@@ -35,9 +35,9 @@ class AdminComponent : public ComponentBase {
 		 * \param config is the configuration for this component.
 		 */
 		AdminComponent(
-            const XML::Tag& config,
-            const XMPP::ErrorHandler& handleError,
-            DatabaseManager& database);
+            const std::string& server_name,
+            DatabaseManager& database,
+            const XMPP::StanzaHandler& send_stanza);
 
 		/*! \brief Destructor
 		 *
@@ -45,31 +45,18 @@ class AdminComponent : public ComponentBase {
 		 */
 		virtual ~AdminComponent();
 
-		/*! \brief Closes the conenction to the server */
-		//void close();
 
+        virtual std::vector<std::string> namespaces() const ;
 
 	private:
 
-        virtual void onClose();
+        void onStart();
 
-        virtual void onError(const std::string& error);
-
-        virtual void onConnect();
-
-		/* several Handlers for the incoming events. */
+        /*! \brief handle an incoming iq */
+        void handleIq(const XMPP::Stanza& iq);
 
 		/*! \brief Handle an incoming admin iq. */
 		void handleAdmin(const XMPP::Stanza& stanza);
-
-        /*! \brief This is a transaction that reads user type. */
-		void fetchUserType(const XMPP::Stanza& stanza, DatabaseInterface& database);
-
-        /*! \brief Load admins names from the database */
-        void loadAcl(DatabaseInterface& database);
-
-        /*! \brief Set the admin list */
-        void setAdmins(const std::set<XMPP::PartialJid>& admins);
 
         /*! \brief Handle a request for the banned user list */
         void handleBannedList(const XMPP::Stanza& stanza);
@@ -83,6 +70,15 @@ class AdminComponent : public ComponentBase {
         /*! \brief handle unban request */
         void handleUnban(const XMPP::Stanza& stanza);
 
+        /*! \brief This is a transaction that reads user type. */
+		void fetchUserType(const XMPP::Stanza& stanza, DatabaseInterface& database);
+
+        /*! \brief Load admins names from the database */
+        void loadAcl(DatabaseInterface& database);
+
+        /*! \brief Set the admin list */
+        void setAdmins(const std::set<XMPP::PartialJid>& admins);
+
         void setAccessRules();
 
         void updateAcl();
@@ -94,8 +90,6 @@ class AdminComponent : public ComponentBase {
         void banUser(const XMPP::PartialJid& user, const std::string& reason);
 
         void unbanUser(const XMPP::PartialJid& user);
-
-        XMPP::ErrorHandler error_handler;
 
         DatabaseManager& database;
 

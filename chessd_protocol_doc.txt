@@ -36,11 +36,11 @@ Any date and time is in the format specified by the XEP-082.
 <!--
     The other player will receive a notification of the offer.
 -->
-<iq from="match.shiva" type="set" id="1" to="eduari@shiva/Psi" >
+<iq from='match.shiva' type='set' id='1' to='eduari@shiva/Psi' >
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'/>
-        <match category="standard" id="0" >
-            <player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" />
-            <player inc="1" color="black" time="900" jid="eduari@shiva/Psi" />
+        <match category='standard' id='0' >
+            <player inc='1' color='white' time='900' jid='raphaelhr@shiva/Psi' />
+            <player inc='1' color='black' time='900' jid='eduari@shiva/Psi' />
         </match>
     </query>
 </iq>
@@ -51,7 +51,7 @@ Any date and time is in the format specified by the XEP-082.
 -->
 <iq type='set' to='match.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#accept'>
-        <match id="0"/>
+        <match id='0'/>
     </query>
 </iq>
 
@@ -62,7 +62,7 @@ Any date and time is in the format specified by the XEP-082.
 -->
 <iq type='set' to='match.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#decline'>
-        <match id="0"/>
+        <match id='0'/>
     </query>
 </iq>
 
@@ -73,7 +73,7 @@ Any date and time is in the format specified by the XEP-082.
 -->
 <iq type='set' from='match.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#decline/accept'>
-        <match id="0" room="game_0@games.shiva"/>
+        <match id='0' room='game_0@games.shiva'/>
     </query>
 </iq>
 
@@ -100,12 +100,12 @@ Any date and time is in the format specified by the XEP-082.
 <!--
     When a player joins a game he will receive the current game state.
 -->
-<iq from="game_0@games.shiva" type="set" id="0" to="raphaelhr@shiva/Psi" >
-    <query xmlns="http://c3sl.ufpr.br/chessd#game#state">
-        <state category="standard" >
-            <board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" turn="white" />
-            <player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" />
-            <player inc="1" color="black" time="900" jid="eduari@shiva/Psi" />
+<iq from='game_0@games.shiva' type='set' id='0' to='raphaelhr@shiva/Psi' >
+    <query xmlns='http://c3sl.ufpr.br/chessd#game#state'>
+        <state category='standard' >
+            <board fullmoves='1' enpassant='-' castle='KQkq' halfmoves='0' state='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR' turn='white' />
+            <player inc='1' color='white' time='900' jid='raphaelhr@shiva/Psi' />
+            <player inc='1' color='black' time='900' jid='eduari@shiva/Psi' />
         </state>
     </query>
 </iq>
@@ -134,13 +134,13 @@ Any date and time is in the format specified by the XEP-082.
     For each move in the game, the players in the room will receive
     a notification of the move and the state of the board.
 -->
-<iq from="game_0@games.shiva" type="set" id="0" to="raphaelhr@shiva/Psi" >
-    <query xmlns="http://c3sl.ufpr.br/chessd#game#move">
+<iq from='game_0@games.shiva' type='set' id='0' to='raphaelhr@shiva/Psi' >
+    <query xmlns='http://c3sl.ufpr.br/chessd#game#move'>
         <move long='e2e4'/>
-        <state category="standard" >
-            <board fullmoves="1" enpassant="-" castle="KQkq" halfmoves="0" state="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR" turn="white" />
-            <player inc="1" color="white" time="900" jid="raphaelhr@shiva/Psi" />
-            <player inc="1" color="black" time="900" jid="eduari@shiva/Psi" />
+        <state category='standard' >
+            <board fullmoves='1' enpassant='-' castle='KQkq' halfmoves='0' state='rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR' turn='white' />
+            <player inc='1' color='white' time='900' jid='raphaelhr@shiva/Psi' />
+            <player inc='1' color='black' time='900' jid='eduari@shiva/Psi' />
         </state>
     </query>
 </iq>
@@ -162,23 +162,41 @@ Any date and time is in the format specified by the XEP-082.
 
 <!-- 
      The players can accept the offer sending the same message of the offer.
-     Or decline it by sending the same message with a "-decline" sufix
+     Or decline it by sending the same message with a '-decline' sufix
      in the xmlns. The type can be one of the folowing values:
 !-->
 
 <!-- 
     When the game is over, the players will be notified of the result.
-    The type can be one of the folowing values:
+    The type attribute can be one of the folowing values:
 
     normal - The game ended normally, expect to have a list of player with their scores.
     canceled - The game was canceled.
     adjourned - The game was adjourned.
+
+    The result attribute can be one of the following values:
+    no-reason - No reason given
+    white-mated - White was mated
+    black-mated - Black was mated
+    stalemate - The game ended due to stalemate
+    white-timeover - The white player ran out of time
+    black-timeover - The black player ran out of time
+    white-resigned - The white player has resigned
+    black-resigned - The black player has resigned
+    draw-agreement - The players agreed on a draw
+    draw-repetition - The game was a draw due to the repetition rule
+    draw-fifty-moves - The game was a draw due to the 50 half moves rule
+    draw-impossible-mate - The game was a draw due the lack ofm aterial to mate
+    draw-timeover - Both players ran out of time
+
+    The player's result attribute can be 'won', 'lost' or 'draw'.
 -->
-<iq from="game_0@games.shiva" type="set" id="2" to="eduari@shiva/Psi" >
-    <query xmlns="http://c3sl.ufpr.br/chessd#game#end">
-        <reason type='normal'>Black has resigned</reason>
-        <player role="white" score="1" jid="raphaelhr@shiva/Psi"/>
-        <player role="black" score="0" jid="eduari@shiva/Psi"/>
+<iq from='game_0@games.shiva' type='set' id='2' to='eduari@shiva/Psi' >
+    <query xmlns='http://c3sl.ufpr.br/chessd#game#end'>
+        <end type='normal' result='black-mated'/>
+            <player role='white' result='won' jid='raphaelhr@shiva/Psi'/>
+            <player role='black' result='lost' jid='eduari@shiva/Psi'/>
+        </end>
     </query>
 </iq>
 
@@ -196,12 +214,11 @@ Any date and time is in the format specified by the XEP-082.
     The result.
 --!>
 
-<iq from="match.shiva" type="result" id="get_adj">
-    <query xmlns="http://c3sl.ufpr.br/chessd#adjourned#list">
-        <game time_stamp="2008-03-06T15:19:09Z" category="blitz" id="89" >
-            <result>The players agreed on a draw</result>
-            <player jid="ulyssesb@shiva" />
-            <player jid="robofacilaaa@shiva" />
+<iq from='match.shiva' type='result' id='get_adj'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#adjourned#list'>
+        <game time_stamp='2008-03-06T15:19:09Z' category='blitz' id='89'>
+            <player jid='ulyssesb@shiva'/>
+            <player jid='robofacilaaa@shiva'/>
         </game>
     </query>
 </iq>
@@ -210,8 +227,8 @@ Any date and time is in the format specified by the XEP-082.
     To offer a player to resume an adjourned game.
 --!>
 
-<iq to="match.shiva" type="set" id="offer_adj">
-    <query xmlns="http://c3sl.ufpr.br/chessd#match#offer">
+<iq to='match.shiva' type='set' id='offer_adj'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'>
         <match adjourned_id='4'/>
     </query>
 </iq>
@@ -222,11 +239,11 @@ Any date and time is in the format specified by the XEP-082.
     a normal offer, but with a type set to adjourned.
 --!>
 
-<iq from="match.shiva" type="set" id="1" to="eduari@shiva/Psi" >
+<iq from='match.shiva' type='set' id='1' to='eduari@shiva/Psi' >
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'/>
-        <match category="standard" id="0" type='adjourned'>
-            <player inc="1" color="white" time="521" jid="raphaelhr@shiva/Psi"/>
-            <player inc="1" color="black" time="534" jid="eduari@shiva/Psi"/>
+        <match category='standard' id='0' type='adjourned'>
+            <player inc='1' color='white' time='521' jid='raphaelhr@shiva/Psi'/>
+            <player inc='1' color='black' time='534' jid='eduari@shiva/Psi'/>
         </match>
     </query>
 </iq>
@@ -254,10 +271,10 @@ Any date and time is in the format specified by the XEP-082.
 <!--
     The answer will be like this.
 -->
-<iq from="rating.shiva" type="result" id="get_rating" to="eduari@shiva/Psi" >
-    <query xmlns="http://c3sl.ufpr.br/chessd#rating">
-        <rating losses="0" category="standard" wins="11" draws="0" rating="1847" jid="raphaelhr@shiva" max_rating="1954" max_timestamp="2008-01-25T20:10:20Z"/>
-        <rating losses="11" category="standard" wins="0" draws="0" rating="1153" jid="eduari@shiva" max_rating="1954" max_timestamp="2008-01-25T20:10:20Z"/>
+<iq from='rating.shiva' type='result' id='get_rating' to='eduari@shiva/Psi' >
+    <query xmlns='http://c3sl.ufpr.br/chessd#rating'>
+        <rating losses='0' category='standard' wins='11' draws='0' rating='1847' jid='raphaelhr@shiva' max_rating='1954' max_timestamp='2008-01-25T20:10:20Z'/>
+        <rating losses='11' category='standard' wins='0' draws='0' rating='1153' jid='eduari@shiva' max_rating='1954' max_timestamp='2008-01-25T20:10:20Z'/>
         <type jid='eduari@shiva' type='admin'/>
         <type jid='raphaelhr@shiva' type='robot'/>
     </query>
@@ -279,14 +296,15 @@ Any date and time is in the format specified by the XEP-082.
 </iq>
 
 <!--
-    Result. A list of the games.
+    Result. A list of games.
+    There is more tah in the end if there are more games in the matching requested parameters
 --!>
 
-<iq from="rating.shiva" type="result" id="get_rating">
-    <query xmlns="http://c3sl.ufpr.br/chessd#search_game">
-        <game time_stamp="2008-01-25T20:10:20Z" category="blitz" id="89" >
-            <player role="black" score="1" jid="ulyssesb@shiva" />
-            <player role="white" score="0" jid="robofacilaaa@shiva" />
+<iq from='rating.shiva' type='result' id='get_rating'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#search_game'>
+        <game time_stamp='2008-01-25T20:10:20Z' category='blitz' id='89' result='white-mated'>
+            <player role='white' result='lost' jid='robofacilaaa@shiva' time='300' inc='5'/>
+            <player role='black' result='won' jid='ulyssesb@shiva' time='300' inc='5'/>
         </game>
         <more/>
     </query>
@@ -296,8 +314,8 @@ Any date and time is in the format specified by the XEP-082.
     Fetch a game stored in the server.
 --!>
 
-<iq from="rating.shiva" type="result" id="get_rating">
-    <query xmlns="http://c3sl.ufpr.br/chessd#fetch_game">
+<iq from='rating.shiva' type='result' id='get_rating'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#fetch_game'>
         <game id='66'/>
     </query>
 </iq>
@@ -370,12 +388,10 @@ Any date and time is in the format specified by the XEP-082.
 
 <iq type='get' to='admin.shiva' id='12345'>
     <banned-list xmlns='http://c3sl.ufpr.br/chessd#admin'>
-        <jid>buguens@shiva</jid>
-        <jid>eduari@shiva</jid>
+        <user jid='buguens@shiva'>He is a bad guy</user>
+        <user jid='eduari@shiva'>The user is a spam bot</user>
     </banned-list>
 </iq>
-
-
 
 <!--
     To update the profile in the chess server
@@ -436,9 +452,9 @@ Any date and time is in the format specified by the XEP-082.
     The result
 --!>
 
-<iq from="tourneydev.shiva" type="result" id="1234" to="raphaelhr@shiva/guinness" >
-    <list xmlns="http://c3sl.ufpr.br/chessd#tourney">
-        <tourney id="0" />
+<iq from='tourneydev.shiva' type='result' id='1234' to='raphaelhr@shiva/guinness' >
+    <list xmlns='http://c3sl.ufpr.br/chessd#tourney'>
+        <tourney id='0' />
     </list>
 </iq>
 
@@ -452,9 +468,9 @@ Any date and time is in the format specified by the XEP-082.
 
 <!-- When a round begins the players will receive a notification with their game rooms --!>
 
-<iq from="tourneydev.shiva" type="set" id="0" to="raphaelhr@shiva/guinness" >
-    <game xmlns="http://c3sl.ufpr.br/chessd#tourney" room="game_0@gamesdev.shiva" >
-        <tourney id="0" />
+<iq from='tourneydev.shiva' type='set' id='0' to='raphaelhr@shiva/guinness' >
+    <game xmlns='http://c3sl.ufpr.br/chessd#tourney' room='game_0@gamesdev.shiva' >
+        <tourney id='0' />
     </game>
 </iq>
 
@@ -462,10 +478,10 @@ Any date and time is in the format specified by the XEP-082.
     History.
 --!>
 
-<history category="standard" >
-    <moves movetext="e2e4 900 e7e5 900 d1f3 895 a7a6 889 f1c4 893 a6a5 885 f3f7 890"/>
-    <player color="white" time="900" jid="raphaelhr@shiva/Psi" score="1"/>
-    <player color="black" time="900" jid="eduari@shiva/Psi" score="0"/>
+<history category='standard' >
+    <moves movetext='e2e4 900 e7e5 900 d1f3 895 a7a6 889 f1c4 893 a6a5 885 f3f7 890'/>
+    <player color='white' time='900' jid='raphaelhr@shiva/Psi' score='1'/>
+    <player color='black' time='900' jid='eduari@shiva/Psi' score='0'/>
 </history>
 
 <!--

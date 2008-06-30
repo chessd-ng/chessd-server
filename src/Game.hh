@@ -45,7 +45,27 @@ enum END_CODE {
     END_DRAW_REPETITION=9,
     END_DRAW_50_MOVES=10,
     END_DRAW_IMPOSSIBLE_MATE=11,
-    END_DRAW_TIME_OVER=12
+    END_DRAW_TIME_OVER=12,
+
+    END_CANCELED=13,
+
+    END_ADJOURNED=14
+};
+
+static const char game_end_reason_table[][32] = {
+    "no-reason",
+    "white-mated",
+    "black-mated",
+    "stalemate",
+    "white-timeover",
+    "black-timeover",
+    "white-resigned",
+    "black-resigned",
+    "draw-agreement",
+    "draw-repetition",
+    "draw-fifty-moves",
+    "draw-impossible-mate",
+    "draw-timeover"
 };
 
 class GameResult {

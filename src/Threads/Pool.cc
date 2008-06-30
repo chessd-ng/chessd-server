@@ -23,7 +23,6 @@
 
 #include <boost/bind.hpp>
 
-
 using namespace std;
 
 namespace Threads {
@@ -31,49 +30,95 @@ namespace Threads {
     /* Is 256Kb enough? */
 	const size_t StackSize = 1 << 18;
 
-	Pool::Pool() { }
+	Pool::Pool() :
+        idle_count(0),
+        running(true) { }
 
 	Pool::~Pool() {
-        WriteLock<vector<Thread*> > threads(this->threads);
-        /* issue a stop to all threads */
-		foreach(thread, *threads) {
-            (*thread)->stop();
-		}
+        /* acquire lock */
+        this->cond.lock();
+
+        /* signal all threads to stop*/
+        this->running = false;
+        this->cond.broadcast();
+
+        /* release the lock */
+        this->cond.unlock();
+
         /* wait then to stop completely */
+        WriteLock<vector<PoolThread*> > threads(this->threads);
 		foreach(thread, *threads) {
             (*thread)->join();
 		}
+
         /* free resources */
 		foreach(thread, *threads) {
             delete *thread;
 		}
 	}
 
-	void Pool::launchTask(Task& task) {
-        Thread* thread;
-        if(this->idle_threads.try_pop(thread)) {
-            thread->queueTask(&task);
-        } else {
-            Thread* thread = new Thread(boost::bind(&Pool::threadIdled, this, _1));
-            thread->queueTask(&task);
-            if(not thread->start()) {
-                delete thread;
-                this->task_queue.push(&task);
-            } else {
-                WriteLock<vector<Thread*> > threads(this->threads);
-                threads->push_back(thread);
-            }
-        }
-	}
+    Pool::PoolThread::PoolThread(Pool& pool) :
+        pool(pool) { }
 
-    void Pool::threadIdled(Thread* thread) {
+    void Pool::PoolThread::run() {
         Task* task;
+        while(1) {
+            /* acquire lock */
+            pool.cond.lock();
 
-        if(this->task_queue.try_pop(task)) {
-            thread->queueTask(task);
-        } else {
-            this->idle_threads.push(thread);
+            /* if not running anymore, abort */
+            if(not pool.running) {
+                pool.cond.unlock();
+                break;
+            }
+            
+            /* if queue is empty, wait a task */
+            if(pool.tasks.empty()) {
+                pool.idle_count++;
+                pool.cond.wait();
+            }
+            /* if the thread was awakened to stop, then stop */
+            if(not pool.running) {
+                pool.cond.unlock();
+                break;
+            }
+
+            /* if not, there is a task in the queue */
+            task = pool.tasks.front();
+            pool.tasks.pop();
+
+            /* release the lock */
+            pool.cond.unlock();
+
+            /* run the task */
+            task->run();
         }
     }
 
+	void Pool::launchTask(Task& task) {
+        /* acquire lock first */
+        this->cond.lock();
+
+        /* put the task in the queue */
+        this->tasks.push(&task);
+
+        if(this->idle_count > 0) {
+            /* if there is a thread wating, send a signal */
+            this->idle_count--;
+            this->cond.signal();
+        } else {
+            /* if not, create a new thread */
+            PoolThread* thread = new PoolThread(*this);
+            if(not thread->start()) {
+                /* if the thread has failed to start, the task
+                 * will have to wait for a thread to be done */
+                delete thread;
+            } else {
+                /* put the thread in the thread list */
+                WriteLock<vector<PoolThread*> > threads(this->threads);
+                threads->push_back(thread);
+            }
+        }
+        this->cond.unlock();
+	}
 }
