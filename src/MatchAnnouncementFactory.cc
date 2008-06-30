@@ -16,29 +16,16 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef MATCHFACTORY_HH
-#define MATCHFACTORY_HH
+#include "MatchAnnouncementFactory.hh"
 
-#include "Match.hh"
-#include "TeamDatabase.hh"
+#include "ChessMatchAnnouncement.hh"
 
-class MatchAnnouncementFactory;
+#include "MatchFactory.hh"
 
-class MatchFactory {
-	public:
-		static Match* create(const XML::Tag& match_offer,
-				const TeamDatabase& teams) ;
+MatchAnnouncement* MatchAnnouncementFactory::create(const XML::Tag& offer, const TeamDatabase& teams) {
+	XML::Tag offer2(offer);
+	MatchFactory::validateXML(offer2,1);
 
-	private:
-		static std::vector<XML::Tag> getPlayersTag(const XML::Tag& match_offer) ;
+	return new ChessMatchAnnouncement(MatchFactory::getPlayersTag(offer2),offer2.attributes());
 
-//		static StandardPlayerList getPlayersfromXML(const XML::Tag& _match_offer) ;
-
-		static void validateXML(XML::Tag& _match_offer, int num_players) ;
-
-		static bool isTimeValid(const XML::Tag& _player,const std::string& category) ;
-
-		friend class MatchAnnouncementFactory;
-};
-
-#endif
+}

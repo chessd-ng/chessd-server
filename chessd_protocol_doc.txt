@@ -1,4 +1,4 @@
-his document assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
+this document assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
 The protocol described here is in development and will suffer changes in the future that
 may my break compatibility with previous versions.
 
@@ -473,6 +473,15 @@ Any date and time is in the format specified by the XEP-082.
         <tourney id='0' />
     </game>
 </iq>
+
+<!--
+	Match Announcement
+	//FIXME explain more
+--!>
+<match_announcement category='standard' autoflag='true' rated='false'>
+	<player jid='raphaelhr@shiva/Psi' time='900' inc='1' color='white'/>
+</match>
+
 
 <!--
     History.
