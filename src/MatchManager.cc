@@ -40,6 +40,7 @@
 using namespace std;
 using namespace XML;
 using namespace XMPP;
+using namespace Util;
 
 class match_error : public xmpp_exception {
     public:
@@ -161,7 +162,7 @@ void MatchManager::sendOfferResult(const Stanza& stanza, int match_id) {
     generator.openTag("query");
     generator.addAttribute("xmlns", XMLNS_MATCH_OFFER);
     generator.openTag("match");
-    generator.addAttribute("id", Util::to_string(match_id));
+    generator.addAttribute("id", to_string(match_id));
     resp->children().push_back(generator.getTag());
 
     this->sendStanza(resp);
@@ -175,7 +176,7 @@ void MatchManager::handleOffer(const Stanza& stanza) {
 
         /* Is the offer to resume an adjourned game? */
         if(offer.hasAttribute("adjourned_id")) {
-            int adj_id = Util::parse_string<int>(offer.getAttribute("adjourned_id"));
+            int adj_id = parse_string<int>(offer.getAttribute("adjourned_id"));
             this->delayed_offer.push_back(make_pair(adj_id, new Stanza(stanza)));
             this->database.queueTransaction(boost::bind(&MatchManager::loadAdjourned, this, adj_id, _1));
         } else {
@@ -205,7 +206,7 @@ void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
 
         /* is it a rematch? */
         if(offer.hasAttribute("id")) {
-            match_id = Util::parse_string<int>(offer.getAttribute("id"));
+            match_id = parse_string<int>(offer.getAttribute("id"));
         } else {
             match_id = -1;
         }
@@ -223,7 +224,7 @@ void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
 
         /* check if there are no repeated users in the match */
         foreach(it1, match->players()) {
-            foreach_it(it2, Util::next(it1), match->players().end()) {
+            foreach_it(it2, next(it1), match->players().end()) {
                 if(it1->jid.parcialCompare(it2->jid))
                     throw match_error("Users must not repeat in the match");
             }
@@ -300,7 +301,7 @@ void MatchManager::notifyOffer(int id, const Jid& requester) {
     generator.openTag("query");
     generator.addAttribute("xmlns", XMLNS_MATCH_OFFER);
     tag = match.notification();
-    tag->setAttribute("id", Util::to_string(id));
+    tag->setAttribute("id", to_string(id));
     generator.addChild(tag);
     stanza.children().push_back(generator.getTag());
 
@@ -318,7 +319,7 @@ void MatchManager::handleAccept(const Stanza& stanza) {
         /* get match */
         const Tag& match = stanza.query().findChild("match");
         /* parse message */
-        int id = Util::parse_string<int>(match.getAttribute("id"));
+        int id = parse_string<int>(match.getAttribute("id"));
         /* update accepted */
         this->match_db.acceptMatch(id, stanza.from());
         /* reply result */
@@ -339,7 +340,7 @@ void MatchManager::handleDecline(const Stanza& stanza) {
         /* get match */
         const Tag& match = stanza.query().findChild("match");
         /* parse message */
-        int id = Util::parse_string<int>(match.getAttribute("id"));
+        int id = parse_string<int>(match.getAttribute("id"));
         /* sanity check */
         if(not this->match_db.hasPlayer(id, stanza.from()))
             throw match_error("Invalid match id");
@@ -393,7 +394,7 @@ void MatchManager::_notifyGameStart(int match_id, Match* match, const Jid& jid) 
 	generator.openTag("query");
 	generator.addAttribute("xmlns", XMLNS_MATCH_ACCEPT);
 	generator.openTag("match");
-	generator.addAttribute("id", Util::to_string(match_id));
+	generator.addAttribute("id", to_string(match_id));
 	generator.addAttribute("room", jid.full());
 
     /* send message to the players */
@@ -413,7 +414,7 @@ void MatchManager::notifyResult(const Match& match, int id, bool accepted) {
 	generator.openTag("query");
 	generator.addAttribute("xmlns", accepted ? XMLNS_MATCH_ACCEPT : XMLNS_MATCH_DECLINE);
 	generator.openTag("match");
-	generator.addAttribute("id", Util::to_string<int>(id));
+	generator.addAttribute("id", to_string<int>(id));
 
     /* send to the players */
     stanza.children().push_back(generator.getTag());
@@ -439,8 +440,8 @@ void MatchManager::listAdjournedGames(const Stanza& query, DatabaseInterface& da
 
             /* Parse request */
             const Tag& search_tag = query.query().findChild("search");
-            offset = Util::parse_string<int>(search_tag.getAttribute("offset"));
-            max_results = min(max_results, Util::parse_string<int>(search_tag.getAttribute("results")));
+            offset = parse_string<int>(search_tag.getAttribute("offset"));
+            max_results = min(max_results, parse_string<int>(search_tag.getAttribute("results")));
             players.push_back(query.from().partial());
 
             /* Search in the database */
@@ -453,11 +454,14 @@ void MatchManager::listAdjournedGames(const Stanza& query, DatabaseInterface& da
             foreach(game, games) {
                 generator.openTag("game");
                 generator.addAttribute("category", game->category);
-                generator.addAttribute("id", Util::to_string(game->id));
-                generator.addAttribute("time_stamp", Util::ptime_to_xmpp_date_time(game->time_stamp));
+                generator.addAttribute("id", to_string(game->id));
+                generator.addAttribute("time_stamp", ptime_to_xmpp_date_time(game->time_stamp));
                 foreach(player, game->players) {
                     generator.openTag("player");
                     generator.addAttribute("jid", player->jid.partial());
+                    generator.addAttribute("role", PLAYER_ROLE_NAME[player->color]);
+                    generator.addAttribute("time", to_string(player->time.getSeconds()));
+                    generator.addAttribute("inc", to_string(player->inc.getSeconds()));
                     generator.closeTag();
                 }
                 generator.closeTag();
