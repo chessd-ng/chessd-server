@@ -73,14 +73,15 @@ namespace Threads {
             }
             
             /* if queue is empty, wait a task */
-            if(pool.tasks.empty()) {
+            while(pool.tasks.empty()) {
                 pool.idle_count++;
                 pool.cond.wait();
-            }
-            /* if the thread was awakened to stop, then stop */
-            if(not pool.running) {
-                pool.cond.unlock();
-                break;
+
+                /* if the thread was awakened to stop, then stop */
+                if(not pool.running) {
+                    pool.cond.unlock();
+                    break;
+                }
             }
 
             /* if not, there is a task in the queue */
