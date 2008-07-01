@@ -19,6 +19,7 @@
 #include "GlickoSystem.hh"
 #include <cmath>
 #include <algorithm>
+#include <time.h>
 
 double GlickoSystem::c() {
 	return 1.483; //got from previous chessd server
