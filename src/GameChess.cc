@@ -447,7 +447,7 @@ bool GameChess::checkTimeOver(const Util::Time& current_time) {
 		for(int i=0;i<2;i++) {
 			if(this->_players[i].time+((this->chess.turn()==i)?(this->time_of_last_move-current_time):Util::Time()) <= Util::Time()) {
 				this->time_over=i;
-				this->_done=(this->whoTimedOver()==int(WHITE))?END_BLACK_TIME_OVER:END_WHITE_TIME_OVER;
+				this->_done=(this->whoTimedOver()==int(WHITE))?END_WHITE_TIME_OVER:END_BLACK_TIME_OVER;
 				conta++;
 			}
 		}
