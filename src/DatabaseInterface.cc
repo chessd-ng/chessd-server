@@ -421,7 +421,7 @@ vector<PersistentGame> DatabaseInterface::searchGames(
 
             /* get players */
             string query =
-                "SELECT user_id, role, score FROM game_players WHERE game_id = "
+                "SELECT * FROM game_players WHERE game_id = "
                 + Util::to_string(game.id);
             pqxx::result result = this->work.exec(query);
             foreach(r, result) {
@@ -533,7 +533,7 @@ vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
 
             /* get players */
             string query =
-                "SELECT user_id FROM adjourned_game_players WHERE game_id = "
+                "SELECT * FROM adjourned_game_players WHERE game_id = "
                 + pqxx::to_string(game.id);
             pqxx::result result = this->work.exec(query);
 
