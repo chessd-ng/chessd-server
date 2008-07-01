@@ -31,27 +31,32 @@ using namespace XMPP;
 #define XMLNS_CHESSD_ADMIN "http://c3sl.ufpr.br/chessd#admin"
 
 AdminComponent::AdminComponent(
-        const XML::Tag& config,
-        const XMPP::ErrorHandler& error_handler,
-        DatabaseManager& database) :
-    ComponentBase(config, "Admin Component"),
-    error_handler(error_handler),
+        const std::string& server_name,
+        DatabaseManager& database,
+        const XMPP::StanzaHandler& send_stanza) :
+    ServerModule(send_stanza),
     database(database),
-    server_name(config.getAttribute("server_name"))
+    server_name(server_name)
 {
 
     /* Set features */
-    this->root_node.disco().features().insert(XMLNS_CHESSD_ADMIN);
+    //this->root_node.disco().features().insert(XMLNS_CHESSD_ADMIN);
 
     /* Set iqs */
-    this->root_node.setIqHandler(boost::bind(&AdminComponent::handleAdmin, this, _1),
-            XMLNS_CHESSD_ADMIN);
+    //this->root_node.setIqHandler(boost::bind(&AdminComponent::handleAdmin, this, _1),
+    //        XMLNS_CHESSD_ADMIN);
 }
 
 AdminComponent::~AdminComponent() {
 }
 
-void AdminComponent::handleAdmin(const Stanza& stanza) {
+vector<string> AdminComponent::namespaces() const {
+    vector<string> ret;
+    ret.push_back(XMLNS_CHESSD_ADMIN);
+    return ret;
+}
+
+void AdminComponent::handleIq(const Stanza& stanza) {
     try {
         const Tag& query = stanza.firstTag();
 
@@ -88,15 +93,16 @@ void AdminComponent::handleBannedList(const Stanza& stanza) {
     generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
 
     foreach(user, this->banneds) {
-        generator.openTag("jid");
-        generator.addCData(user->first.full());
+        generator.openTag("user");
+        generator.addAttribute("jid", user->first.full());
+        generator.addCData(user->second);
         generator.closeTag();
     }
     
     message->children().push_back(generator.getTag());
 
     /* Send the message */
-    this->root_node.sendIq(message.release());
+    this->sendStanza(message.release());
 }
 
 void AdminComponent::handleKick(const Stanza& stanza) {
@@ -118,7 +124,7 @@ void AdminComponent::handleKick(const Stanza& stanza) {
     generator.openTag("reason");
     generator.addCData(reason);
     std::auto_ptr<XMPP::Stanza> message(new Stanza(generator.getTag()));
-    this->root_node.sendIq(message.release());
+    this->sendIq(message.release());
 
     /* kick user */
     this->kickUser(target);
@@ -150,7 +156,7 @@ void AdminComponent::handleBan(const Stanza& stanza) {
     generator.openTag("reason");
     generator.addCData(reason);
     std::auto_ptr<XMPP::Stanza> message(new Stanza(generator.getTag()));
-    this->root_node.sendIq(message.release());
+    this->sendIq(message.release());
 
     /* ban user */
     this->banUser(target, reason);
@@ -200,7 +206,7 @@ void AdminComponent::kickUser(const XMPP::PartialJid& user) {
     message->children().push_back(generator.getTag());
 
     /* Send the message */
-    this->root_node.sendIq(message.release());
+    this->sendIq(message.release());
 }
 
 void AdminComponent::banUser(const XMPP::PartialJid& user,
@@ -219,13 +225,6 @@ void AdminComponent::unbanUser(const XMPP::PartialJid& user) {
                     _1, user.full()));
         this->updateAcl();
     }
-}
-
-void AdminComponent::onError(const std::string& error) {
-    this->error_handler(error);
-}
-
-void AdminComponent::onClose() {
 }
 
 void AdminComponent::setAccessRules() {
@@ -251,10 +250,10 @@ void AdminComponent::setAccessRules() {
     message->children().push_back(generator.getTag());
 
     /* Send the message */
-    this->root_node.sendIq(message.release());
+    this->sendIq(message.release());
 }
 
-void AdminComponent::onConnect() {
+void AdminComponent::onStart() {
     /* Set ejabberd's access rules */
     this->setAccessRules();
 
@@ -322,5 +321,5 @@ void AdminComponent::updateAcl() {
     message->children().push_back(generator.getTag());
 
     /* Send the message */
-    this->root_node.sendIq(message.release());
+    this->sendIq(message.release());
 }

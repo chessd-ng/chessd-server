@@ -38,7 +38,7 @@ enum GameStatus {
  *          inserted into the database
  * \param result are the results of each player
  */
-typedef boost::function<void (int game_id, const PlayerResultList& result)> OnGameEnd;
+typedef boost::function<void (int game_id, const std::vector<GamePlayerResult>& result)> OnGameEnd;
 
 struct GameRoomHandlers {
 	typedef boost::function<void ()> callback;
@@ -161,9 +161,9 @@ class GameRoom : public XMPP::Muc {
 
 		std::auto_ptr<Game> game;
 
-        std::string result_reason;
+        END_CODE result_reason;
 
-        PlayerResultList players_result;
+        std::vector<GamePlayerResult> players_result;
 
 		XMPP::Jid room_jid;
 

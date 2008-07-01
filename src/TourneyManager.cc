@@ -36,11 +36,10 @@ using namespace XMPP;
 using namespace Util;
 
 TourneyManager::TourneyManager(
-        const Tag& config,
-        GameManager& game_manager,
+        ServerCore& game_manager,
         DatabaseManager& database,
-        const ErrorHandler& handleError) :
-    ComponentBase(config, "Tourney Manager"),
+        const StanzaHandler& send_stanza) :
+    ServerModule(send_stanza),
     tourney_ids(0),
     game_manager(game_manager),
     database(database),
@@ -48,17 +47,23 @@ TourneyManager::TourneyManager(
 {
 
     /* Set features */
-    this->root_node.disco().features().insert(XMLNS_CHESSD_TOURNEY);
+    //this->root_node.disco().features().insert(XMLNS_CHESSD_TOURNEY);
 
     /* Set match iqs */
-    this->root_node.setIqHandler(boost::bind(&TourneyManager::handleTourney, this, _1),
-            XMLNS_CHESSD_TOURNEY);
+    //this->root_node.setIqHandler(boost::bind(&TourneyManager::handleTourney, this, _1),
+    //        XMLNS_CHESSD_TOURNEY);
 }
 
 TourneyManager::~TourneyManager() {
 }
 
-void TourneyManager::handleTourney(const Stanza& stanza) {
+vector<string> TourneyManager::namespaces() const {
+    vector<string> ret;
+    ret.push_back(XMLNS_CHESSD_TOURNEY);
+    return ret;
+}
+
+void TourneyManager::handleIq(const Stanza& stanza) {
     try {
         const Tag& query = stanza.firstTag();
 
@@ -120,7 +125,7 @@ void TourneyManager::handleCreate(const Stanza& stanza) {
     generator.openTag("tourney");
     generator.addAttribute("id", to_string(id));
     result->children().push_back(generator.getTag());
-    this->root_node.sendStanza(result.release());
+    this->sendStanza(result.release());
 }
 
 void TourneyManager::startTourney(uint64_t tourney_id) {
@@ -159,7 +164,7 @@ void TourneyManager::startNextRound(uint64_t tourney_id) {
                     boost::bind(&TourneyManager::notifyGame, this,
                         tourney_id, (*game)->players(), _1),
                     boost::bind(&TourneyManager::reportResult, this,
-                        tourney_id, _1, _2) );
+                        tourney_id, _1, _2));
         }
     } catch(const tourney_over& over) {
         /* the tourney is over */
@@ -167,7 +172,7 @@ void TourneyManager::startNextRound(uint64_t tourney_id) {
 }
 
 void TourneyManager::notifyGame(uint64_t tourney_id,
-                                const vector<Jid>& players,
+                                const vector<GamePlayer>& players,
                                 const Jid& game_room) {
     /* tunnel to the manager's thread,
      * this function may be called from
@@ -177,7 +182,7 @@ void TourneyManager::notifyGame(uint64_t tourney_id,
 }
 
 void TourneyManager::_notifyGame(uint64_t tourney_id,
-                                const vector<Jid>& players,
+                                const vector<GamePlayer>& players,
                                 const Jid& game_room) {
 
 
@@ -194,14 +199,14 @@ void TourneyManager::_notifyGame(uint64_t tourney_id,
 
     /* send int to the players */
     foreach(player, players) {
-        notification->to() = *player;
-        this->root_node.sendIq(new Stanza(*notification));
+        notification->to() = player->jid;
+        this->sendIq(new Stanza(*notification));
     }
 }
 
 void TourneyManager::reportResult(uint64_t tourney_id,
                                   int game_id,
-                                  const PlayerResultList& results) {
+                                  const vector<GamePlayerResult>& results) {
     /* tunnel to the manager's thread,
      * this function may be called from
      * another thread */
@@ -211,7 +216,7 @@ void TourneyManager::reportResult(uint64_t tourney_id,
 
 void TourneyManager::_reportResult(uint64_t tourney_id,
                                    int game_id,
-                                   const PlayerResultList& results) {
+                                   const vector<GamePlayerResult>& results) {
 
     if(this->tourneys.count(tourney_id) == 0) {
         /* the tourney has been canceled */
@@ -246,7 +251,7 @@ void TourneyManager::handleList(const Stanza& stanza) {
         generator.closeTag();
     }
     result->children().push_back(generator.getTag());
-    this->root_node.sendStanza(result.release());
+    this->sendStanza(result.release());
 }
 
 void TourneyManager::handleJoin(const Stanza& stanza) {
@@ -278,7 +283,7 @@ void TourneyManager::handleJoin(const Stanza& stanza) {
     generator.openTag("join");
     generator.addAttribute("xmlns", XMLNS_CHESSD_TOURNEY);
     result->children().push_back(generator.getTag());
-    this->root_node.sendStanza(result.release());
+    this->sendStanza(result.release());
 }
 
 void TourneyManager::onError(const std::string& error) {

@@ -25,49 +25,57 @@
 #include <boost/ptr_container/ptr_map.hpp>
 
 #include "XMPP/Roster.hh"
-#include "Util/Timer.hh"
 
 #include "Match.hh"
 #include "MatchDatabase.hh"
 #include "TeamDatabase.hh"
 
-#include "ComponentBase.hh"
+#include "ServerModule.hh"
 
-#include "GameManager.hh"
+#include "ServerCore.hh"
 #include "DatabaseManager.hh"
 
 /*! \brief This class manages all the matchs int the server. */
-class MatchManager : public ComponentBase {
-	public:
-		/*! \brief Constructor
-		 *
-		 * \param core_interface is the interface to the core.
-		 * \param config is the configuration for this component.
-		 */
-		MatchManager(const XML::Tag& config,
-                     GameManager& game_manager,
+class MatchManager : public ServerModule {
+    public:
+        /*! \brief Constructor
+         *
+         * \param core_interface is the interface to the core.
+         * \param config is the configuration for this component.
+         */
+        MatchManager(const XML::Tag& config,
+                     ServerCore& game_manager,
                      DatabaseManager& database_manager,
-                     const XMPP::ErrorHandler& handleError);
+                     const XMPP::StanzaHandler& sendStanza);
 
-		/*! \brief Destructor
-		 *
-		 * Closes server connection if available
-		 */
-		~MatchManager();
+        /*! \brief Destructor
+         *
+         * Closes server connection if available
+         */
+        ~MatchManager();
 
-	private:
+        std::vector<std::string> namespaces() const;
 
-		/*! \brief Handle an incoming match offer. */
-		void handleOffer(const XMPP::Stanza& query);
+    private:
 
-		/*! \brief Handle an incoming match acceptance. */
-		void handleAccept(const XMPP::Stanza& query);
+        /*! \brief Receive a notification of a status change */
+        void handleUserStatus(const XMPP::Jid& user_name,
+                              const UserStatus& status);
 
-		/*! \brief Handle an incoming match declinance. */
-		void handleDecline(const XMPP::Stanza& query);
+        /*! process an incoming iq */
+        void handleIq(const XMPP::Stanza& stanza);
+
+        /*! \brief Handle an incoming match offer. */
+        void handleOffer(const XMPP::Stanza& query);
+
+        /*! \brief Handle an incoming match acceptance. */
+        void handleAccept(const XMPP::Stanza& query);
+
+        /*! \brief Handle an incoming match declinance. */
+        void handleDecline(const XMPP::Stanza& query);
 
         /*! \brief Handle a request to list adjourned games */
-		void handleList(const XMPP::Stanza& query);
+        void handleList(const XMPP::Stanza& query);
 
         /*! \brief Process a match offer
          *
@@ -83,23 +91,14 @@ class MatchManager : public ComponentBase {
          * */
         void resumeOffer(int adj_id, const std::string& history);
 
-		/*! \brief Notify the users of a match offer. */
-		void notifyOffer(int id, const XMPP::Jid& requester);
+        /*! \brief Notify the users of a match offer. */
+        void notifyOffer(int id, const XMPP::Jid& requester);
 
-		/*! \brief Notify the users of a match result. */
-		void notifyResult(const Match& match, int id, bool accepted);
+        /*! \brief Notify the users of a match result. */
+        void notifyResult(const Match& match, int id, bool accepted);
 
-		/*! \brief Close a match. */
+        /*! \brief Close a match. */
         void closeMatch(int id, bool accepted);
-
-		/*! \brief Receive a notification of the user availability. */
-		void notifyUserStatus(const XMPP::Jid& jid, bool available);
-
-        /*! \brief Receive a close notification. */
-        void onClose();
-
-        /*! \brief Receive a error notification. */
-        void onError(const std::string& error);
 
         /*! \brief Receive a game start notification.
          *
@@ -115,30 +114,25 @@ class MatchManager : public ComponentBase {
         void _notifyGameStart(int match_id, Match* match, const XMPP::Jid& jid);
 
         /*! \brief Send the iq result of a match offer */
-        void sendOfferResult(const XMPP::Jid& to, const std::string& iq_id, int match_id);
+        void sendOfferResult(const XMPP::Stanza& stanza, int match_id);
 
         /*! \brief List a player's adjourned games */
         void listAdjournedGames(const XMPP::Stanza& query, DatabaseInterface& database);
 
         /*! \brief Load an adjourned game from the database */
-        void loadAdjourned(int gmae_id, DatabaseInterface& database);
+        void loadAdjourned(int game_id, DatabaseInterface& database);
 
-		/*! \brief A XMPP roster */
-		XMPP::Roster roster;
+        /*! \brief Team database */
+        TeamDatabase teams;
 
-		/*! \brief Team database */
-		TeamDatabase teams;
+        /*! \brief Pending offers */
+        MatchDatabase match_db;
 
-		/*! \brief Pending offers */
-		MatchDatabase match_db;
+        uint64_t match_ids;
 
-		Util::IDSet match_ids;
-
-        GameManager& game_manager;
+        ServerCore& game_manager;
 
         DatabaseManager& database;
-
-		XMPP::ErrorHandler handleError;
 
         std::vector<std::pair<int, XMPP::Stanza*> > delayed_offer;
 };

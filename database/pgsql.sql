@@ -16,7 +16,6 @@ BEGIN;
         reason      varchar
     );
 
-
     CREATE TABLE adjourned_games (
         game_id     serial PRIMARY KEY,
         category    varchar NOT NULL,
@@ -26,12 +25,14 @@ BEGIN;
 
     CREATE TABLE adjourned_game_players (
         game_id integer REFERENCES adjourned_games ON DELETE CASCADE,
-        user_id integer REFERENCES users ON DELETE CASCADE
+        user_id integer REFERENCES users ON DELETE CASCADE,
+        "role"  integer NOT NULL,
+        time    integer NOT NULL,
+        inc     integer NOT NULL
     );
 
     CREATE INDEX adjourned_games_game_id_idx ON adjourned_game_players (game_id);
     CREATE INDEX adjourned_games_user_id_idx ON adjourned_game_players (user_id);
-
 
     CREATE TABLE games (
         game_id     serial PRIMARY KEY,
@@ -44,13 +45,14 @@ BEGIN;
     CREATE TABLE game_players (
         game_id     integer REFERENCES games ON DELETE CASCADE,
         user_id     integer REFERENCES users ON DELETE CASCADE,
-        score       varchar NOT NULL,
-        "role"      varchar NOT NULL
+        result      integer NOT NULL,
+        "role"      integer NOT NULL,
+        time        integer NOT NULL,
+        inc         integer NOT NULL
     );
 
     CREATE INDEX games_game_id_idx ON game_players (game_id);
     CREATE INDEX games_user_id_idx ON game_players (user_id);
-
 
     CREATE TABLE player_rating (
         user_id         integer REFERENCES users,
@@ -68,6 +70,5 @@ BEGIN;
 
     CREATE INDEX player_rating_rating_idx ON player_rating (rating);
     CREATE INDEX player_rating_user_id_idx ON player_rating (user_id);
-
 
 COMMIT;

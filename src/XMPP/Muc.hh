@@ -135,8 +135,6 @@ namespace XMPP {
 			user_map users;
 	};
 
-    typedef boost::function<void (const Jid&, const std::string&, bool)> OccupantMonitor;
-
 	class Muc : public Node {
 		public:
 			Muc(const Jid& jid,
@@ -153,8 +151,9 @@ namespace XMPP {
                 return this->users().find_jid(user_jid) != this->users().end();
             }
 
-			void broadcastIq(const Stanza& stanza, const ConstStanzaHandler& on_result = ConstStanzaHandler(),
-					const TimeoutHandler& on_timeout = TimeoutHandler());
+			void broadcastIq(const Stanza& stanza,
+                             const ConstStanzaHandler& on_result = ConstStanzaHandler(),
+					         const TimeoutHandler& on_timeout = TimeoutHandler());
 
             virtual void handleStanza(Stanza* stanza) throw();
 

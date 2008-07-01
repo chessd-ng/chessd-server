@@ -1,3 +1,21 @@
+/*
+ *   Copyright (c) 2007-2008 C3SL.
+ *
+ *   This file is part of Chessd.
+ *
+ *   Chessd is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Chessd is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ */
+
 #include "Thread.hh"
 
 namespace Threads {
@@ -5,22 +23,18 @@ namespace Threads {
     /* Is 256Kb enough? */
     const size_t StackSize = 1 << 18;
 
-    Thread::Thread(boost::function<void (Thread*)> on_idle) :
-        running(false),
-        on_idle(on_idle) { }
+    Thread::Thread() :
+        running(false) { }
 
     Thread::~Thread() {
         if(this->running) {
-            this->stop();
             this->join();
         }
     }
 
-    static void * start_routine(void* _thread) {
+    void* Thread::start_routine(void* _thread) {
         Thread* thread = static_cast<Thread*>(_thread);
-
         thread->run();
-
         return 0;
     }
 
@@ -28,7 +42,7 @@ namespace Threads {
         pthread_attr_t thread_attr;
         pthread_attr_init(&thread_attr);
         pthread_attr_setstacksize(&thread_attr, StackSize);
-        if(pthread_create(&this->thread, &thread_attr, start_routine, static_cast<void*>(this))==0) {
+        if(pthread_create(&this->thread, &thread_attr, Thread::start_routine, static_cast<void*>(this))==0) {
             this->running = true;
         } else {
             this->running = false;
@@ -36,32 +50,7 @@ namespace Threads {
         return this->running;
     }
 
-    void Thread::run() {
-        Task* task;
-        while(1) {
-            if(not this->queue.try_pop(task)) {
-                this->on_idle(this);
-                task = this->queue.pop();
-            }
-            if(task == 0) {
-                break;
-            }
-            task->run();
-            /* delete task? */
-        }
-        this->running = false;
-    }
-
-    void Thread::queueTask(Task* task) {
-        this->queue.push(task);
-    }
-
-    void Thread::stop() {
-        this->queue.push(0);
-    }
-
     void Thread::join() {
         pthread_join(this->thread, 0);
     }
-
 }
