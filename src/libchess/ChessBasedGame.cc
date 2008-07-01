@@ -18,6 +18,7 @@
 
 #include "ChessBasedGame.hh"
 #include "../Util/utils.hh"
+#include <cstdlib>
 
 ChessBasedGame::ChessBasedGame(int n, int m) : BoardGame(n,m) {
 	this->gameboard=new ChessBoard(n,m);

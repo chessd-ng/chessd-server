@@ -35,7 +35,9 @@ enum END_CODE {
 
     END_STALEMATE=3,
 
+	//time of white is over
     END_WHITE_TIME_OVER=4,
+	//time of black is over
     END_BLACK_TIME_OVER=5,
 
     END_WHITE_RESIGNED=6,
