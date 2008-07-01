@@ -117,7 +117,7 @@ void DatabaseManager::execTransaction(const Transactor& transactor)
             conn = new pqxx::connection(this->connection_string);
         }
     } catch (pqxx::broken_connection) {
-        /* if we cant create another connect, we should just wait */
+        /* if we cant create another connection, we should just wait */
         conn = this->free_connections.pop();
     }
 

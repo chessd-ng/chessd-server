@@ -16,49 +16,46 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef RATINGCOMPONENT_HH
-#define RATINGCOMPONENT_HH
+#ifndef PROFILEMANAGER_HH
+#define PROFILEMANAGER_HH
 
 #include <map>
 #include <set>
 #include <memory>
 
-#include "ComponentBase.hh"
+#include "ServerModule.hh"
 #include "DatabaseManager.hh"
 #include "Util/Date.hh"
 
 #include "Threads/SafeObject.hh"
 
 /*! \brief This is the component that handles user info requests */
-class RatingComponent : public ComponentBase {
+class ProfileManager : public ServerModule {
 	public:
 		/*! \brief Constructor
 		 *
 		 * \param core_interface is the interface to the core.
 		 * \param config is the configuration for this component.
 		 */
-		RatingComponent(
-            const XML::Tag& config,
-            const XMPP::ErrorHandler& handleError,
-            DatabaseManager& database);
+		ProfileManager(
+                DatabaseManager& database,
+                const XMPP::StanzaHandler& send_stanze);
 
 		/*! \brief Destructor
 		 *
 		 * Closes server connection if available
 		 */
-		virtual ~RatingComponent();
+		virtual ~ProfileManager();
 
 		/*! \brief Closes the conenction to the server */
 		//void close();
 
+        std::vector<std::string> namespaces() const;
 
 	private:
 
-        void onClose();
-
-        void onError(const std::string& error);
-
-		/* several Handlers for the incoming events. */
+        /*! \brief Handle an incoming stanza */
+        void handleIq(const XMPP::Stanza&);
 
 		/*! \brief Handle an incoming rating iq. */
         void handleRating(const XMPP::Stanza& stanza);

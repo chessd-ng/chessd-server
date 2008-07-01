@@ -20,23 +20,52 @@
 #include <fstream>
 #include <string>
 #include <exception>
+#include <signal.h>
 
-#include "Core.hh"
-#include "I18n.hh"
 #include "Util/Log.hh"
 
+#include "Threads/Condition.hh"
+
+#include "XML/Xml.hh"
+
+#include "DatabaseManager.hh"
+#include "ServerCore.hh"
+
 using namespace std;
+using namespace XML;
+
+pthread_t main_thread;
+
+void handleError(const string& error) {
+    cerr << error << endl;
+    pthread_kill(main_thread, SIGINT);
+}
 
 int main(int argc, char** argv) {
     fstream log_file;
-    
-	try {
+
+    /* prepare signal handler */
+    sigset_t signal_set;
+    sigemptyset(&signal_set);
+    sigaddset(&signal_set, SIGINT);
+    sigaddset(&signal_set, SIGTERM);
+    pthread_sigmask(SIG_BLOCK, &signal_set, NULL);
+
+    /* get the main thread id */
+    main_thread = pthread_self();
+
+    try {
         /* Load config file */
         std::string file_name = (argc>=2) ? argv[1] : "config.xml";
-		std::auto_ptr<XML::Tag> config(XML::parseXmlFile(file_name));
+        std::auto_ptr<XML::Tag> config(XML::parseXmlFile(file_name));
 
-        /* Load translations */
-        i18n.loadLangs("langs");
+        /* Init database manager */
+        DatabaseManager database_manager(config->findChild("database"));
+
+        /* Init the game server */
+        ServerCore server(config->findChild("xmpp-component"),
+                database_manager,
+                boost::bind(handleError, _1));
 
         /* Set log output */
         try {
@@ -51,21 +80,21 @@ int main(int argc, char** argv) {
         }
 
         /* Start the server */
-		Core::init(*config);
-		Core& core = Core::singleton();
-        core.start();
+        server.connect();
 
-        /* Run until the server shutdown on its own */
-        core.join();
+        /* wait for a SIGINT or SIGTERM */
+        int sig_number;
+        sigwait(&signal_set, &sig_number);
 
         /* Close the server */
-		Core::close();
-	} catch (const char* msg) {
-		cout << "Error: " << msg << endl;
+        cerr << "Shutting down..." << endl;
+        server.close();
+    } catch (const char* msg) {
+        cerr << "Error: " << msg << endl;
         return 1;
-	} catch (const exception& error) {
-		cout << "Error: " << error.what() << endl;
+    } catch (const exception& error) {
+        cerr << "Error: " << error.what() << endl;
         return 1;
     }
-	return 0;
+    return 0;
 }

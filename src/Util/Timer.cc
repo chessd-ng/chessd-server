@@ -18,6 +18,8 @@
 
 #include "Timer.hh"
 
+#include "utils.hh"
+
 #include <sys/time.h>
 
 #include <ctime>
@@ -25,14 +27,10 @@
 
 namespace Util {
 
-	/* time facilities */
-	const _Microseconds& Microseconds;
-	const _Miliseconds& Miliseconds;
-	const _Seconds& Seconds;
-	const _Minutes& Minutes;
-
-	static const int one_second = 1000000000;
-
+	static const long long one_microsecond = 1000ll;
+	static const long long one_milisecond = one_microsecond * 1000ll;
+	static const long long one_second = one_milisecond * 1000ll;
+	static const long long one_minute = one_second * 60ll;
 
 	Time Timer::now() {
 		/*timespec ts;
@@ -40,138 +38,100 @@ namespace Util {
 		return Time(ts.tv_sec, ts.tv_nsec);*/
 		timeval tv;
 		gettimeofday(&tv, 0);
-		return Time(tv.tv_sec, tv.tv_usec*1000);
+		return Time::Nanoseconds(tv.tv_sec * one_second + tv.tv_usec*one_microsecond);
 	}
 	
 	const Time& Time::operator += (Time time) {
-		this->_seconds += time._seconds;
 		this->_nanoseconds += time._nanoseconds;
-		if(this->_nanoseconds >= one_second) {
-			this->_nanoseconds -= one_second;
-			this->_seconds ++;
-		}
 		return *this;
 	}
 
 	const Time& Time::operator -= (Time time) {
-		this->_seconds -= time._seconds;
 		this->_nanoseconds -= time._nanoseconds;
-		if(this->_nanoseconds < 0) {
-			this->_nanoseconds += one_second;
-			this->_seconds --;
-		}
 		return *this;
 	}
 
 
 	Time Time::operator+(Time time) const {
-		Time tmp(*this);
-		tmp += time;
-		return tmp;
+        return Time(this->_nanoseconds + time._nanoseconds);
 	}
 
 	Time Time::operator-(Time time) const {
-		Time tmp = *this;
-		tmp -= time;
-		return tmp;
+        return Time(this->_nanoseconds - time._nanoseconds);
 	}
 
 
 	const Time& Time::operator=(Time time) {
-		this->_seconds = time._seconds;
 		this->_nanoseconds = time._nanoseconds;
 		return *this;
 	}
 
 
 	bool Time::operator==(Time time) const {
-		return this->_seconds == time._seconds and
-			this->_nanoseconds == time._nanoseconds;
+		return this->_nanoseconds == time._nanoseconds;
 	}
 
 	bool Time::operator!=(Time time) const {
-		return this->_seconds != time._seconds or
-			this->_nanoseconds != time._nanoseconds;
+		return this->_nanoseconds != time._nanoseconds;
 	}
 
 	bool  Time::operator>=(Time time) const {
-		return this->_seconds > time._seconds or
-			(this->_seconds == time._seconds and
-			 this->_nanoseconds >= time._nanoseconds);
+		return this->_nanoseconds >= time._nanoseconds;
 	}
 
 	bool  Time::operator<=(Time time) const {
-		return this->_seconds < time._seconds or
-			(this->_seconds == time._seconds and
-			 this->_nanoseconds <= time._nanoseconds);
+		return this->_nanoseconds <= time._nanoseconds;
 	}
 
 	bool  Time::operator>(Time time) const {
-		return this->_seconds > time._seconds or
-			(this->_seconds == time._seconds and
-			 this->_nanoseconds > time._nanoseconds);
+		return this->_nanoseconds > time._nanoseconds;
 	}
 
 	bool  Time::operator<(Time time) const {
-		return this->_seconds < time._seconds or
-			(this->_seconds == time._seconds and
-			 this->_nanoseconds < time._nanoseconds);
+		return this->_nanoseconds < time._nanoseconds;
 	}
 
-
-	double Time::getSeconds() const {
-		return (this->_seconds + this->_nanoseconds / double(one_second));
+	long long Time::getSeconds() const {
+		return this->_nanoseconds / double(one_second);
 	}
 
-	double Time::getMiliseconds() const {
-		return (this->_seconds + this->_nanoseconds / double(one_second)) * 1000.0;
+	long long Time::getMiliseconds() const {
+		return this->_nanoseconds / double(one_milisecond);
 	}
 
-	double Time::getMicroseconds() const {
-		return (this->_seconds + this->_nanoseconds / double(one_second)) * 1000000.0;
+	long long Time::getMicroseconds() const {
+		return this->_nanoseconds / double(one_microsecond);
 	}
 
-	Time operator* (unsigned int constant, const _Minutes&) {
-		Time tmp;
-		tmp._seconds = constant * 60u;
-		tmp._nanoseconds = 0;
-		return tmp;
+	Time Time::Minutes(long long constant) {
+        return Time(constant * one_minute);
 	}
 
-	Time operator* (unsigned int constant, const _Seconds&) {
-		Time tmp;
-		tmp._seconds = constant;
-		tmp._nanoseconds = 0;
-		return tmp;
+	Time Time::Seconds(long long constant) {
+        return Time(constant * one_second);
 	}
 
-	Time operator* (long long unsigned constant, const _Miliseconds&) {
-		Time tmp;
-		tmp._seconds = (constant / 1000ll);
-		tmp._nanoseconds = (constant % 1000ll) * 1000000;
-		return tmp;
+	Time Time::Miliseconds(long long constant) {
+        return Time(constant * one_milisecond);
 	}
 
-	Time operator* (unsigned long long constant, const _Microseconds&) {
-		Time tmp;
-		tmp._seconds = (constant / 1000000ll);
-		tmp._nanoseconds = (constant % 1000000ll) * 1000;
-		return tmp;
+	Time Time::Microseconds (long long constant) {
+        return Time(constant * one_microsecond);
 	}
 
-	Time operator* (double constant, const _Seconds&) {
-		Time tmp;
-		tmp._seconds = int(trunc(constant));
-		tmp._nanoseconds = int((constant - trunc(constant)) * 1000000000.0);
-		return tmp;
+	Time Time::Nanoseconds (long long constant) {
+        return Time(constant);
 	}
 
-	Time operator* (double constant, const _Miliseconds&) {
-		return constant / 1000.0 * Seconds;;
+    Time Time::Seconds(const std::string& constant) {
+        return Time(parse_string<long long>(constant) * one_second);
 	}
 
-	Time operator* (double constant, const _Microseconds&) {
-		return constant / 1000000.0 * Seconds;
+	Time Time::Miliseconds(const std::string& constant) {
+        return Time(parse_string<long long>(constant) * one_milisecond);
 	}
 
+	Time Time::Microseconds(const std::string& constant) {
+        return Time(parse_string<long long>(constant) * one_microsecond);
+	}
 }

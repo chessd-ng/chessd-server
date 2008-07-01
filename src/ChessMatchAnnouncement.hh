@@ -16,35 +16,37 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef MATCH_HH
-#define MATCH_HH
+#ifndef CHESSMATCHANNOUNCEMENT_HH
+#define CHESSMATCHANNOUNCEMENT_HH
 
-#include <vector>
-#include <set>
+#include "MatchAnnouncement.hh"
 
-#include "XMPP/Jid.hh"
-#include "Util/Timer.hh"
-#include "Game.hh"
-#include "Team.hh"
-
-/*! \brief An abstract match description. */
-struct Match {
+struct ChessMatchAnnouncement : public MatchAnnouncement {
 	public:
 
+		ChessMatchAnnouncement(const std::vector<XML::Tag>& players, const XML::AttributeMap& __attributes);
+
 		/*! \brief Destructor */
-		virtual ~Match() { }
+		virtual ~ChessMatchAnnouncement() { }
 
 		/*! \brief The players involved in the match */
-		virtual const std::vector<GamePlayer>& players() const = 0;
+		virtual const std::vector<GamePlayer>& players() const { return _players; } ;
 
         /*! \brief Return the game category. */
-		virtual const std::string& category() const = 0;
+		virtual const std::string& category() const { return _attributes.find("category")->second; };
 
         /*! \brief Create a game discribed by the match. */
-		virtual Game* createGame() const = 0;
+		virtual Game* createGame(const XML::Tag& player) ;
 
 		/*! \brief The offer notification */
-		virtual XML::Tag* notification() const = 0;
+		virtual XML::Tag* notification() const ;
+
+	private:
+		std::vector<GamePlayer> _players;
+
+		std::vector<XML::Tag> _match_players;
+
+		XML::AttributeMap _attributes;
 };
 
 #endif

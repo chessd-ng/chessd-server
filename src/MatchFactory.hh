@@ -22,6 +22,8 @@
 #include "Match.hh"
 #include "TeamDatabase.hh"
 
+class MatchAnnouncementFactory;
+
 class MatchFactory {
 	public:
 		static Match* create(const XML::Tag& match_offer,
@@ -30,11 +32,13 @@ class MatchFactory {
 	private:
 		static std::vector<XML::Tag> getPlayersTag(const XML::Tag& match_offer) ;
 
-		static StandardPlayerList getPlayersfromXML(const XML::Tag& _match_offer) ;
+//		static StandardPlayerList getPlayersfromXML(const XML::Tag& _match_offer) ;
 
-		static void validateXML(const XML::Tag& _match_offer) ;
+		static void validateXML(XML::Tag& _match_offer, int num_players) ;
 
 		static bool isTimeValid(const XML::Tag& _player,const std::string& category) ;
+
+		friend class MatchAnnouncementFactory;
 };
 
 #endif

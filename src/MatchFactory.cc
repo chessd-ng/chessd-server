@@ -22,8 +22,9 @@
 #include "GameException.hh"
 
 Match* MatchFactory::create(const XML::Tag& match_offer,const TeamDatabase& teams) {
-	validateXML(match_offer);
-	return new MatchChess(getPlayersTag(match_offer),match_offer.attributes());
+	XML::Tag match_offer2(match_offer);
+	validateXML(match_offer2,2);
+	return new MatchChess(getPlayersTag(match_offer2),match_offer.attributes());
 }
 
 bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& category) {
@@ -31,17 +32,17 @@ bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& catego
 		return false;
 
 	if(category=="standard") {
-		if(11u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Seconds))
+		if(Util::Time::Minutes(11) <= Util::Time::Seconds(_player.getAttribute("time")))
 			return true;
 	}
 	else if(category=="blitz") {
-		if((3u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Seconds)) and
-				(10u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Seconds)))
+		if((Util::Time::Minutes(3) <= Util::Time::Seconds(_player.getAttribute("time"))) and
+				(Util::Time::Minutes(10) >= Util::Time::Seconds(_player.getAttribute("time"))))
 			return true;
 	}
 	else if(category=="lightning") {
-		if((1u * Util::Minutes <= Util::Time(_player.getAttribute("time"),Util::Seconds)) and
-				(2u * Util::Minutes >= Util::Time(_player.getAttribute("time"),Util::Seconds)))
+		if((Util::Time::Minutes(1) <= Util::Time::Seconds(_player.getAttribute("time"))) and
+				(Util::Time::Minutes(2) >= Util::Time::Seconds(_player.getAttribute("time"))))
 			return true;
 	}
 	else if(category=="untimed")
@@ -51,12 +52,19 @@ bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& catego
 
 //FIXME
 //does not work for untimed matches
-void MatchFactory::validateXML(const XML::Tag& _match_offer) {
-	if(_match_offer.name()!="match")
+void MatchFactory::validateXML(XML::Tag& _match_offer,int num_players) {
+	if(_match_offer.name()!="match" and _match_offer.name()!="match_announcement")
 		throw bad_information("wrong matchrule xml name");
 
 	if(_match_offer.hasAttribute("category")==false)
 		throw bad_information("category missing");
+
+	/*guarantee that _match_offer has atributes rated and autoflag*/
+	if(_match_offer.hasAttribute("rated")==false)
+		_match_offer.setAttribute("rated","true");
+
+	if(_match_offer.hasAttribute("autoflag")==false)
+		_match_offer.setAttribute("autoflag","true");
 
 	std::string category=_match_offer.getAttribute("category");
 
@@ -99,14 +107,13 @@ void MatchFactory::validateXML(const XML::Tag& _match_offer) {
 			}
 		}
 	}
-	if(count!=2)
+	if(count!=num_players)
 		throw bad_information(std::string("Invalid number of players for category ")+category);
-	if(count_color!=0 and count_color!=2)
+	if(count_color!=0 and count_color!=num_players)
 		throw bad_information(std::string("Only one player chose the color"));
 }
 
 std::vector<XML::Tag> MatchFactory::getPlayersTag(const XML::Tag& match_offer) {
-	validateXML(match_offer);
 	std::vector<XML::Tag> ans;
 	foreach(it,match_offer.tags())
 		if(it->name()=="player")

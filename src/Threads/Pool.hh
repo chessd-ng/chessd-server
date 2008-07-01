@@ -42,21 +42,29 @@ namespace Threads {
 
 		private:
 
-			Queue<Thread*> idle_threads;
-
-			SafeObject<std::vector<Thread*> > threads;
-
-            Queue<Task*> task_queue;
-
-			friend class Util::Singleton<Pool>;
-
 			Pool();
 
 			~Pool();
 
-			void newThread();
+            class PoolThread : public Thread {
+                public:
+                    PoolThread(Pool& pool);
+                private:
+                    Pool& pool;
+                    void run();
+            };
 
-            void threadIdled(Thread* thread);
+            Condition cond;
+
+            volatile int idle_count;
+
+            volatile bool running;
+
+            std::queue<Task*> tasks;
+
+			SafeObject<std::vector<PoolThread*> > threads;
+
+			friend class Util::Singleton<Pool>;
 	};
 
 }

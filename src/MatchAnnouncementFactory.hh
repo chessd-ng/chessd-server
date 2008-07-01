@@ -16,27 +16,18 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef TOURNEYFACTORY_HH
-#define TOURNEYFACTORY_HH
+#ifndef MATCHANNOUNCEMENTFACTORY
+#define MATCHANNOUNCEMENTFACTORY
 
-#include "ChessTourney.hh"
-#include "XML/Xml.hh"
+#include "MatchAnnouncement.hh"
+#include "Team.hh"
+#include "TeamDatabase.hh"
 
-struct TourneyFactory {
+class MatchAnnouncementFactory {
 	public:
-		static Tourney* create(const XML::Tag& offer) {
-			//test category
-			return new ChessTourney(offer.getAttribute("category"),
-                                    Util::Time::Seconds(offer.getAttribute("time")),
-                                    Util::Time::Seconds(offer.getAttribute("inc")),
-                                    Util::parse_string<int>(offer.getAttribute("rounds")));
-			/*
-			 * throw ;4
-			*/
-			return 0;
-		}
+		static MatchAnnouncement* create(const XML::Tag& offer, const TeamDatabase& teams);
+
 	private:
 };
-
 
 #endif

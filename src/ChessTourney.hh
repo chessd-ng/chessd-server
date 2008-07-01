@@ -39,7 +39,7 @@ class ChessTourney : public Tourney {
 
 		virtual std::vector<Game*>* match();
 
-		virtual void addResult(const PlayerResultList& prl);
+		virtual void addResult(const std::vector<GamePlayerResult>& prl);
 
 		int rounds() const { return this->_rounds;}
 
@@ -69,8 +69,8 @@ class ChessTourney : public Tourney {
 
 		Pairing::Tourney tourney;
 
-		//Variable for control, because Pairing::ChessTourney requires a start tha almost do 
-		//the smae thing as MakeAssignments
+		//Variable for control, because Pairing::ChessTourney requires a start that almost do 
+		//the same thing as MakeAssignments
 		bool tourney_started;
 
 		bool missing_results;

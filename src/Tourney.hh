@@ -41,7 +41,7 @@ class Tourney {
 
 		virtual std::vector<Game*>* match()=0;
 
-		virtual void addResult(const PlayerResultList& prl)=0;
+		virtual void addResult(const std::vector<GamePlayerResult>& prl)=0;
 };
 
 #endif

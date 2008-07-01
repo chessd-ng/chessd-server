@@ -16,27 +16,33 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef TOURNEYFACTORY_HH
-#define TOURNEYFACTORY_HH
+#ifndef MATCHANNOUNCEMENT_HH
+#define MATCHANNOUNCEMENT_HH
 
-#include "ChessTourney.hh"
-#include "XML/Xml.hh"
+#include <vector>
+#include <string>
 
-struct TourneyFactory {
+#include "Team.hh"
+#include "Game.hh"
+
+struct MatchAnnouncement {
 	public:
-		static Tourney* create(const XML::Tag& offer) {
-			//test category
-			return new ChessTourney(offer.getAttribute("category"),
-                                    Util::Time::Seconds(offer.getAttribute("time")),
-                                    Util::Time::Seconds(offer.getAttribute("inc")),
-                                    Util::parse_string<int>(offer.getAttribute("rounds")));
-			/*
-			 * throw ;4
-			*/
-			return 0;
-		}
-	private:
-};
 
+		/*! \brief Destructor */
+		virtual ~MatchAnnouncement() { }
+
+		/*! \brief The players involved in the match */
+		virtual const std::vector<GamePlayer>& players() const = 0;
+
+        /*! \brief Return the game category. */
+		virtual const std::string& category() const = 0;
+
+        /*! \brief Create a game discribed by the match. */
+		virtual Game* createGame(const XML::Tag& player) = 0;
+
+		/*! \brief The offer notification */
+		virtual XML::Tag* notification() const = 0;
+
+};
 
 #endif

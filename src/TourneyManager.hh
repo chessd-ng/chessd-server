@@ -28,43 +28,45 @@
 
 #include "Tourney.hh"
 
-#include "ComponentBase.hh"
+#include "ServerModule.hh"
 
-#include "GameManager.hh"
+#include "ServerCore.hh"
 #include "DatabaseManager.hh"
 
 /*! \brief This class manages all the matchs int the server. */
-class TourneyManager : public ComponentBase {
-	public:
-		/*! \brief Constructor
-		 *
-		 * \param core_interface is the interface to the core.
-		 * \param config is the configuration for this component.
-		 */
-		TourneyManager(const XML::Tag& config,
-                     GameManager& game_manager,
-                     DatabaseManager& database_manager,
-                     const XMPP::ErrorHandler& handleError);
+class TourneyManager : public ServerModule {
+    public:
+        /*! \brief Constructor
+         *
+         * \param core_interface is the interface to the core.
+         * \param config is the configuration for this component.
+         */
+        TourneyManager(
+                ServerCore& game_manager,
+                DatabaseManager& database_manager,
+                const XMPP::StanzaHandler& send_stanza);
 
-		/*! \brief Destructor
-		 *
-		 * Closes server connection if available
-		 */
-		~TourneyManager();
+        /*! \brief Destructor
+         *
+         * Closes server connection if available
+         */
+        ~TourneyManager();
 
-	private:
+        std::vector<std::string> namespaces() const;
 
-		/*! \brief Handle an incoming tourney iq. */
-		void handleTourney(const XMPP::Stanza& query);
+    private:
 
-		/*! \brief Handle an incoming request to create a tourney. */
-		void handleCreate(const XMPP::Stanza& query);
+        /*! \brief Handle an incoming tourney iq. */
+        void handleIq(const XMPP::Stanza& query);
 
-		/*! \brief Handle an incoming request to list all tourneys. */
-		void handleList(const XMPP::Stanza& query);
+        /*! \brief Handle an incoming request to create a tourney. */
+        void handleCreate(const XMPP::Stanza& query);
 
-		/*! \brief Handle an incoming request to join a tourney. */
-		void handleJoin(const XMPP::Stanza& query);
+        /*! \brief Handle an incoming request to list all tourneys. */
+        void handleList(const XMPP::Stanza& query);
+
+        /*! \brief Handle an incoming request to join a tourney. */
+        void handleJoin(const XMPP::Stanza& query);
 
         /*! \brief Start the tourney */
         void startTourney(uint64_t tourney_id);
@@ -77,23 +79,26 @@ class TourneyManager : public ComponentBase {
          * This is just a tunnel to the real one
          * */
         void notifyGame(uint64_t tourney_id,
-                        const std::vector<XMPP::Jid>& players,
-                        const XMPP::Jid& game_room);
+                const std::vector<GamePlayer>& players,
+                const XMPP::Jid& game_room);
 
         /*! \brief Notify a game tourney to the players. */
         void _notifyGame(uint64_t tourney_id,
-                         const std::vector<XMPP::Jid>& players,
-                         const XMPP::Jid& game_room);
+                const std::vector<GamePlayer>& players,
+                const XMPP::Jid& game_room);
 
         /*! \brief Take a result of a tourney game
          *
          * This is a tunnel to the real one
          * */
-        void reportResult(uint64_t tourney_id, const PlayerResultList& results);
+        void reportResult(uint64_t tourney_id,
+                int game_id,
+                const std::vector<GamePlayerResult>& results);
 
         /*! \brief Take a result of a tourney game */
         void _reportResult(uint64_t tourney_id,
-                           const PlayerResultList& results);
+                int game_id,
+                const std::vector<GamePlayerResult>& results);
 
         /*! \brief Receive a close notification. */
         void onClose();
@@ -102,23 +107,24 @@ class TourneyManager : public ComponentBase {
         void onError(const std::string& error);
 
         struct TourneyStatus {
+            std::string name;
+            std::string description;
             Util::Time start_time;
-            Util::Time round_interval;
             bool running;
             XMPP::Jid owner;
             std::auto_ptr<Tourney> tourney;
         };
 
-		/*! \brief Team database */
+        /*! \brief Team database */
         boost::ptr_map<uint64_t, TourneyStatus> tourneys;
 
-		uint64_t tourney_ids;
+        uint64_t tourney_ids;
 
-        GameManager& game_manager;
+        ServerCore& game_manager;
 
         DatabaseManager& database;
 
-		XMPP::ErrorHandler handleError;
+        XMPP::ErrorHandler handleError;
 };
 
 #endif

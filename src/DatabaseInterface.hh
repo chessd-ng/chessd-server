@@ -31,13 +31,12 @@
 #include "Game.hh"
 
 struct PersistentGame {
-    public:
-        int id;
-        PlayerResultList players;
-        std::string category;
-        boost::posix_time::ptime time_stamp;
-        std::string history;
-        std::string result;
+    int id;
+    std::vector<GamePlayerResult> players;
+    std::string category;
+    boost::posix_time::ptime time_stamp;
+    std::string history;
+    END_CODE result;
 };
 
 struct PersistentRating {
@@ -61,7 +60,7 @@ struct PersistentRating {
 struct PersistentAdjournedGame {
     public:
         int id;
-        PlayerList players;
+        std::vector<GamePlayer> players;
         std::string category;
         boost::posix_time::ptime time_stamp;
         std::string history;
@@ -77,11 +76,17 @@ class DatabaseInterface : public pqxx::transactor<>
 
         DatabaseInterface(pqxx::work&);
 
-        /*! \brief Store a game in the database */
-        void insertGame(const PersistentGame& game);
+        /*! \brief Store a game in the database
+         *
+         * \return The game id in the database
+         * */
+        int insertGame(const PersistentGame& game);
 
-        /*! \brief Sotre a game from a result and update ratings */
-        void insertGameResult(GameResult& game_result);
+        /*! \brief Sotre a game from a result and update ratings
+         *
+         * \return The game id in the database
+         */
+        int insertGameResult(const GameResult& game_result);
 
         /*! \brief Search games in the database */
         std::vector<PersistentGame> searchGames(

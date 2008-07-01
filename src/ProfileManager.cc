@@ -17,7 +17,7 @@
  */
 
 #include <memory>
-#include "RatingComponent.hh"
+#include "ProfileManager.hh"
 #include "Util/utils.hh"
 #include "Util/Date.hh"
 
@@ -31,6 +31,7 @@
 using namespace std;
 using namespace XML;
 using namespace XMPP;
+using namespace Util;
 using namespace Threads;
 using namespace boost::posix_time;
 
@@ -39,37 +40,67 @@ using namespace boost::posix_time;
 #define XMLNS_CHESSD_GAME_SEARCH "http://c3sl.ufpr.br/chessd#search_game"
 #define XMLNS_CHESSD_GAME_FETCH "http://c3sl.ufpr.br/chessd#fetch_game"
 
-
-RatingComponent::RatingComponent(
-        const XML::Tag& config,
-        const XMPP::ErrorHandler& error_handler,
-        DatabaseManager& database) :
-    ComponentBase(config, "Rating Component"),
-    error_handler(error_handler),
+ProfileManager::ProfileManager(
+        DatabaseManager& database,
+        const XMPP::StanzaHandler& send_stanza) :
+    ServerModule(send_stanza),
     database(database)
 {
 
     /* Set features */
-    this->root_node.disco().features().insert(XMLNS_CHESSD_INFO);
+    //this->root_node.disco().features().insert(XMLNS_CHESSD_INFO);
 
     /* Set iqs */
-    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleRating, this, _1),
+    /*
+    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleRating, this, _1),
             XMLNS_CHESSD_INFO);
-    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleSearchGame, this, _1),
+    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleSearchGame, this, _1),
             XMLNS_CHESSD_GAME_SEARCH);
-    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleFetchGame, this, _1),
+    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleFetchGame, this, _1),
             XMLNS_CHESSD_GAME_FETCH);
-    this->root_node.setIqHandler(boost::bind(&RatingComponent::handleProfile, this, _1),
+    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleProfile, this, _1),
             XMLNS_CHESSD_PROFILE);
+            */
 
     /* Set presence handler */
-    this->root_node.setPresenceHandler(boost::bind(&RatingComponent::handlePresence, this, _1));
+    //this->root_node.setPresenceHandler(boost::bind(&ProfileManager::handlePresence, this, _1));
 }
 
-RatingComponent::~RatingComponent() {
+ProfileManager::~ProfileManager() {
 }
 
-void RatingComponent::handleRating(const Stanza& stanza) {
+vector<string> ProfileManager::namespaces() const {
+    vector<string> ret;
+    ret.push_back(XMLNS_CHESSD_INFO);
+    ret.push_back(XMLNS_CHESSD_GAME_SEARCH);
+    ret.push_back(XMLNS_CHESSD_GAME_FETCH);
+    ret.push_back(XMLNS_CHESSD_PROFILE);
+
+    return ret;
+}
+
+void ProfileManager::handleIq(const Stanza& iq) {
+    try {
+        const Tag& query = iq.firstTag();
+        const string& xmlns = query.getAttribute("xmlns");
+
+        if(xmlns == XMLNS_CHESSD_INFO) {
+            this->handleRating(iq);
+        } else if(xmlns == XMLNS_CHESSD_GAME_SEARCH) {
+            this->handleSearchGame(iq);
+        } else if(xmlns == XMLNS_CHESSD_GAME_FETCH) {
+            this->handleFetchGame(iq);
+        } else if(xmlns == XMLNS_CHESSD_PROFILE) {
+            this->handleProfile(iq);
+        } else {
+            throw feature_not_implemented("Unknown xmlns");
+        }
+    } catch (const xml_error& error) {
+        throw bad_request("wrong format");
+    }
+}
+
+void ProfileManager::handleRating(const Stanza& stanza) {
     try {
         const Tag& query = stanza.query();
 
@@ -87,39 +118,39 @@ void RatingComponent::handleRating(const Stanza& stanza) {
         }
 
         /* execute the transaction */
-        this->database.queueTransaction(boost::bind(&RatingComponent::fetchRating, this, stanza, _1));
+        this->database.queueTransaction(boost::bind(&ProfileManager::fetchRating, this, stanza, _1));
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request("Invalid format");
     }
 }
 
-void RatingComponent::handleSearchGame(const Stanza& stanza) {
+void ProfileManager::handleSearchGame(const Stanza& stanza) {
     try {
         /* execute the transaction */
-        this->database.queueTransaction(boost::bind(&RatingComponent::searchGame, this, stanza, _1));
+        this->database.queueTransaction(boost::bind(&ProfileManager::searchGame, this, stanza, _1));
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request("Invalid format");
     }
 }
 
-void RatingComponent::handleFetchGame(const Stanza& stanza) {
+void ProfileManager::handleFetchGame(const Stanza& stanza) {
     try {
         /* execute the transaction */
-        this->database.queueTransaction(boost::bind(&RatingComponent::fetchGame, this, stanza, _1));
+        this->database.queueTransaction(boost::bind(&ProfileManager::fetchGame, this, stanza, _1));
     } catch (const XML::xml_error& error) {
         throw XMPP::bad_request("Invalid format");
     }
 }
 
-void RatingComponent::handleProfile(const Stanza& stanza) {
+void ProfileManager::handleProfile(const Stanza& stanza) {
     if(stanza.subtype() == "set") {
-        this->database.queueTransaction(boost::bind(&RatingComponent::updateProfile, this, stanza, _1));
+        this->database.queueTransaction(boost::bind(&ProfileManager::updateProfile, this, stanza, _1));
     } else {
-        this->database.queueTransaction(boost::bind(&RatingComponent::fetchProfile, this, stanza, _1));
+        this->database.queueTransaction(boost::bind(&ProfileManager::fetchProfile, this, stanza, _1));
     }
 }
 
-void RatingComponent::updateProfile(const Stanza& stanza, DatabaseInterface& database) {
+void ProfileManager::updateProfile(const Stanza& stanza, DatabaseInterface& database) {
     try{
         try {
             std::string user = stanza.from().partial();
@@ -139,7 +170,7 @@ void RatingComponent::updateProfile(const Stanza& stanza, DatabaseInterface& dat
     }
 }
 
-void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& database) {
+void ProfileManager::searchGame(const Stanza& stanza, DatabaseInterface& database) {
     try  {
         try {
             XML::TagGenerator generator;
@@ -153,10 +184,10 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
             const Tag& query = stanza.findChild("query");
             const Tag& search_tag = query.findChild("search");
             if(search_tag.hasAttribute("offset")) {
-                offset = Util::parse_string<int>(search_tag.getAttribute("offset"));
+                offset = parse_string<int>(search_tag.getAttribute("offset"));
             }
             if(search_tag.hasAttribute("results")) {
-                max_results = min(50, Util::parse_string<int>(search_tag.getAttribute("results")));
+                max_results = min(50, parse_string<int>(search_tag.getAttribute("results")));
             }
             foreach(field, search_tag.tags()) {
                 if(field->name() == "player") {
@@ -167,10 +198,10 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
                     std::string begin = field->getAttribute("begin", "");
                     std::string end = field->getAttribute("end", "");
                     if(not begin.empty()) {
-                        time_begin = Util::xmpp_date_time_to_time_t(begin);
+                        time_begin = xmpp_date_time_to_time_t(begin);
                     }
                     if(not end.empty()) {
-                        time_end = Util::xmpp_date_time_to_time_t(end);
+                        time_end = xmpp_date_time_to_time_t(end);
                     }
                 }
             }
@@ -196,19 +227,18 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
 
             foreach(game, games) {
                 generator.openTag("game");
-                generator.addAttribute("id", Util::to_string(game->id));
+                generator.addAttribute("id", to_string(game->id));
                 generator.addAttribute("category", game->category);
-                generator.addAttribute("time_stamp", Util::ptime_to_xmpp_date_time(game->time_stamp));
-
-                generator.openTag("result");
-                generator.addCData(i18n.getText(game->result,stanza.lang()));
-                generator.closeTag();
+                generator.addAttribute("time_stamp", ptime_to_xmpp_date_time(game->time_stamp));
+                generator.addAttribute("result", game_end_reason_table[game->result]);
 
                 foreach(player, game->players) {
                     generator.openTag("player");
-                    generator.addAttribute("jid", player->jid.partial());
-                    generator.addAttribute("role", player->role);
-                    generator.addAttribute("score", player->score);
+                    generator.addAttribute("jid", player->player.jid.partial());
+                    generator.addAttribute("role", PLAYER_ROLE_NAME[player->player.color]);
+                    generator.addAttribute("result", PLAYER_RESULT_NAME[player->result]);
+                    generator.addAttribute("time", to_string(player->player.time.getSeconds()));
+                    generator.addAttribute("inc", to_string(player->player.inc.getSeconds()));
                     generator.closeTag();
                 }
                 generator.closeTag();
@@ -233,7 +263,7 @@ void RatingComponent::searchGame(const Stanza& stanza, DatabaseInterface& databa
     }
 }
 
-void RatingComponent::fetchGame(const Stanza& stanza, DatabaseInterface& database) {
+void ProfileManager::fetchGame(const Stanza& stanza, DatabaseInterface& database) {
     try {
         try {
             XML::TagGenerator generator;
@@ -241,7 +271,7 @@ void RatingComponent::fetchGame(const Stanza& stanza, DatabaseInterface& databas
             /* Parse request */
             const Tag& query = stanza.findChild("query");
             const Tag& game_tag = query.findChild("game");
-            int game_id = Util::parse_string<int>(game_tag.getAttribute("id"));
+            int game_id = parse_string<int>(game_tag.getAttribute("id"));
             std::string game_history = database.getGameHistory(game_id);
 
             /* Create result */
@@ -266,7 +296,7 @@ void RatingComponent::fetchGame(const Stanza& stanza, DatabaseInterface& databas
     }
 }
 
-void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& database) {
+void ProfileManager::fetchRating(const Stanza& stanza, DatabaseInterface& database) {
     XML::TagGenerator generator;
     const Tag& query = stanza.findChild("query");
     std::string category, jid;
@@ -296,12 +326,12 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
                 generator.openTag("rating");
                 generator.addAttribute("jid", jid);
                 generator.addAttribute("category", rating->first);
-                generator.addAttribute("rating", Util::to_string(rating->second.rating));
-                generator.addAttribute("wins", Util::to_string(rating->second.wins));
-                generator.addAttribute("draws", Util::to_string(rating->second.draws));
-                generator.addAttribute("losses", Util::to_string(rating->second.defeats));
-                generator.addAttribute("max_rating", Util::to_string(rating->second.max_rating));
-                generator.addAttribute("max_timestamp", Util::ptime_to_xmpp_date_time(rating->second.max_timestamp));
+                generator.addAttribute("rating", to_string(rating->second.rating));
+                generator.addAttribute("wins", to_string(rating->second.wins));
+                generator.addAttribute("draws", to_string(rating->second.draws));
+                generator.addAttribute("losses", to_string(rating->second.defeats));
+                generator.addAttribute("max_rating", to_string(rating->second.max_rating));
+                generator.addAttribute("max_timestamp", ptime_to_xmpp_date_time(rating->second.max_timestamp));
                 generator.closeTag();
             }
         } else if(tag->name() == "type") {
@@ -323,7 +353,7 @@ void RatingComponent::fetchRating(const Stanza& stanza, DatabaseInterface& datab
     this->sendStanza(new XMPP::Stanza(generator.getTag()));
 }
 
-void RatingComponent::fetchProfile(const Stanza& stanza, DatabaseInterface& database) {
+void ProfileManager::fetchProfile(const Stanza& stanza, DatabaseInterface& database) {
     XML::TagGenerator generator;
     const Tag& query = stanza.findChild("query");
     std::string category, user;
@@ -357,12 +387,12 @@ void RatingComponent::fetchProfile(const Stanza& stanza, DatabaseInterface& data
             foreach(rating, ratings) {
                 generator.openTag("rating");
                 generator.addAttribute("category", rating->first);
-                generator.addAttribute("rating", Util::to_string(rating->second.rating));
-                generator.addAttribute("wins", Util::to_string(rating->second.wins));
-                generator.addAttribute("draws", Util::to_string(rating->second.draws));
-                generator.addAttribute("losses", Util::to_string(rating->second.defeats));
-                generator.addAttribute("max_rating", Util::to_string(rating->second.max_rating));
-                generator.addAttribute("max_timestamp", Util::ptime_to_xmpp_date_time(rating->second.max_timestamp));
+                generator.addAttribute("rating", to_string(rating->second.rating));
+                generator.addAttribute("wins", to_string(rating->second.wins));
+                generator.addAttribute("draws", to_string(rating->second.draws));
+                generator.addAttribute("losses", to_string(rating->second.defeats));
+                generator.addAttribute("max_rating", to_string(rating->second.max_rating));
+                generator.addAttribute("max_timestamp", ptime_to_xmpp_date_time(rating->second.max_timestamp));
                 generator.closeTag();
             }
 
@@ -378,7 +408,7 @@ void RatingComponent::fetchProfile(const Stanza& stanza, DatabaseInterface& data
             int online_time = database.getOnlineTime(user);
 
             generator.openTag("online_time");
-            generator.addAttribute("seconds", Util::to_string(online_time));
+            generator.addAttribute("seconds", to_string(online_time));
             generator.closeTag();
 
             /* get the user's uptime */
@@ -386,7 +416,7 @@ void RatingComponent::fetchProfile(const Stanza& stanza, DatabaseInterface& data
                 int uptime = (second_clock::local_time() - 
                               it->second).total_seconds();
                 generator.openTag("uptime");
-                generator.addAttribute("seconds", Util::to_string(uptime));
+                generator.addAttribute("seconds", to_string(uptime));
                 generator.closeTag();
             }
 
@@ -398,14 +428,7 @@ void RatingComponent::fetchProfile(const Stanza& stanza, DatabaseInterface& data
     this->sendStanza(new XMPP::Stanza(generator.getTag()));
 }
 
-void RatingComponent::onError(const std::string& error) {
-    this->error_handler(error);
-}
-
-void RatingComponent::onClose() {
-}
-
-void RatingComponent::handlePresence(const XMPP::Stanza& stanza) {
+void ProfileManager::handlePresence(const XMPP::Stanza& stanza) {
     XMPP::PartialJid user = stanza.from();
 
     WriteLock<map<PartialJid, ptime> > logons(this->last_logons);
@@ -422,7 +445,7 @@ void RatingComponent::handlePresence(const XMPP::Stanza& stanza) {
         if(logons->find(user) != logons->end()) {
             this->database.queueTransaction(
                 boost::bind(
-                    &RatingComponent::updateOnlineTime,
+                    &ProfileManager::updateOnlineTime,
                     this,
                     user,
                     (second_clock::local_time() -
@@ -433,7 +456,7 @@ void RatingComponent::handlePresence(const XMPP::Stanza& stanza) {
     }
 }
 
-void RatingComponent::updateOnlineTime(const XMPP::PartialJid& user,
+void ProfileManager::updateOnlineTime(const XMPP::PartialJid& user,
                                        int increment,
                                        DatabaseInterface& database) {
     database.updateOnlineTime(user.full(), increment);

@@ -16,27 +16,14 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef TOURNEYFACTORY_HH
-#define TOURNEYFACTORY_HH
+#ifndef USERSTATUS_HH
+#define USERSTATUS_HH
 
-#include "ChessTourney.hh"
-#include "XML/Xml.hh"
+struct UserStatus {
+    UserStatus() : available(false), playing(false) { }
 
-struct TourneyFactory {
-	public:
-		static Tourney* create(const XML::Tag& offer) {
-			//test category
-			return new ChessTourney(offer.getAttribute("category"),
-                                    Util::Time::Seconds(offer.getAttribute("time")),
-                                    Util::Time::Seconds(offer.getAttribute("inc")),
-                                    Util::parse_string<int>(offer.getAttribute("rounds")));
-			/*
-			 * throw ;4
-			*/
-			return 0;
-		}
-	private:
+    bool available;
+    bool playing;
 };
-
 
 #endif

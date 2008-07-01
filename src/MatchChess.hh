@@ -23,13 +23,15 @@
 #include "Match.hh"
 #include "XML/Xml.hh"
 
+class ChessMatchAnnouncemen;
+
 struct MatchChess : public Match {
 	public:
 		MatchChess(const std::vector<XML::Tag>& players, const XML::AttributeMap& __attributes);
 
 		virtual ~MatchChess();
 		
-		virtual const PlayerList& players() const;
+		virtual const std::vector<GamePlayer>& players() const;
 
 		virtual const std::string& category() const;
 
@@ -45,13 +47,15 @@ struct MatchChess : public Match {
 	private:
 		XML::AttributeMap _attributes;
 
-		PlayerList _players;
+		std::vector<GamePlayer> _players;
 
 		/*! \brief transform a Tag descriptions of a player to a player structure
 		 *!	\description if the color of the players were not chosen, then this
 		 *function will choose the color randomsly
 		*/
-		static StandardPlayerList getPlayersFromXML(const std::vector<XML::Tag>& players);
+		static std::vector<GamePlayer> getPlayersFromXML(const std::vector<XML::Tag>& players);
+
+		friend class ChessMatchAnnouncement;
 
 };
 

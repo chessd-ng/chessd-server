@@ -36,7 +36,7 @@ int MatchDatabase::insertMatch(Match* match) {
 	this->matchs.insert(match_id, new MatchInfo(match));
     /* update players map */
 	foreach(player, match->players()) {
-		this->player_matchs[*player].insert(match_id);
+		this->player_matchs[player->jid].insert(match_id);
 	}
 	return match_id;
 }
@@ -48,7 +48,7 @@ void MatchDatabase::replaceMatch(int match_id, Match* match) {
 
 MatchDatabase::MatchInfo::MatchInfo(Match* match) : match(match), pending_count(0) {
 	foreach(player, match->players()) {
-		this->accepted_players[*player] = 0;
+		this->accepted_players[player->jid] = 0;
 		this->pending_count ++;
 	}
 }
@@ -91,7 +91,7 @@ Match* MatchDatabase::closeMatch(int match_id) {
 	Match* match = match_info.match.release();
     /* update players map */
     foreach(player, match->players()) {
-		this->player_matchs[*player].erase(match_id);
+		this->player_matchs[player->jid].erase(match_id);
     }
     /* erase the match */
 	this->match_ids.releaseID(match_id);

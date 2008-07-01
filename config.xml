@@ -1,38 +1,11 @@
 <server>
-	<rating-component
-		server_address="localhost"
-		server_port="5560"
-		server_password="secret"
-		node_name="rating.shiva"
-	/>
-	<game-component
-		server_address="localhost"
-		server_port="5561"
-		server_password="secret"
-		node_name="games.shiva"
-	/>
-	<match-component
-		server_address="localhost"
-		server_port="5562"
-		server_password="secret"
-		node_name="match.shiva"
-	/>
-
-	<admin-component
-		server_address="localhost"
-		server_port="5563"
-		server_password="secret"
-		node_name="admin.shiva"
+	<xmpp-component
         server_name="shiva"
-	/>
-
-	<tourney-component
 		server_address="localhost"
-		server_port="5564"
-		server_password="secret"
-		node_name="tourney.shiva"
+		component_port="5560"
+		component_password="secret"
+        component_name="chessd.shiva"
 	/>
-
     <database
         host="localhost"
         port="5432"
