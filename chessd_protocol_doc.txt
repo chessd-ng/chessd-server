@@ -217,8 +217,8 @@ Any date and time is in the format specified by the XEP-082.
 <iq from='match.shiva' type='result' id='get_adj'>
     <query xmlns='http://c3sl.ufpr.br/chessd#adjourned#list'>
         <game time_stamp='2008-03-06T15:19:09Z' category='blitz' id='89'>
-            <player jid='ulyssesb@shiva' time='900' inc='6'/>
-            <player jid='robofacilaaa@shiva' time='900' inc=5/>
+            <player jid='ulyssesb@shiva' time='900' inc='6' role='white'/>
+            <player jid='robofacilaaa@shiva' time='900' inc=5 role='black'/>
         </game>
     </query>
 </iq>
