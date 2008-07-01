@@ -358,7 +358,7 @@ vector<PersistentGame> DatabaseInterface::searchGames(
     try {
         /* prepare sql query */
         string select =
-            " SELECT games.game_id, category, time_stamp, result ";
+            " SELECT games.game_id, category, time_stamp, games.result ";
         string from =
             " FROM games ";
         string where;
