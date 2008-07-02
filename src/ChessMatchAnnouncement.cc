@@ -30,12 +30,14 @@ ChessMatchAnnouncement::ChessMatchAnnouncement(const std::vector<XML::Tag>& play
 		this->_players[0].color=UNDEFINED;
 }
 
-Game* ChessMatchAnnouncement::createGame(const XML::Tag& player) {
-	_match_players.push_back(player);
-	_players=MatchChess::getPlayersFromXML(_match_players);
+Game* ChessMatchAnnouncement::createGame(const XML::Tag& player) const {
+	std::vector<XML::Tag> __match_players(_match_players);
+	__match_players.push_back(player);
+
+	std::vector<GamePlayer> __players=MatchChess::getPlayersFromXML(__match_players);
 	if(this->category() == "Untimed")
-		return new GameChessUntimed(_players,_attributes);
-	return new GameChess(_players,_attributes);
+		return new GameChessUntimed(__players,this->_attributes);
+	return new GameChess(__players,this->_attributes);
 }
 
 XML::Tag* ChessMatchAnnouncement::notification() const {
