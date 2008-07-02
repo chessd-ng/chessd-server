@@ -30,9 +30,16 @@ ChessMatchAnnouncement::ChessMatchAnnouncement(const std::vector<XML::Tag>& play
 		this->_players[0].color=UNDEFINED;
 }
 
-Game* ChessMatchAnnouncement::createGame(const XML::Tag& player) const {
+Game* ChessMatchAnnouncement::createGame(const XMPP::Jid& player) const {
 	std::vector<XML::Tag> __match_players(_match_players);
-	__match_players.push_back(player);
+
+	XML::Tag other_player("player");
+	other_player.attributes()=__match_players[0].attributes();
+	other_player.attributes().erase("color");
+	other_player.attributes()["jid"]=player.full();
+
+
+	__match_players.push_back(other_player);
 
 	std::vector<GamePlayer> __players=MatchChess::getPlayersFromXML(__match_players);
 	if(this->category() == "Untimed")

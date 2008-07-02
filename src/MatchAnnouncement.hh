@@ -38,7 +38,7 @@ struct MatchAnnouncement {
 		virtual const std::string& category() const = 0;
 
         /*! \brief Create a game discribed by the match. */
-		virtual Game* createGame(const XML::Tag& player) const = 0;
+		virtual Game* createGame(const XMPP::Jid& player) const = 0;
 
 		/*! \brief The offer notification */
 		virtual XML::Tag* notification() const = 0;

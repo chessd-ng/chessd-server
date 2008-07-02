@@ -36,7 +36,7 @@ struct ChessMatchAnnouncement : public MatchAnnouncement {
 		virtual const std::string& category() const { return _attributes.find("category")->second; };
 
         /*! \brief Create a game discribed by the match. */
-		virtual Game* createGame(const XML::Tag& player) const;
+		virtual Game* createGame(const XMPP::Jid& player) const;
 
 		/*! \brief The offer notification */
 		virtual XML::Tag* notification() const ;
