@@ -17,6 +17,7 @@
  */
 
 #include "Dispatcher.hh"
+#include "SimpleSemaphore.hh"
 
 namespace Threads {
 
@@ -52,7 +53,7 @@ namespace Threads {
          * setting running to false. This way we make sure the dispatcher
          * will stop immediately. */
         if(this->running == true) {
-            this->queue(boost::bind(&Dispatcher::_stop, this));
+            this->exec(boost::bind(&Dispatcher::_stop, this));
             this->join();
         }
     }
@@ -65,4 +66,32 @@ namespace Threads {
         this->running = false;
     }
 
+    void Dispatcher::queue(const Message& message) {
+        this->_queue.push(message);
+    }
+
+    static void execMessage(const Message& message, SimpleSemaphore& sem) {
+        message();
+        sem.post();
+    }
+
+    void Dispatcher::exec(const Message& message) {
+        /* if this is a different thread, put it inthe queue,
+         * otherwise, just call the message */
+        if(getCurrentThreadId() != this->task.getThreadId()) {
+            SimpleSemaphore sem;
+            this->_queue.push(boost::bind(execMessage, message, boost::ref(sem)));
+            sem.wait();
+        } else {
+            message();
+        }
+    }
+
+    void Dispatcher::schedule(const Message& message, Util::Time when) {
+        this->queue(boost::bind(&Dispatcher::_schedule, this, message, when));
+    }
+
+    void Dispatcher::_schedule(const Message& message, Util::Time when) {
+        this->agenda.insert(std::make_pair(when, message));
+    }
 }

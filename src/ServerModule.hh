@@ -69,6 +69,10 @@ class ServerModule {
 
         bool isUserPlaying(const XMPP::Jid& user) const;
 
+        bool isMultigameUser(const XMPP::Jid& user) const;
+
+        bool canPlay(const XMPP::Jid& user) const;
+
         Threads::Dispatcher dispatcher;
 
     private:

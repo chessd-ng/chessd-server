@@ -66,16 +66,17 @@ class GameRoom : public XMPP::Muc {
          * \param database_manager is an referene to the database.
          * \param handlers are the functions needed by the room
          */
-        GameRoom(
-                Game* game,
-                const XMPP::Jid& room_name,
-                DatabaseManager& database_manager,
-                Threads::Dispatcher& dispatcher,
-                const GameRoomHandlers& handlers
-                );
+        GameRoom(Game* game,
+                 const XMPP::Jid& room_name,
+                 DatabaseManager& database_manager,
+                 const GameRoomHandlers& handlers);
 
         /*! \brief Destructor. */
 		~GameRoom();
+
+        virtual void handleStanza(XMPP::Stanza* stanza) throw();
+
+        const Game& game() const { return *this->_game; }
 
 	private:
 		enum GameRequest {
@@ -92,6 +93,7 @@ class GameRoom : public XMPP::Muc {
             END_TYPE_CANCELED = 1,
             END_TYPE_ADJOURNED = 2
         };
+        void _handleStanza(XMPP::Stanza* stanza);
 
 		/*! \brief Handle an incoming game iq */
 		void handleGame(XMPP::Stanza* stanza);
@@ -159,7 +161,7 @@ class GameRoom : public XMPP::Muc {
 
         Util::Time currentTime();
 
-		std::auto_ptr<Game> game;
+		std::auto_ptr<Game> _game;
 
         END_CODE result_reason;
 
@@ -169,7 +171,7 @@ class GameRoom : public XMPP::Muc {
 
         DatabaseManager& database_manager;
 
-        Threads::Dispatcher& dispatcher;
+        Threads::Dispatcher dispatcher;
 
 		GameRoomHandlers handlers;
 

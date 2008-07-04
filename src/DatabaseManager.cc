@@ -82,8 +82,10 @@ DatabaseManager::DatabaseManager(const XML::Tag& config) :
         " password=" + config.getAttribute("password") +
         " sslmode=disable";
 
+    this->connections_left = parse_string<int>(config.getAttribute("max_connections"));
+
     /* Check if we can connect to the database */
-    pqxx::connection* conn = new pqxx::connection(this->connection_string);
+    pqxx::connection* conn = this->getConnection();
 
     /* put the unused connection on the queue */
     this->free_connections.push(conn);
@@ -109,17 +111,7 @@ void DatabaseManager::execTransaction(const Transactor& transactor)
 {
     pqxx_transaction t(transactor);
 
-    pqxx::connection* conn = 0;
-
-    /* get a connection to the database */
-    try {
-        if(not this->free_connections.try_pop(conn)) {
-            conn = new pqxx::connection(this->connection_string);
-        }
-    } catch (pqxx::broken_connection) {
-        /* if we cant create another connection, we should just wait */
-        conn = this->free_connections.pop();
-    }
+    pqxx::connection* conn = this->getConnection();;
 
     /* execute it */
     conn->perform(t);
@@ -154,4 +146,21 @@ void DatabaseManager::colector()
         task->join();
         delete task;
     }
+}
+
+pqxx::connection* DatabaseManager::getConnection() {
+    pqxx::connection* connection = 0;
+
+    /* try to get a connection from the queue */
+    if(this->free_connections.try_pop(connection)) {
+        return connection;
+    }
+    /* if there is no connection in the queue, check if we can create more connections */
+    if(this->connections_left > 0 and __sync_fetch_and_sub(&this->connections_left, 1) > 0) {
+        return new pqxx::connection(this->connection_string);
+    } else {
+        /* if we have reached the connections limit, wait in the queue */
+        return this->free_connections.pop();
+    }
+
 }

@@ -28,4 +28,10 @@ class user_error : public std::runtime_error
         user_error(const std::string& msg) : std::runtime_error(msg) { }
 };
 
+class create_game_error : public user_error
+{
+    public:
+        create_game_error(const std::string& msg) : user_error(msg) { }
+};
+
 #endif

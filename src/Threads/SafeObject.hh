@@ -51,55 +51,68 @@ namespace Threads {
 		public:
 			ReadLock(SafeObject<T>& safe_object) :
 				safe_object(safe_object),
-				object(safe_object.getReadLock()) { }
+				object(&safe_object.getReadLock()) { }
 
 			~ReadLock() {
-				safe_object.releaseLock();
+                if(this->object != 0) {
+                    safe_object.releaseLock();
+                }
 			}
 
 			const T* operator->() const {
-				return &this->object;
+				return this->object;
 			}
 
             const T& operator*() const {
-                return this->object;
+                return *this->object;
+            }
+
+            void release() {
+                this->safe_object.releaseLock();
+                this->object = 0;
             }
 
 		private:
 			SafeObject<T>& safe_object;
-			const T& object;
+			const T* object;
 	};
 
 	template <class T> class WriteLock {
 		public:
 			WriteLock(SafeObject<T>& safe_object) :
 				safe_object(safe_object),
-				object(safe_object.getWriteLock()) { }
+				object(&safe_object.getWriteLock()) { }
 
 			~WriteLock() {
-				safe_object.releaseLock();
+                if(this->object != 0) {
+                    safe_object.releaseLock();
+                }
 			}
 
 			T* operator->() {
-				return &this->object;
+				return this->object;
 			}
 
 			const T* operator->() const {
-				return &this->object;
+				return this->object;
 			}
 
             T& operator*() {
-                return this->object;
+                return *this->object;
             }
 
             const T& operator*() const {
-                return this->object;
+                return *this->object;
+            }
+
+            void release() {
+                this->safe_object.releaseLock();
+                this->object = 0;
             }
 
 		private:
 			SafeObject<T>& safe_object;
-			T& object;
+			T* object;
 	};
-
 }
 #endif

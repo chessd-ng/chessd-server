@@ -23,6 +23,8 @@
 
 #include <boost/bind.hpp>
 
+#include <cassert>
+
 using namespace std;
 
 namespace Threads {
@@ -80,9 +82,11 @@ namespace Threads {
                 /* if the thread was awakened to stop, then stop */
                 if(not pool.running) {
                     pool.cond.unlock();
-                    break;
+                    return;
                 }
             }
+
+            assert(not pool.tasks.empty());
 
             /* if not, there is a task in the queue */
             task = pool.tasks.front();

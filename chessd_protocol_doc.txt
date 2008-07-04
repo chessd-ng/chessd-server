@@ -251,6 +251,7 @@ Any date and time is in the format specified by the XEP-082.
 <!--
     After the game is over, the players may leave the room.
 -->
+
 <presence to='game_0@games.shiva/raphaelhr' type='unavailable'/>
 
 <!--
@@ -279,7 +280,6 @@ Any date and time is in the format specified by the XEP-082.
         <type jid='raphaelhr@shiva' type='robot'/>
     </query>
 </iq>
-
 
 <!--
     Search for previous games.
@@ -452,13 +452,13 @@ Any date and time is in the format specified by the XEP-082.
     The result
 --!>
 
-<iq from='tourneydev.shiva' type='result' id='1234' to='raphaelhr@shiva/guinness' >
+<iq from='tourneydev.shiva' type='result' id='1234' to='raphaelhr@shiva/ChessD' >
     <list xmlns='http://c3sl.ufpr.br/chessd#tourney'>
         <tourney id='0' />
     </list>
 </iq>
 
-<!-- To join a tournet --!>
+<!-- To join a tourney --!>
 
 <iq type='set' to='tourneydev.shiva' id='1234'>
     <join xmlns='http://c3sl.ufpr.br/chessd#tourney'>
@@ -468,19 +468,102 @@ Any date and time is in the format specified by the XEP-082.
 
 <!-- When a round begins the players will receive a notification with their game rooms --!>
 
-<iq from='tourneydev.shiva' type='set' id='0' to='raphaelhr@shiva/guinness' >
+<iq from='tourneydev.shiva' type='set' id='0' to='raphaelhr@shiva/ChessD' >
     <game xmlns='http://c3sl.ufpr.br/chessd#tourney' room='game_0@gamesdev.shiva' >
         <tourney id='0' />
     </game>
 </iq>
 
 <!--
+	To create a match annoucement send the message:
+--!>
+
+<iq type='set' to='chessd.shiva' id='1234'>
+    <create xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
+        <announcement rated='true' category='standard' autoflag='true'>
+            <player jid='raphaelhr@shiva/ChessD' time='900' inc='1' color='white'/>
+        </announcement>
+    </create>
+</iq>
+
+<!--
+	To search for available annoucments.
+    The paramaters are:
+        - offset is the number of results to skip
+        - results is the liit of results to return
+        - minimum_time is minimum game time for each player
+        - maximum_time is maximum game time for each player
+        - category is the game category
+        - player is the opponent name
+    All these parameters are optional and may be omited, the effect
+    of omiting a parameter is as if the parameter didn't exist.
+--!>
+
+<iq type='get' to='chessd.shiva' id='1234'>
+    <search xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
+        <parameters
+            offset='1'
+            results='10'
+            minimum_time='800'
+            maximum_time='1000'
+            category='standard'
+            player='raphaelhr@shiva/ChessD'/>
+    </search>
+</iq>
+
+<!--
+    The result is a list of annoucements that obey the paramaeters given.
+    There may be a tag <more/> to indicate that there are more results that
+    could not be listed due to the limit of results.
+--!>
+
+<iq from="chessddev.shiva" type="result" id="1234" to="raphaelhr@shiva/guinness" >
+    <search xmlns="http://c3sl.ufpr.br/chessd#match_announcement">
+        <announcement category="standard" autoflag="true" id="0" rated="true" >
+            <player inc="1" color="white" time="900" jid="raphaelhr@shiva/guinness" />
+        </announcement>
+        <more/>
+    </search>
+</iq>
+
+<!--
+    To take an annoucement send the message
+--!>
+
+<iq type='set' to='chessd.shiva' id='1234'>
+    <accept xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
+        <announcement id='0'/>
+    </accept>
+</iq>
+
+<!--
+    When someone take an announcement, the players involved will
+    be notified that a game has started
+--!>
+
+<iq from="chessd.shiva" type="set" id="0" to="raphaelhr@shiva/guinness" >
+    <start_game xmlns="http://c3sl.ufpr.br/chessd#match_announcement">
+        <game_room jid="game_0@chessd.shiva"/>
+    </start_game>
+</iq>
+
+<!--
+    To delete an annoucement send the message.
+--!>
+
+<iq type='set' to='chessd.shiva' id='1234'>
+    <delete xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
+        <announcement id='0'/>
+    </delete>
+</iq>
+
+<!--
 	Match Announcement
 	//FIXME explain more
 --!>
-<match_announcement category='standard' autoflag='true' rated='false'>
+<announcement category='standard' autoflag='true' rated='false'>
 	<player jid='raphaelhr@shiva/Psi' time='900' inc='1' color='white'/>
-</match>
+</announcement>
 
 
 <!--
@@ -519,7 +602,6 @@ Any date and time is in the format specified by the XEP-082.
 	<state board='rnbqkbnr/1ppp1ppp/8/p3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR' move='a6a5' short='a5' time='662' turn='white'/>
 	<state board='rnbqkbnr/1ppp1Qpp/8/p3p3/2B1P3/8/PPPP1PPP/RNB1K1NR' move='f3f7' short='Qxf7#' time='663' turn='black'/>
 </history>
-
 
 <!--
     Tourney

@@ -12,6 +12,7 @@
         db_name="chessd-dev"
         user="raphael"
         password="raphael"
+        max_connections="50"
     />
     <log
         filename="log/chessd.log"

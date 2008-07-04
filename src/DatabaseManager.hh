@@ -108,6 +108,8 @@ class DatabaseManager {
         /*! \brief Collects unused resources. */
         void colector();
 
+        pqxx::connection* getConnection();
+
         std::string connection_string;
         
         Threads::Queue<pqxx::connection*> free_connections;
@@ -115,6 +117,8 @@ class DatabaseManager {
         Threads::Queue<Threads::Task*> running_tasks;
 
         Threads::Task colector_task;
+
+        volatile int connections_left;
 };
 
 #endif

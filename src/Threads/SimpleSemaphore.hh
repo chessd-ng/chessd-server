@@ -16,19 +16,35 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#ifndef USERSTATUS_HH
-#define USERSTATUS_HH
+#ifndef SIMPLESEMAPHORE_HH
+#define SIMPLESEMAPHORE_HH
 
-struct UserStatus {
-    UserStatus() : available(false), games_playing(0), multigame(false) { }
-    bool available;
-    int games_playing;
-    bool multigame;
+#include "Condition.hh"
 
-    bool canPlay() const {
-        return this->available and (this->games_playing == 0 or this->multigame);
-    }
+namespace Threads {
 
-};
+	class SimpleSemaphore {
+		public:
+			SimpleSemaphore() : signaled(false) { }
+			void post() {
+                this->cond.lock();
+                this->signaled = true;
+                this->cond.signal();
+                this->cond.unlock();
+			}
+			void wait() {
+                this->cond.lock();
+                if(not this->signaled) {
+                    this->cond.wait();
+                }
+                this->signaled = false;
+                this->cond.unlock();
+			}
+		private:
+			Condition cond;
+            volatile bool signaled;
+	};
+
+}
 
 #endif

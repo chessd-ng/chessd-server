@@ -41,6 +41,7 @@
 #define XMLNS_GAME_END              "http://c3sl.ufpr.br/chessd#game#end"
 #define XMLNS_GAME_MOVE             "http://c3sl.ufpr.br/chessd#game#move"
 
+using namespace XMPP;
 using namespace Util;
 using namespace std;
 
@@ -59,36 +60,34 @@ static const char game_end_type_table[][64] = {
     "adjourned"
 };
 
-class xmpp_invalid_move : public XMPP::xmpp_exception {
+class xmpp_invalid_move : public xmpp_exception {
     public:
         xmpp_invalid_move(const string& what) : xmpp_exception(what) { }
 
-        virtual XMPP::Stanza* getErrorStanza(XMPP::Stanza* stanza) const {
-            return XMPP::Stanza::createErrorStanza
+        virtual Stanza* getErrorStanza(Stanza* stanza) const {
+            return Stanza::createErrorStanza
                 (stanza, "modify", "invalid-move", this->what(), XMLNS_GAME);
         }
 };
 
-class xmpp_game_over : public XMPP::xmpp_exception {
+class xmpp_game_over : public xmpp_exception {
     public:
         xmpp_game_over(const string& what) : xmpp_exception(what) { }
 
-        virtual XMPP::Stanza* getErrorStanza(XMPP::Stanza* stanza) const {
-            return XMPP::Stanza::createErrorStanza
+        virtual Stanza* getErrorStanza(Stanza* stanza) const {
+            return Stanza::createErrorStanza
                 (stanza, "modify", "game-over", this->what(), XMLNS_GAME);
         }
 };
 
 GameRoom::GameRoom(
         Game* game,
-        const XMPP::Jid& room_jid,
+        const Jid& room_jid,
         DatabaseManager& database_manager,
-        Threads::Dispatcher& dispatcher,
         const GameRoomHandlers& handlers) :
     Muc(room_jid, game->title(), handlers.send_stanza),
-    game(game),
+    _game(game),
     database_manager(database_manager),
-    dispatcher(dispatcher),
     handlers(handlers),
     game_active(true),
     start_time(Timer::now()),
@@ -135,9 +134,14 @@ GameRoom::GameRoom(
     /* set time check */
     this->dispatcher.schedule(boost::bind(&GameRoom::checkTime, this),
                               Timer::now() + Time::Seconds(20));
+
+    /* start the dispatcher */
+    this->dispatcher.start();
 }
 
-GameRoom::~GameRoom() { }
+GameRoom::~GameRoom() {
+    this->dispatcher.stop();
+}
 
 void GameRoom::checkTime() {
     /* cancel games for inactivity */
@@ -148,7 +152,7 @@ void GameRoom::checkTime() {
     }
     
     /* check whether the time is over */
-    if(this->game_active and this->game->done(this->currentTime())) {
+    if(this->game_active and this->_game->done(this->currentTime())) {
         this->endGame(END_TYPE_NORMAL);
     }
     if(not this->game_active and this->occupants().size() == 0) {
@@ -160,21 +164,21 @@ void GameRoom::checkTime() {
     }
 }
 
-XMPP::Stanza* GameRoom::createStateStanza() {
-    auto_ptr<XMPP::Stanza> stanza(new XMPP::Stanza("iq"));
+Stanza* GameRoom::createStateStanza() {
+    auto_ptr<Stanza> stanza(new Stanza("iq"));
     XML::TagGenerator generator;
 
     stanza->subtype() = "set";
     generator.openTag("query");
     generator.addAttribute("xmlns", XMLNS_GAME_STATE);
-    generator.addChild(this->game->state(this->currentTime()));
-    generator.addChild(this->game->history());
+    generator.addChild(this->_game->state(this->currentTime()));
+    generator.addChild(this->_game->history());
     stanza->children().push_back(generator.getTag());
     return stanza.release();
 }
 
-void GameRoom::handleState(const XMPP::Stanza& stanza) {
-    auto_ptr<XMPP::Stanza> result(this->createStateStanza());
+void GameRoom::handleState(const Stanza& stanza) {
+    auto_ptr<Stanza> result(this->createStateStanza());
     result->to() = stanza.from();
     result->id() = stanza.id();
     result->subtype() = "result";
@@ -182,13 +186,13 @@ void GameRoom::handleState(const XMPP::Stanza& stanza) {
 }
 
 
-void GameRoom::handleGameIq(const XMPP::Stanza& stanza) {
+void GameRoom::handleGameIq(const Stanza& stanza) {
     try {
         const string& xmlns = stanza.findChild("query").getAttribute("xmlns");
 
         /* is a room occupant? */
         if(not this->isOccupant(stanza.from()))
-            throw XMPP::not_acceptable("Only occupants are allowed to send queries to the game");
+            throw not_acceptable("Only occupants are allowed to send queries to the game");
 
         /* is a state iq? */
         if(xmlns == XMLNS_GAME_STATE) {
@@ -198,9 +202,9 @@ void GameRoom::handleGameIq(const XMPP::Stanza& stanza) {
 
         /* is the sender a player and the game is active? */
         if(not has_key(this->all_players, stanza.from()))
-            throw XMPP::not_acceptable("Only players can do that");
+            throw not_acceptable("Only players can do that");
         if(not this->game_active)
-            throw XMPP::not_acceptable("Game is not active");
+            throw not_acceptable("Game is not active");
 
         /* check xmlns and call the proper handler */
         if(xmlns == XMLNS_GAME_MOVE) {
@@ -222,16 +226,16 @@ void GameRoom::handleGameIq(const XMPP::Stanza& stanza) {
         }
 
         /* check if the game is over */
-        if(this->game->done(this->currentTime())) {
+        if(this->_game->done(this->currentTime())) {
             this->endGame(END_TYPE_NORMAL);
         }
     } catch (const XML::xml_error& error) {
-        throw XMPP::bad_request("Bad format");
+        throw bad_request("Bad format");
     }
 }
 
-void GameRoom::notifyState(const XMPP::Jid& user) {
-    auto_ptr<XMPP::Stanza> stanza(this->createStateStanza());
+void GameRoom::notifyState(const Jid& user) {
+    auto_ptr<Stanza> stanza(this->createStateStanza());
     stanza->to() = user;
     stanza->subtype() = "set";
     this->sendIq(stanza.release());
@@ -241,14 +245,14 @@ Time GameRoom::currentTime() {
     return Timer::now() - this->start_time;
 }
 
-void GameRoom::handleMove(const XMPP::Stanza& stanza) {
+void GameRoom::handleMove(const Stanza& stanza) {
     try {
         /* parse message */
         const XML::Tag& move = stanza.query().findChild("move");
         string move_string = move.getAttribute("long");
         
         /* make the move */
-        auto_ptr<XML::Tag> move_notification(this->game->move(stanza.from(), move_string, this->currentTime()));
+        auto_ptr<XML::Tag> move_notification(this->_game->move(stanza.from(), move_string, this->currentTime()));
         this->move_count ++;
 
         /* send the iq result */
@@ -264,31 +268,31 @@ void GameRoom::handleMove(const XMPP::Stanza& stanza) {
     }
 }
 
-void GameRoom::handleResign(const XMPP::Stanza& stanza) {
-    this->game->resign(stanza.from());
+void GameRoom::handleResign(const Stanza& stanza) {
+    this->_game->resign(stanza.from());
     this->sendStanza(stanza.createIQResult());
 }
 
-void GameRoom::handleDrawAccept(const XMPP::Stanza& stanza) {
+void GameRoom::handleDrawAccept(const Stanza& stanza) {
 
     this->draw_agreement.agreed(stanza.from());
     this->sendStanza(stanza.createIQResult());
 
     /* check if all players agreed on a draw */
     if(this->draw_agreement.left_count() == 0) {
-        this->game->draw();
+        this->_game->draw();
     } else if(this->draw_agreement.agreed_count() == 1) {
         this->notifyRequest(REQUEST_DRAW, stanza.from());
     }
 }
 
-void GameRoom::handleDrawDecline(const XMPP::Stanza& stanza) {
+void GameRoom::handleDrawDecline(const Stanza& stanza) {
     this->draw_agreement.clear();
     this->sendStanza(stanza.createIQResult());
     this->notifyRequest(REQUEST_DRAW_DECLINE, stanza.from());
 }
 
-void GameRoom::handleCancelAccept(const XMPP::Stanza& stanza) {
+void GameRoom::handleCancelAccept(const Stanza& stanza) {
     this->cancel_agreement.agreed(stanza.from());
     this->sendStanza(stanza.createIQResult());
 
@@ -300,13 +304,13 @@ void GameRoom::handleCancelAccept(const XMPP::Stanza& stanza) {
     }
 }
 
-void GameRoom::handleCancelDecline(const XMPP::Stanza& stanza) {
+void GameRoom::handleCancelDecline(const Stanza& stanza) {
     this->cancel_agreement.clear();
     this->sendStanza(stanza.createIQResult());
     this->notifyRequest(REQUEST_CANCEL_DECLINE, stanza.from());
 }
 
-void GameRoom::handleAdjournAccept(const XMPP::Stanza& stanza) {
+void GameRoom::handleAdjournAccept(const Stanza& stanza) {
     this->adjourn_agreement.agreed(stanza.from());
     this->sendStanza(stanza.createIQResult());
 
@@ -318,15 +322,15 @@ void GameRoom::handleAdjournAccept(const XMPP::Stanza& stanza) {
     }
 }
 
-void GameRoom::handleAdjournDecline(const XMPP::Stanza& stanza) {
+void GameRoom::handleAdjournDecline(const Stanza& stanza) {
     this->adjourn_agreement.clear();
     this->sendStanza(stanza.createIQResult());
     this->notifyRequest(REQUEST_ADJOURN_DECLINE, stanza.from());
 }
 
-void GameRoom::notifyRequest(GameRequest request, const XMPP::Jid& requester) {
+void GameRoom::notifyRequest(GameRequest request, const Jid& requester) {
     /* create message */
-    XMPP::Stanza stanza("iq");
+    Stanza stanza("iq");
     XML::Tag* query = new XML::Tag("query");
     stanza.subtype()="set";
     query->setAttribute("xmlns", xmlns_table[request]);
@@ -335,15 +339,15 @@ void GameRoom::notifyRequest(GameRequest request, const XMPP::Jid& requester) {
     foreach(player, this->all_players) {
         if(*player != requester) {
             stanza.to() = *player;
-            this->sendIq(new XMPP::Stanza(stanza));
+            this->sendIq(new Stanza(stanza));
         }
     }
 }
 
-XMPP::Stanza* GameRoom::createResultStanza(const string& lang) {
+Stanza* GameRoom::createResultStanza(const string& lang) {
 
     XML::TagGenerator tag_generator;
-    auto_ptr<XMPP::Stanza> stanza(new XMPP::Stanza("iq"));
+    auto_ptr<Stanza> stanza(new Stanza("iq"));
     stanza->subtype() = "set";
     stanza->lang() = lang;
     tag_generator.openTag("query");
@@ -370,43 +374,41 @@ XMPP::Stanza* GameRoom::createResultStanza(const string& lang) {
     return stanza.release();
 }
 
-XMPP::Stanza* GameRoom::createMoveStanza(XML::Tag* move_tag) {
+Stanza* GameRoom::createMoveStanza(XML::Tag* move_tag) {
     XML::TagGenerator tag_generator;
-    XMPP::Stanza* stanza = new XMPP::Stanza("iq");
+    Stanza* stanza = new Stanza("iq");
     stanza->subtype() = "set";
     tag_generator.openTag("query");
     tag_generator.addAttribute("xmlns", XMLNS_GAME_MOVE);
     tag_generator.addChild(move_tag);
-    tag_generator.addChild(this->game->state(this->currentTime()));
+    tag_generator.addChild(this->_game->state(this->currentTime()));
     stanza->children().push_back(tag_generator.getTag());
     return stanza;
 }
 
 void GameRoom::notifyMove(XML::Tag* move_tag) {
     /* create message */
-    auto_ptr<XMPP::Stanza> stanza(createMoveStanza(move_tag));
+    auto_ptr<Stanza> stanza(createMoveStanza(move_tag));
     /* send to all occupants */
     this->broadcastIq(*stanza);
 }
 
-void storeResult(const GameResult* result, int* game_id, DatabaseInterface& database) {
-    *game_id = database.insertGameResult(*result);
+void storeResult(const GameResult& result, int& game_id, DatabaseInterface& database) {
+    game_id = database.insertGameResult(result);
 }
 
-void storeAdjourned(AdjournedGame* adj_game, DatabaseInterface& database) {
+void storeAdjourned(const AdjournedGame& adj_game, DatabaseInterface& database) {
     PersistentAdjournedGame game;
-    auto_ptr<XML::Tag> history(adj_game->history());
+    auto_ptr<XML::Tag> history(adj_game.history());
 
     /* set game values */
-    game.category = adj_game->category();
-    game.players = adj_game->players();
+    game.category = adj_game.category();
+    game.players = adj_game.players();
     game.history = history->xml();
     game.time_stamp = boost::posix_time::second_clock::local_time();
     
     /* insert game to the database */
     database.insertAdjournedGame(game);
-
-    delete adj_game;
 }
 
 void GameRoom::broadcastResultStanza() {
@@ -425,24 +427,21 @@ void GameRoom::endGame(GameEndType type) {
 
     int game_id = -1;
 
-    foreach(player, this->game->players()) {
+    foreach(player, this->_game->players()) {
         this->players_result.push_back(GamePlayerResult(*player));
     }
 
     if(type == END_TYPE_NORMAL) {
         /* take the game result */
-        auto_ptr<GameResult> result(this->game->result());
+        auto_ptr<GameResult> result(this->_game->result());
 
         /* set result */
         this->result_reason = result->end_reason();
         this->players_result = result->players();
 
         /* store game in the database */
-        /* XXX execTransaction will wait for the transaction to end,
-         * this could be a bottleneck, but will no be a problem
-         * in the future planned modifications */
         this->database_manager.execTransaction(
-                boost::bind(storeResult, &*result, &game_id, _1));
+                boost::bind(storeResult, boost::ref(*result), boost::ref(game_id), _1));
 
     } else if(type == END_TYPE_CANCELED) {
         /* set result */
@@ -450,13 +449,13 @@ void GameRoom::endGame(GameEndType type) {
 
     } else if(type == END_TYPE_ADJOURNED) {
         /* get the adjourned game */
-        auto_ptr<AdjournedGame> adj_game(this->game->adjourn(this->currentTime()));
+        auto_ptr<AdjournedGame> adj_game(this->_game->adjourn(this->currentTime()));
 
         /* set result */
         this->result_reason = END_ADJOURNED;
 
         /* store game */
-        this->database_manager.execTransaction(boost::bind(storeAdjourned, adj_game.release(), _1));
+        this->database_manager.execTransaction(boost::bind(storeAdjourned, boost::ref(*adj_game), _1));
     }
 
     if(not handlers.report_result.empty()) {
@@ -467,13 +466,13 @@ void GameRoom::endGame(GameEndType type) {
     this->broadcastResultStanza();
 }
 
-void GameRoom::notifyResult(const XMPP::Jid& user) {
-    auto_ptr<XMPP::Stanza> stanza(this->createResultStanza(this->occupants().find_jid(user)->lang()));
+void GameRoom::notifyResult(const Jid& user) {
+    auto_ptr<Stanza> stanza(this->createResultStanza(this->occupants().find_jid(user)->lang()));
     stanza->to() = user;
     this->sendIq(stanza.release());
 }
 
-void GameRoom::notifyUserStatus(const XMPP::Jid& jid, const string& nick, bool available) {
+void GameRoom::notifyUserStatus(const Jid& jid, const string& nick, bool available) {
     if(available) {
         /* send to the user the game status */
         this->notifyState(jid);
@@ -481,4 +480,12 @@ void GameRoom::notifyUserStatus(const XMPP::Jid& jid, const string& nick, bool a
             this->notifyResult(jid);
         }
     }
+}
+
+void GameRoom::handleStanza(Stanza* stanza) throw() {
+    this->dispatcher.queue(boost::bind(&GameRoom::_handleStanza, this, stanza));
+}
+
+void GameRoom::_handleStanza(Stanza* stanza) {
+    Muc::handleStanza(stanza);
 }
