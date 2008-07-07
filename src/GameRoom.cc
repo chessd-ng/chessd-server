@@ -153,6 +153,8 @@ void GameRoom::onStop() {
     if(this->game_active) {
         this->endGame(END_TYPE_ADJOURNED, END_ADJOURNED_SHUTDOWN);
     }
+    /* close the room */
+    Muc::close();
 }
 
 void GameRoom::checkTime() {
