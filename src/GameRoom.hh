@@ -78,6 +78,8 @@ class GameRoom : public XMPP::Muc {
 
         const Game& game() const { return *this->_game; }
 
+        void stop();
+
 	private:
 		enum GameRequest {
 			REQUEST_DRAW,
@@ -93,6 +95,9 @@ class GameRoom : public XMPP::Muc {
             END_TYPE_CANCELED = 1,
             END_TYPE_ADJOURNED = 2
         };
+
+        void onStop();
+
         void _handleStanza(XMPP::Stanza* stanza);
 
 		/*! \brief Handle an incoming game iq */

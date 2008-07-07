@@ -94,13 +94,21 @@ ServerCore::~ServerCore() {
 }
 
 void ServerCore::onConnect() {
+    /* init all modules */
     foreach(module, this->modules) {
         module->start();
     }
 }
 
 void ServerCore::onClose() {
-
+    /* stop all games */
+    foreach(game, this->game_rooms) {
+        game->second->stop();
+    }
+    /* stop all modules */
+    foreach(module, this->modules) {
+        module->stop();
+    }
 }
 
 void ServerCore::onError(const string& msg) {

@@ -49,9 +49,13 @@ class ServerModule {
 
         void start();
 
+        void stop();
+
     protected:
 
         virtual void onStart();
+
+        virtual void onStop();
 
         virtual void handleIq(const XMPP::Stanza& iq) = 0;
 

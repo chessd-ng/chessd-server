@@ -63,7 +63,7 @@ void ComponentBase::connect() {
 }
 
 void ComponentBase::close() {
-    this->dispatcher.queue(boost::bind(&ComponentBase::_close, this));
+    this->dispatcher.exec(boost::bind(&ComponentBase::_close, this));
 }
 
 void ComponentBase::_close() {

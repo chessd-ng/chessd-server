@@ -94,6 +94,9 @@ GameRoom::GameRoom(
     move_count(0)
 {
 
+    /* start the dispatcher */
+    this->dispatcher.start();
+
     /* Set features */
     this->disco().features().insert(XMLNS_GAME);
 
@@ -134,13 +137,22 @@ GameRoom::GameRoom(
     /* set time check */
     this->dispatcher.schedule(boost::bind(&GameRoom::checkTime, this),
                               Timer::now() + Time::Seconds(20));
-
-    /* start the dispatcher */
-    this->dispatcher.start();
 }
 
 GameRoom::~GameRoom() {
+    /* stop the dispatcher */
     this->dispatcher.stop();
+}
+
+void GameRoom::stop() {
+    this->dispatcher.exec(boost::bind(&GameRoom::onStop, this));
+}
+
+void GameRoom::onStop() {
+    /* if the game is still active, ajourn it */
+    if(this->game_active) {
+        this->endGame(END_TYPE_ADJOURNED);
+    }
 }
 
 void GameRoom::checkTime() {

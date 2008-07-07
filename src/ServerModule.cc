@@ -44,7 +44,6 @@ void ServerModule::notifyUserStatus(const Jid& user_name,
 
 void ServerModule::_notifyUserStatus(const Jid& user_name,
                                     const UserStatus& status) {
-
     this->users_status[user_name] = status;
     this->handleUserStatus(user_name, status);
 }
@@ -126,9 +125,16 @@ bool ServerModule::canPlay(const Jid& user) const {
 void ServerModule::onStart() {
 }
 
+void ServerModule::onStop() {
+}
+
 void ServerModule::handleUserStatus(const Jid&, const UserStatus&) {
 }
 
 void ServerModule::start() {
     this->dispatcher.queue(boost::bind(&ServerModule::onStart, this));
+}
+
+void ServerModule::stop() {
+    this->dispatcher.exec(boost::bind(&ServerModule::onStop, this));
 }
