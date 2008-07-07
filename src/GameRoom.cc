@@ -151,7 +151,7 @@ void GameRoom::stop() {
 void GameRoom::onStop() {
     /* if the game is still active, ajourn it */
     if(this->game_active) {
-        this->endGame(END_TYPE_ADJOURNED);
+        this->endGame(END_TYPE_ADJOURNED, END_ADJOURNED_SHUTDOWN);
     }
 }
 
@@ -160,7 +160,7 @@ void GameRoom::checkTime() {
     if(this->game_active and this->move_count <= 1 and
             this->currentTime() > Time::Minutes(5)) {
         /* FIXME */
-        this->endGame(END_TYPE_CANCELED);
+        this->endGame(END_TYPE_CANCELED, END_CANCELED_TIMED_OUT);
     }
     
     /* check whether the time is over */
@@ -310,7 +310,7 @@ void GameRoom::handleCancelAccept(const Stanza& stanza) {
 
     /* check if all players agreed on canceling the game */
     if(this->cancel_agreement.left_count()==0) {
-        this->endGame(END_TYPE_CANCELED);
+        this->endGame(END_TYPE_CANCELED, END_CANCELED_AGREEMENT);
     } else if(this->cancel_agreement.agreed_count() == 1) {
         this->notifyRequest(REQUEST_CANCEL, stanza.from());
     }
@@ -328,7 +328,7 @@ void GameRoom::handleAdjournAccept(const Stanza& stanza) {
 
     /* check whether all players agreed on adjourning the game */
     if(this->adjourn_agreement.left_count()==0) {
-        this->endGame(END_TYPE_ADJOURNED);
+        this->endGame(END_TYPE_ADJOURNED, END_ADJOURNED_AGREEMENT);
     } else if(this->adjourn_agreement.agreed_count() == 1) {
         this->notifyRequest(REQUEST_ADJOURN, stanza.from());
     }
@@ -429,7 +429,7 @@ void GameRoom::broadcastResultStanza() {
     }
 }
 
-void GameRoom::endGame(GameEndType type) {
+void GameRoom::endGame(GameEndType type, END_CODE end_code) {
     /* set game status */
     this->game_active = false;
     this->end_type = type;
@@ -457,14 +457,14 @@ void GameRoom::endGame(GameEndType type) {
 
     } else if(type == END_TYPE_CANCELED) {
         /* set result */
-        this->result_reason = END_CANCELED;
+        this->result_reason = end_code;
 
     } else if(type == END_TYPE_ADJOURNED) {
         /* get the adjourned game */
         auto_ptr<AdjournedGame> adj_game(this->_game->adjourn(this->currentTime()));
 
         /* set result */
-        this->result_reason = END_ADJOURNED;
+        this->result_reason = end_code;
 
         /* store game */
         this->database_manager.execTransaction(boost::bind(storeAdjourned, boost::ref(*adj_game), _1));

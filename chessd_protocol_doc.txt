@@ -194,6 +194,10 @@ Any date and time is in the format specified by the XEP-082.
     draw-fifty-moves - The game was a draw due to the 50 half moves rule
     draw-impossible-mate - The game was a draw due the lack ofm aterial to mate
     draw-timeover - Both players ran out of time
+    canceled-agreement - The players agreed on calceling the game
+    canceled-timed-out - The game was canceled due to inactivity
+    adjourned-agreement - The players agreed on adjourning the game
+    adjourned-shutdown - The game was adjourned because the server is shutting down.
 
     The player's result attribute can be 'won', 'lost' or 'draw'.
 -->

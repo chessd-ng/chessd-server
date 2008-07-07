@@ -49,9 +49,11 @@ enum END_CODE {
     END_DRAW_IMPOSSIBLE_MATE=11,
     END_DRAW_TIME_OVER=12,
 
-    END_CANCELED=13,
+    END_CANCELED_AGREEMENT=13,
+    END_CANCELED_TIMED_OUT=14,
 
-    END_ADJOURNED=14
+    END_ADJOURNED_AGREEMENT=15,
+    END_ADJOURNED_SHUTDOWN=16
 };
 
 static const char game_end_reason_table[][32] = {
@@ -67,7 +69,11 @@ static const char game_end_reason_table[][32] = {
     "draw-repetition",
     "draw-fifty-moves",
     "draw-impossible-mate",
-    "draw-timeover"
+    "draw-timeover",
+    "canceled-agreement",
+    "canceled-timed-out",
+    "adjourned-agreement",
+    "adjourned-shutdown"
 };
 
 class GameResult {

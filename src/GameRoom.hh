@@ -143,7 +143,7 @@ class GameRoom : public XMPP::Muc {
 		void notifyMove(XML::Tag* long_tag);
 
         /*! \brief End the game. */
-        void endGame(GameEndType type);
+        void endGame(GameEndType type, END_CODE end_code = END_NO_REASON);
 
         /*! \brief Receive a notification of a user in the muc. */
         void notifyUserStatus(const XMPP::Jid& jid, const std::string& nick, bool available);
