@@ -170,11 +170,21 @@ void ProfileManager::updateProfile(const Stanza& stanza, DatabaseInterface& data
     }
 }
 
+PLAYER_COLOR translate_role(const std::string& role) {
+    if(role == "white") {
+        return WHITE;
+    } else if(role == "black") {
+        return BLACK;
+    } else {
+        return UNDEFINED;
+    }
+}
+
 void ProfileManager::searchGame(const Stanza& stanza, DatabaseInterface& database) {
     try  {
         try {
             XML::TagGenerator generator;
-            std::vector<std::pair<std::string, std::string> > players;
+            std::vector<std::pair<std::string, PLAYER_COLOR> > players;
             unsigned int max_results = 50;
             unsigned int offset = 0;
             int time_begin = -1, time_end = -1;
@@ -191,8 +201,8 @@ void ProfileManager::searchGame(const Stanza& stanza, DatabaseInterface& databas
             }
             foreach(field, search_tag.tags()) {
                 if(field->name() == "player") {
-                    std::string username = field->getAttribute("jid");
-                    std::string role = field->getAttribute("role", "");
+                    const std::string& username = field->getAttribute("jid");
+                    PLAYER_COLOR role = translate_role(field->getAttribute("role", ""));
                     players.push_back(make_pair(username, role));
                 } else if (field->name() == "date") {
                     std::string begin = field->getAttribute("begin", "");
