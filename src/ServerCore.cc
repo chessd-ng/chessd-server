@@ -109,6 +109,16 @@ void ServerCore::onClose() {
     foreach(module, this->modules) {
         module->stop();
     }
+    /* notify users */
+    ReadLock<map<Jid, UserStatus> > status(this->users_status);
+    Stanza stanza("presence");
+    stanza.subtype() = "unavailable";
+    foreach(user, *status) {
+        if(user->second.available) {
+            stanza.to() = user->first;
+            this->root_node.sendStanza(new Stanza(stanza));
+        }
+    }
 }
 
 void ServerCore::onError(const string& msg) {
