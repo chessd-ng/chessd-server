@@ -112,7 +112,7 @@ void AdminComponent::handleKick(const Stanza& stanza) {
     XMPP::Jid target(query.getAttribute("jid"));
 
     /* get kick reason */
-    const std::string& reason = query.findChild("reason").findCData().data();
+    const std::string& reason = query.findTag("reason").findCData().data();
 
     /* send kick notification */
     TagGenerator generator;
@@ -144,7 +144,7 @@ void AdminComponent::handleBan(const Stanza& stanza) {
     XMPP::Jid target(query.getAttribute("jid"));
 
     /* get ban reason */
-    const std::string& reason = query.findChild("reason").findCData().data();
+    const std::string& reason = query.findTag("reason").findCData().data();
 
     /* send ban notification */
     TagGenerator generator;

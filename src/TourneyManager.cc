@@ -98,9 +98,9 @@ void TourneyManager::handleCreate(const Stanza& stanza) {
     /* create tourney */
     auto_ptr<TourneyStatus> tourney(new TourneyStatus);
 
-    tourney->name = tourney_attributes.findChild("name").getCData();
+    tourney->name = tourney_attributes.findTag("name").getCData();
     tourney->description =
-        tourney_attributes.findChild("description").getCData();
+        tourney_attributes.findTag("description").getCData();
     tourney->running = false;
     tourney->start_time = start_time;
     tourney->tourney = auto_ptr<Tourney>(

@@ -26,6 +26,7 @@
 #include "AnnouncementManager.hh"
 
 #include "Exception.hh"
+#include "XMPP/Exception.hh"
 
 using namespace std;
 using namespace XML;
@@ -88,6 +89,9 @@ ServerCore::ServerCore(
         }
     }
     this->root_node.disco().features().insert(XMLNS_CHESSD_GAME);
+
+    /* the iq handler for basic services */
+    this->root_node.setIqHandler(boost::bind(&ServerCore::handleIq, this, _1), XMLNS_CHESSD_GAME);
 }
 
 ServerCore::~ServerCore() {
@@ -249,7 +253,7 @@ void ServerCore::handlePresence(const Stanza& stanza) {
     if(available) {
         try {
             /* check the config */
-            const XML::Tag& config = stanza.findChild("config");
+            const XML::Tag& config = stanza.findTag("config");
             /* read multigame parameter */
             if(config.getAttribute("multigame", "false") == "true") {
                 multigame = true;
@@ -268,4 +272,58 @@ void ServerCore::notifyUserStatus(const Jid& user_name, const UserStatus& status
     foreach(module, this->modules) {
         module->notifyUserStatus(user_name, status);
     }
+}
+
+void ServerCore::handleIq(const Stanza& stanza) {
+    try {
+        const Tag& query = stanza.firstTag();
+
+        if(query.name() == "search") {
+            this->handleSearch(stanza);
+        } else {
+            throw bad_request("Wrong format");
+        }
+    } catch(xml_error& error) {
+        throw bad_request("Wrong format");
+    }
+}
+
+void ServerCore::handleSearch(const Stanza& stanza) {
+    /* temporary simplification of search
+     * search for only one jid */
+    const Tag& query = stanza.findTag("search");
+    const Tag& game = query.findTag("game");
+    const Tag& player = game.findTag("player");
+    Jid player_jid(player.getAttribute("jid"));
+
+    /* message header */
+    TagGenerator generator;
+    generator.openTag("search");
+    generator.addAttribute("xmlns", XMLNS_CHESSD_GAME);
+
+    /* search games */
+    foreach(game_room, game_rooms) {
+        const Game& game = game_room->second->game();
+        bool match = false;
+
+        /* check if the game is a match */
+        foreach(player, game.players()) {
+            if(player->jid == player_jid) {
+                match = true;
+                break;
+            }
+        }
+
+        /* add the game to the message */
+        if(match) {
+            generator.openTag("game");
+            generator.addAttribute("room", "room_" + to_string(game_room->first));
+            generator.closeTag();
+        }
+    }
+
+    /* send the result stanza */
+    auto_ptr<Stanza> result(stanza.createIQResult());
+    result->children().push_back(generator.getTag());
+    this->root_node.sendStanza(result.release());
 }

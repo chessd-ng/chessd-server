@@ -202,7 +202,7 @@ void GameRoom::handleState(const Stanza& stanza) {
 
 void GameRoom::handleGameIq(const Stanza& stanza) {
     try {
-        const string& xmlns = stanza.findChild("query").getAttribute("xmlns");
+        const string& xmlns = stanza.findTag("query").getAttribute("xmlns");
 
         /* is a room occupant? */
         if(not this->isOccupant(stanza.from()))
@@ -262,7 +262,7 @@ Time GameRoom::currentTime() {
 void GameRoom::handleMove(const Stanza& stanza) {
     try {
         /* parse message */
-        const XML::Tag& move = stanza.query().findChild("move");
+        const XML::Tag& move = stanza.query().findTag("move");
         string move_string = move.getAttribute("long");
         
         /* make the move */

@@ -70,6 +70,12 @@ class ServerCore : public ComponentBase {
     private:
         void onConnect();
 
+        /*! \brief Handle an incoming iq */
+        void handleIq(const XMPP::Stanza& stanza);
+
+        /*! \brief Handle an incoming search request */
+        void handleSearch(const XMPP::Stanza& stanza);
+
         /*! \brief Handle an incoming presence */
         void handlePresence(const XMPP::Stanza& stanza);
 

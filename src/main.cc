@@ -60,16 +60,16 @@ int main(int argc, char** argv) {
         std::auto_ptr<XML::Tag> config(XML::parseXmlFile(file_name));
 
         /* Init database manager */
-        DatabaseManager database_manager(config->findChild("database"));
+        DatabaseManager database_manager(config->findTag("database"));
 
         /* Init the game server */
-        ServerCore server(config->findChild("xmpp-component"),
+        ServerCore server(config->findTag("xmpp-component"),
                 database_manager,
                 boost::bind(handleError, _1));
 
         /* Set log output */
         try {
-            log_file.open(config->findChild("log").getAttribute("filename").c_str(), iostream::out);
+            log_file.open(config->findTag("log").getAttribute("filename").c_str(), iostream::out);
             if(not log_file.fail()) {
                 Util::log.setOutput(log_file);
             } else {

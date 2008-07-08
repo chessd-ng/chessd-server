@@ -191,8 +191,8 @@ void ProfileManager::searchGame(const Stanza& stanza, DatabaseInterface& databas
             bool has_more = false;
 
             /* Parse request */
-            const Tag& query = stanza.findChild("query");
-            const Tag& search_tag = query.findChild("search");
+            const Tag& query = stanza.findTag("query");
+            const Tag& search_tag = query.findTag("search");
             if(search_tag.hasAttribute("offset")) {
                 offset = parse_string<int>(search_tag.getAttribute("offset"));
             }
@@ -279,8 +279,8 @@ void ProfileManager::fetchGame(const Stanza& stanza, DatabaseInterface& database
             XML::TagGenerator generator;
 
             /* Parse request */
-            const Tag& query = stanza.findChild("query");
-            const Tag& game_tag = query.findChild("game");
+            const Tag& query = stanza.findTag("query");
+            const Tag& game_tag = query.findTag("game");
             int game_id = parse_string<int>(game_tag.getAttribute("id"));
             std::string game_history = database.getGameHistory(game_id);
 
@@ -308,7 +308,7 @@ void ProfileManager::fetchGame(const Stanza& stanza, DatabaseInterface& database
 
 void ProfileManager::fetchRating(const Stanza& stanza, DatabaseInterface& database) {
     XML::TagGenerator generator;
-    const Tag& query = stanza.findChild("query");
+    const Tag& query = stanza.findTag("query");
     std::string category, jid;
 
     /* create message */
@@ -365,7 +365,7 @@ void ProfileManager::fetchRating(const Stanza& stanza, DatabaseInterface& databa
 
 void ProfileManager::fetchProfile(const Stanza& stanza, DatabaseInterface& database) {
     XML::TagGenerator generator;
-    const Tag& query = stanza.findChild("query");
+    const Tag& query = stanza.findTag("query");
     std::string category, user;
 
     ReadLock<map<PartialJid, ptime> > logons(this->last_logons);

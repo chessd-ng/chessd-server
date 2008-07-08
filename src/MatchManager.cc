@@ -147,7 +147,7 @@ void MatchManager::handleOffer(const Stanza& stanza) {
     try {
 
         /* parse message */
-        const Tag& offer = stanza.query().findChild("match");
+        const Tag& offer = stanza.query().findTag("match");
 
         /* Is the offer to resume an adjourned game? */
         if(offer.hasAttribute("adjourned_id")) {
@@ -176,7 +176,7 @@ void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
         std::auto_ptr<Match> match(_match);
 
         /* parse message */
-        const Tag& offer = stanza.query().findChild("match");
+        const Tag& offer = stanza.query().findTag("match");
         int match_id;
 
         /* is it a rematch? */
@@ -292,7 +292,7 @@ void MatchManager::notifyOffer(int id, const Jid& requester) {
 void MatchManager::handleAccept(const Stanza& stanza) {
     try {
         /* get match */
-        const Tag& match = stanza.query().findChild("match");
+        const Tag& match = stanza.query().findTag("match");
         /* parse message */
         int id = parse_string<int>(match.getAttribute("id"));
         /* update accepted */
@@ -313,7 +313,7 @@ void MatchManager::handleAccept(const Stanza& stanza) {
 void MatchManager::handleDecline(const Stanza& stanza) {
     try {
         /* get match */
-        const Tag& match = stanza.query().findChild("match");
+        const Tag& match = stanza.query().findTag("match");
         /* parse message */
         int id = parse_string<int>(match.getAttribute("id"));
         /* sanity check */
@@ -409,7 +409,7 @@ void MatchManager::listAdjournedGames(const Stanza& query, DatabaseInterface& da
             TagGenerator generator;
 
             /* Parse request */
-            const Tag& search_tag = query.query().findChild("search");
+            const Tag& search_tag = query.query().findTag("search");
             offset = parse_string<int>(search_tag.getAttribute("offset"));
             max_results = min(max_results, parse_string<int>(search_tag.getAttribute("results")));
             players.push_back(query.from().partial());

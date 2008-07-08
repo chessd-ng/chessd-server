@@ -568,6 +568,28 @@ Any date and time is in the format specified by the XEP-082.
 </iq>
 
 <!--
+    To search for current games
+--!>
+
+<iq type='get' to='chessd.shiva' id='1234'>
+    <search xmlns='http://c3sl.ufpr.br/chessd#game'>
+        <game>
+            <player jid='buguens@shiva/ChessD'/>
+        </game>
+    </search>
+</iq>
+
+<!--
+    The result is like this
+--!>
+
+<iq type='get' to='chessd.shiva' id='1234'>
+    <search xmlns='http://c3sl.ufpr.br/chessd#game'>
+        <game game_room='game_1234@chessd.shiva'/>
+    </search>
+</iq>
+
+<!--
 	Match Announcement
 	//FIXME explain more
 --!>
