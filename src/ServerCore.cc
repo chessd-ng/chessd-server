@@ -306,6 +306,10 @@ void ServerCore::handleSearch(const Stanza& stanza) {
         const Game& game = game_room->second->game();
         bool match = false;
 
+        if(not game_room->second->isActive()) {
+            continue;
+        }
+
         /* check if the game is a match */
         foreach(player, game.players()) {
             if(player->jid == player_jid) {
@@ -317,7 +321,7 @@ void ServerCore::handleSearch(const Stanza& stanza) {
         /* add the game to the message */
         if(match) {
             generator.openTag("game");
-            generator.addAttribute("room", "room_" + to_string(game_room->first));
+            generator.addAttribute("room", "game_" + to_string(game_room->first));
             generator.closeTag();
         }
     }

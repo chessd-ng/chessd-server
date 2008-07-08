@@ -67,12 +67,11 @@ void ComponentBase::close() {
 }
 
 void ComponentBase::_close() {
-	if(this->running) {
+	if(__sync_val_compare_and_swap(&this->running,true,false)) {
         /* call handler */
         this->onClose();
 
         /* close threads */
-		this->running = false;
 		this->stanza_queue.push(0);
 		this->task_recv.join();
 		this->task_send.join();
@@ -102,7 +101,7 @@ void ComponentBase::handleStanza(XMPP::Stanza* stanza) {
 void ComponentBase::run_recv() {
     XMPP::Stanza* stanza;
 	try {
-		while(this->running) {
+		while(__sync_val_compare_and_swap(&this->running,true,true)) {
             /* receive stanzas */
 			stanza = this->component.recvStanza(1);
             /* deliver the stanza */
@@ -111,14 +110,14 @@ void ComponentBase::run_recv() {
             }
 		}
 	} catch (const char* error) {
-		if(this->running)
+		if(__sync_val_compare_and_swap(&this->running,true,true))
 			this->handleError(error);
 	}
 }
 
 void ComponentBase::run_send() {
 	XMPP::Stanza* stanza;
-	while(this->running) {
+	while(__sync_val_compare_and_swap(&this->running,true,true)) {
         /* take one stanza from the queue */
 		stanza = this->stanza_queue.pop();
 		if(stanza==0)

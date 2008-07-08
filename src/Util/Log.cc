@@ -17,6 +17,7 @@
  */
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/bind.hpp>
 #include <iostream>
 
 #include "Log.hh"
@@ -26,12 +27,22 @@ using namespace Util;
 
 Log Util::log;
 
-Log::Log() : output(&cout) { }
+Log::Log() : output(&cout) {
+    this->dispatcher.start();
+}
+
+Log::~Log() {
+    this->dispatcher.stop();
+}
 
 void Log::setOutput(ostream& output) {
     this->output = &output;
 }
 
 void Log::log(const std::string& msg) {
+    this->dispatcher.queue(boost::bind(&Log::_log, this, msg));
+}
+
+void Log::_log(const std::string& msg) {
     *(this->output) << boost::posix_time::second_clock::local_time() << ": " << msg << endl;
 }

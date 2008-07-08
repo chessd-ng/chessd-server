@@ -68,7 +68,7 @@ namespace Threads {
 
             std::map<Util::Time, Message> agenda;
 
-			bool running;
+			volatile bool running;
 
 			void _stop();
 

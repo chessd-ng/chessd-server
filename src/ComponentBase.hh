@@ -98,7 +98,7 @@ class ComponentBase {
         Threads::Dispatcher dispatcher;
 
         /*! \brief Is it running? */
-        bool running;
+        volatile bool running;
 
         /*! \brief A XMPP node*/
         XMPP::RootNode root_node;

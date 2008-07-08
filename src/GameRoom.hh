@@ -80,6 +80,8 @@ class GameRoom : public XMPP::Muc {
 
         void stop();
 
+        bool isActive() const { return this->game_active; }
+
 	private:
 		enum GameRequest {
 			REQUEST_DRAW,
@@ -188,7 +190,7 @@ class GameRoom : public XMPP::Muc {
 
 		std::set<XMPP::Jid> all_players;
 
-		bool game_active;
+		volatile bool game_active;
 
         Util::Time start_time;
 

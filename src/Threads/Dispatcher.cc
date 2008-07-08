@@ -29,13 +29,14 @@ namespace Threads {
     }
 
     void Dispatcher::start() {
-        this->running = true;
-        this->task.start();
+        if(__sync_val_compare_and_swap(&this->running,false,true) == false) {
+            this->task.start();
+        }
     }
 
     void Dispatcher::run() {
         Message message;
-        while(this->running) {
+        while(__sync_val_compare_and_swap(&this->running,true,true)) {
             if(this->agenda.empty()) {
                 message = this->_queue.pop();
             } else {
@@ -52,7 +53,7 @@ namespace Threads {
         /* A stop message is sent to the dispatcher instead of just
          * setting running to false. This way we make sure the dispatcher
          * will stop immediately. */
-        if(this->running == true) {
+        if(__sync_val_compare_and_swap(&this->running,true,true) == true) {
             this->exec(boost::bind(&Dispatcher::_stop, this));
             this->join();
         }
@@ -63,7 +64,9 @@ namespace Threads {
     }
 
     void Dispatcher::_stop() {
-        this->running = false;
+        if(__sync_val_compare_and_swap(&this->running,true,false) == false) {
+            /* was stopped already */
+        }
     }
 
     void Dispatcher::queue(const Message& message) {
