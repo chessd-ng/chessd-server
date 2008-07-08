@@ -93,10 +93,6 @@ GameRoom::GameRoom(
     start_time(Timer::now()),
     move_count(0)
 {
-
-    /* start the dispatcher */
-    this->dispatcher.start();
-
     /* Set features */
     this->disco().features().insert(XMLNS_GAME);
 
@@ -137,6 +133,9 @@ GameRoom::GameRoom(
     /* set time check */
     this->dispatcher.schedule(boost::bind(&GameRoom::checkTime, this),
                               Timer::now() + Time::Seconds(20));
+
+    /* start the dispatcher */
+    this->dispatcher.start();
 }
 
 GameRoom::~GameRoom() {

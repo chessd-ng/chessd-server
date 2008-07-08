@@ -67,13 +67,18 @@ void ComponentBase::close() {
 }
 
 void ComponentBase::_close() {
-	if(__sync_val_compare_and_swap(&this->running,true,false)) {
+	if(this->running) {
+
+        this->running = false;
+
+        /* stop receiving */
+		this->task_recv.join();
+
         /* call handler */
         this->onClose();
 
-        /* close threads */
+        /* stop sending */
 		this->stanza_queue.push(0);
-		this->task_recv.join();
 		this->task_send.join();
 
         /* close connection */
@@ -99,9 +104,9 @@ void ComponentBase::handleStanza(XMPP::Stanza* stanza) {
 }
 
 void ComponentBase::run_recv() {
-    XMPP::Stanza* stanza;
+    XMPP::Stanza* stanza = 0;
 	try {
-		while(__sync_val_compare_and_swap(&this->running,true,true)) {
+		while(this->running) {
             /* receive stanzas */
 			stanza = this->component.recvStanza(1);
             /* deliver the stanza */
@@ -110,18 +115,22 @@ void ComponentBase::run_recv() {
             }
 		}
 	} catch (const char* error) {
-		if(__sync_val_compare_and_swap(&this->running,true,true))
+		if(this->running)
 			this->handleError(error);
 	}
 }
 
 void ComponentBase::run_send() {
-	XMPP::Stanza* stanza;
-	while(__sync_val_compare_and_swap(&this->running,true,true)) {
+	XMPP::Stanza* stanza = 0;
+	while(1) {
         /* take one stanza from the queue */
-		stanza = this->stanza_queue.pop();
-		if(stanza==0)
+        stanza = this->stanza_queue.pop();
+
+        /* we have to stop when we get a null pointer */
+		if(stanza==0) {
 			break;
+        }
+
         /* deliver it */
         try {
             this->component.sendStanza(stanza);

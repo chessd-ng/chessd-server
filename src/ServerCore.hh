@@ -103,13 +103,13 @@ class ServerCore : public ComponentBase {
          *
          * This is a tunnel.
          * */
-        void endGame(GameId game_id);
+        void endGame(GameId game_id, const std::vector<GamePlayer>& players);
 
         /*! \brief Hide a game room.
          *
          * This is the real one.
          * */
-        void _endGame(GameId game_id);
+        void _endGame(GameId game_id, const std::vector<GamePlayer>& players);
 
         /*! \brief handle an error */
         void handleError(const std::string& error);
@@ -125,17 +125,18 @@ class ServerCore : public ComponentBase {
 
         std::string node_name;
 
-        boost::ptr_map<GameId, GameRoom> game_rooms;
-
         DatabaseManager& database_manager;
+
+        Threads::SafeObject<std::map<XMPP::Jid, UserStatus> > users_status;
+
+        boost::ptr_vector<ServerModule> modules;
+
+        boost::ptr_map<GameId, GameRoom> game_rooms;
 
         XMPP::ErrorHandler handle_error;
 
         GameId game_ids;
 
-        boost::ptr_vector<ServerModule> modules;
-
-        Threads::SafeObject<std::map<XMPP::Jid, UserStatus> > users_status;
 };
 
 #endif

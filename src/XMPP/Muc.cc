@@ -149,8 +149,8 @@ namespace XMPP {
         Jid jid = this->jid();
         jid.resource() = user->nick();
         this->disco().items().erase(jid);
-        this->users().erase(user);
         this->notifyUserStatus(user->jid(), user->nick(), false);
+        this->users().erase(user);
     }
 
 	void Muc::handleGroupChat(const Stanza& stanza) {

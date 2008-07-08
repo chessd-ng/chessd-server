@@ -109,10 +109,12 @@ void ServerCore::onClose() {
     foreach(game, this->game_rooms) {
         game->second->stop();
     }
+    this->game_rooms.clear();
     /* stop all modules */
     foreach(module, this->modules) {
         module->stop();
     }
+    this->modules.clear();
     /* notify users */
     ReadLock<map<Jid, UserStatus> > status(this->users_status);
     Stanza stanza("presence");
@@ -120,7 +122,7 @@ void ServerCore::onClose() {
     foreach(user, *status) {
         if(user->second.available) {
             stanza.to() = user->first;
-            this->root_node.sendStanza(new Stanza(stanza));
+            this->sendStanza(new Stanza(stanza));
         }
     }
 }
@@ -187,7 +189,7 @@ void ServerCore::_createGame(Game* game,
             this->database_manager,
             GameRoomHandlers(boost::bind(&ComponentBase::sendStanza, this, _1),
                 boost::bind(&ServerCore::closeGame, this, game_id),
-                boost::bind(&ServerCore::endGame, this, game_id),
+                boost::bind(&ServerCore::endGame, this, game_id, game->players()),
                 on_game_end)));
 
     /* Register the node */
@@ -201,11 +203,11 @@ void ServerCore::_createGame(Game* game,
     game_rooms.insert(game_id, game_room);
 }
 
-void ServerCore::endGame(GameId room_id) {
-    this->dispatcher.queue(boost::bind(&ServerCore::_endGame, this, room_id));
+void ServerCore::endGame(GameId room_id, const vector<GamePlayer>& players) {
+    this->dispatcher.queue(boost::bind(&ServerCore::_endGame, this, room_id, players));
 }
 
-void ServerCore::_endGame(GameId room_id) {
+void ServerCore::_endGame(GameId room_id, const vector<GamePlayer>& players) {
     Jid room_jid = Jid("game_" + to_string(room_id), this->node_name);
 
     /* erase the room from the disco items
@@ -215,10 +217,8 @@ void ServerCore::_endGame(GameId room_id) {
     /* Acquire lock to user status */
     WriteLock<map<Jid, UserStatus> > status(this->users_status);
 
-    const Game& game = this->game_rooms.find(room_id)->second->game();
-
     /* now we decrement the players game count and notify the modules */
-    foreach(player, game.players()) {
+    foreach(player, players) {
         map<Jid, UserStatus>::iterator it = status->find(player->jid);
         it->second.games_playing--;
         this->notifyUserStatus(it->first, it->second);
