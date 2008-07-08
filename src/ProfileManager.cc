@@ -33,7 +33,6 @@ using namespace XML;
 using namespace XMPP;
 using namespace Util;
 using namespace Threads;
-using namespace boost::posix_time;
 
 #define XMLNS_CHESSD_INFO "http://c3sl.ufpr.br/chessd#info"
 #define XMLNS_CHESSD_PROFILE "http://c3sl.ufpr.br/chessd#profile"
@@ -45,26 +44,7 @@ ProfileManager::ProfileManager(
         const XMPP::StanzaHandler& send_stanza) :
     ServerModule(send_stanza),
     database(database)
-{
-
-    /* Set features */
-    //this->root_node.disco().features().insert(XMLNS_CHESSD_INFO);
-
-    /* Set iqs */
-    /*
-    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleRating, this, _1),
-            XMLNS_CHESSD_INFO);
-    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleSearchGame, this, _1),
-            XMLNS_CHESSD_GAME_SEARCH);
-    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleFetchGame, this, _1),
-            XMLNS_CHESSD_GAME_FETCH);
-    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleProfile, this, _1),
-            XMLNS_CHESSD_PROFILE);
-            */
-
-    /* Set presence handler */
-    //this->root_node.setPresenceHandler(boost::bind(&ProfileManager::handlePresence, this, _1));
-}
+{ }
 
 ProfileManager::~ProfileManager() {
 }
@@ -368,7 +348,7 @@ void ProfileManager::fetchProfile(const Stanza& stanza, DatabaseInterface& datab
     const Tag& query = stanza.findTag("query");
     std::string category, user;
 
-    ReadLock<map<PartialJid, ptime> > logons(this->last_logons);
+    ReadLock<map<PartialJid, Time> > logons(this->last_logons);
 
     /* create message */
     generator.openTag("iq");
@@ -423,8 +403,7 @@ void ProfileManager::fetchProfile(const Stanza& stanza, DatabaseInterface& datab
 
             /* get the user's uptime */
             if_find(it, PartialJid(user), *logons) {
-                int uptime = (second_clock::local_time() - 
-                              it->second).total_seconds();
+                int uptime = (Timer::now() - it->second).getSeconds();
                 generator.openTag("uptime");
                 generator.addAttribute("seconds", to_string(uptime));
                 generator.closeTag();
@@ -438,19 +417,16 @@ void ProfileManager::fetchProfile(const Stanza& stanza, DatabaseInterface& datab
     this->sendStanza(new XMPP::Stanza(generator.getTag()));
 }
 
-void ProfileManager::handlePresence(const XMPP::Stanza& stanza) {
-    XMPP::PartialJid user = stanza.from();
+void ProfileManager::handleUserStatus(const Jid& user, const UserStatus& status) {
 
-    WriteLock<map<PartialJid, ptime> > logons(this->last_logons);
+    WriteLock<map<PartialJid, Time> > logons(this->last_logons);
 
-    if(stanza.subtype().empty()) {
+    if(status.available) {
         /* the user is online */
         if(logons->find(user) == logons->end()) {
-            logons->insert(
-                make_pair(user,
-                          second_clock::local_time()));
+            logons->insert(make_pair(user, Timer::now()));
         }
-    } else if(stanza.subtype() == "unavailable") {
+    } else {
         /* the user went offline */
         if(logons->find(user) != logons->end()) {
             this->database.queueTransaction(
@@ -458,8 +434,8 @@ void ProfileManager::handlePresence(const XMPP::Stanza& stanza) {
                     &ProfileManager::updateOnlineTime,
                     this,
                     user,
-                    (second_clock::local_time() -
-                     logons->find(user)->second).total_seconds(),
+                    (Timer::now() -
+                     logons->find(user)->second).getSeconds(),
                     _1));
             logons->erase(user);
         }
@@ -472,3 +448,16 @@ void ProfileManager::updateOnlineTime(const XMPP::PartialJid& user,
     database.updateOnlineTime(user.full(), increment);
 }
 
+void ProfileManager::onStop() {
+    /* stop counting online time, set every one to offline */
+    WriteLock<map<PartialJid, Time> > logons(this->last_logons);
+    Time now = Timer::now();
+    foreach(logon, *logons) {
+        this->database.queueTransaction(
+                boost::bind(
+                    &ProfileManager::updateOnlineTime,
+                    this, logon->first,
+                    (now - logon->second).getSeconds(), _1));
+    }
+    logons->clear();
+}
