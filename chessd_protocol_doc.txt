@@ -496,6 +496,12 @@ Any date and time is in the format specified by the XEP-082.
     </create>
 </iq>
 
+<iq type='result' to='chessd.shiva' id='1234'>
+    <create xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
+        <announcement id='0'/>
+    </create>
+</iq>
+
 <!--
 	To search for available annoucments.
     The paramaters are:
