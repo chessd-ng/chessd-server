@@ -34,11 +34,14 @@
 using namespace std;
 using namespace XML;
 
+volatile bool running = true;
 pthread_t main_thread;
 
 void handleError(const string& error) {
     cerr << error << endl;
-    pthread_kill(main_thread, SIGINT);
+    if(__sync_val_compare_and_swap(&running, true, false) == true) {
+        pthread_kill(main_thread, SIGINT);
+    }
 }
 
 int main(int argc, char** argv) {
@@ -87,7 +90,7 @@ int main(int argc, char** argv) {
         sigwait(&signal_set, &sig_number);
 
         /* Close the server */
-        cerr << "Shutting down..." << endl;
+        cerr << "Exiting..." << endl;
         server.close();
     } catch (const char* msg) {
         cerr << "Error: " << msg << endl;

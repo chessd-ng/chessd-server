@@ -132,8 +132,6 @@ class ComponentBase {
         Threads::Task task_send;
 
         Threads::Queue<XMPP::Stanza*> stanza_queue;
-
-
 };
 
 #endif

@@ -85,6 +85,9 @@ namespace XMPP {
 			 */
 			bool isActive() const { return this->active; }
 
+            /*! \brief Returns the socket descriptor */
+            int getFD() const;
+
 			struct HookInfo;
 		private:
 
@@ -99,9 +102,6 @@ namespace XMPP {
 
 			/*! \brief Hold connection status */
 			bool active;
-
-            int _socket_fd;
-
 	};
 
 }

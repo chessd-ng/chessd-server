@@ -55,6 +55,9 @@ namespace XMPP {
             /* \brief Close the connection to the server. */
             void close();
 
+            /*! \brief Returns the socket descriptor */
+            int getFD() const { return this->stream.getFD(); }
+
 		private:
 
             Stream stream;

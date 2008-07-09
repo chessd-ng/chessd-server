@@ -67,9 +67,7 @@ void ComponentBase::close() {
 }
 
 void ComponentBase::_close() {
-	if(this->running) {
-
-        this->running = false;
+	if(__sync_val_compare_and_swap(&this->running, true, false) == true) {
 
         /* stop receiving */
 		this->task_recv.join();
@@ -87,7 +85,7 @@ void ComponentBase::_close() {
 }
 
 void ComponentBase::handleError(const std::string& error) {
-    /* tunel the call */
+    /* tunnel the call */
     this->dispatcher.queue(boost::bind(&ComponentBase::_handleError, this, error));
 }
 
@@ -114,30 +112,33 @@ void ComponentBase::run_recv() {
                 this->handleStanza(stanza);
             }
 		}
-	} catch (const char* error) {
-		if(this->running)
-			this->handleError(error);
+	} catch (const runtime_error& error) {
+        this->handleError(error.what());
 	}
 }
 
 void ComponentBase::run_send() {
 	XMPP::Stanza* stanza = 0;
-	while(1) {
-        /* take one stanza from the queue */
-        stanza = this->stanza_queue.pop();
+    try {
+        while(this->running) {
+            /* take one stanza from the queue */
+            stanza = this->stanza_queue.pop();
 
-        /* we have to stop when we get a null pointer */
-		if(stanza==0) {
-			break;
-        }
+            /* we have to stop when we get a null pointer */
+            if(stanza==0) {
+                break;
+            }
 
-        /* deliver it */
-        try {
-            this->component.sendStanza(stanza);
-        } catch (const char* error) {
-            this->handleError(error);
+            /* deliver it */
+            if(this->running) {
+                this->component.sendStanza(stanza);
+            } else {
+                delete stanza;
+            }
         }
-	}
+    } catch (const runtime_error& error) {
+        this->handleError(error.what());
+    }
 }
 
 void ComponentBase::sendStanza(XMPP::Stanza* stanza) {
