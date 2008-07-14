@@ -122,12 +122,14 @@ GameRoom::GameRoom(
     this->setIqHandler(boost::bind(&GameRoom::handleGameIq, this, _1),
             XMLNS_GAME_STATE);
 
-    /* init agreements */
+    Time timeout = Timer::now() + Time::Minutes(5);
+    /* init agreements and tiemouts */
     foreach(player, game->players()) {
         this->draw_agreement.insert(player->jid);
         this->cancel_agreement.insert(player->jid);
         this->adjourn_agreement.insert(player->jid);
         this->all_players.insert(player->jid);
+        this->player_timeout.insert(make_pair(player->jid, timeout));
     }
 
     /* set time check */
@@ -157,23 +159,45 @@ void GameRoom::onStop() {
 }
 
 void GameRoom::checkTime() {
-    /* cancel games for inactivity */
-    if(this->game_active and this->move_count <= 1 and
-            this->currentTime() > Time::Minutes(5)) {
-        /* FIXME */
-        this->endGame(END_TYPE_CANCELED, END_CANCELED_TIMED_OUT);
-    }
-    
+    Time now = Timer::now();
+
     /* check whether the time is over */
     if(this->game_active and this->_game->done(this->currentTime())) {
         this->endGame(END_TYPE_NORMAL);
     }
+
+    /* check players timeout */
+    Time timeout = now;
+    foreach(player, this->player_timeout) {
+        timeout = min(timeout, player->second);
+    }
+    /* if someone timedout, end the game */
+    if(timeout < now) {
+        /* check all the players that timedout first */
+        vector<Jid> timedout_players;
+        foreach(player, this->player_timeout) {
+            if(player->second == timeout) {
+                timedout_players.push_back(player->first);
+            }
+        }
+        /* if everyonw has timedout, cancel the game */
+        if(timedout_players.size() == this->all_players.size()) {
+            this->endGame(END_TYPE_CANCELED, END_CANCELED_TIMED_OUT);
+        } else {
+            /* give wo to absent users */
+            this->_game->wo(timedout_players);
+        }
+    }
+
+    /* check if we can close the game room
+     * this is here to make sure the timer
+     * will stop for sure */
     if(not this->game_active and this->occupants().size() == 0) {
         this->handlers.close_game();
     } else {
         /* set time check */
         this->dispatcher.schedule(boost::bind(&GameRoom::checkTime, this),
-                Timer::now() + Time::Seconds(20));
+                Timer::now() + Time::Seconds(10));
     }
 }
 
@@ -487,10 +511,20 @@ void GameRoom::notifyResult(const Jid& user) {
 
 void GameRoom::notifyUserStatus(const Jid& jid, const string& nick, bool available) {
     if(available) {
-        /* send to the user the game status */
+        /* send to the user the game state */
         this->notifyState(jid);
         if(not this->game_active) {
             this->notifyResult(jid);
+        }
+
+        /* if the user is a player, update timeout to infinite */
+        if(this->all_players.count(jid) > 0) {
+            this->player_timeout[jid] = Timer::now() + Time::Hours(1000000);
+        }
+    } else {
+        /* if the user is a player, update timeout 5 minutes from now */
+        if(this->all_players.count(jid) > 0) {
+            this->player_timeout[jid] = Timer::now() + Time::Minutes(5);
         }
     }
 }

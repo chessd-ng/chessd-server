@@ -195,9 +195,11 @@ Any date and time is in the format specified by the XEP-082.
     draw-impossible-mate - The game was a draw due the lack ofm aterial to mate
     draw-timeover - Both players ran out of time
     canceled-agreement - The players agreed on calceling the game
-    canceled-timed-out - The game was canceled due to inactivity
+    canceled-timed-out - The game was canceled because no players showed up.
     adjourned-agreement - The players agreed on adjourning the game
     adjourned-shutdown - The game was adjourned because the server is shutting down.
+    white-wo - White won the game because the oponent was absent or abandoned the game.
+    black-wo - Black won the game because the oponent was absent or abandoned the game.
 
     The player's result attribute can be 'won', 'lost' or 'draw'.
 -->

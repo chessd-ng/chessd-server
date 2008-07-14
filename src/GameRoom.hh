@@ -197,6 +197,8 @@ class GameRoom : public XMPP::Muc {
         int move_count;
 
         GameEndType end_type;
+
+        std::map<XMPP::Jid, Util::Time> player_timeout;
 };
 
 #endif
