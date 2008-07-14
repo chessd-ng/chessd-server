@@ -61,6 +61,13 @@ namespace Pairing {
 		//SortPlayers();
 		return(1);   // we entered the tourney
 	}
+	int Tourney::AddPlayer(const TourneyPlayers& tp) {
+		this->playerList.push_back(tp);
+		this->playerList_name[tp.name]=&*(this->playerList.rbegin());
+		this->total_number_of_players++;
+		//SortPlayers();
+		return(1);   // we entered the tourney
+	}
 
 	//- RemovePlayer ----------------------------------------------------------
 	void Tourney::RemovePlayer(int name) {
@@ -158,8 +165,8 @@ namespace Pairing {
 
 		this->sortList.clear();
 		this->sortList_value.clear();
-		//this->sortList_name.clear();
-		this->sortList_name=std::vector<Player*>(total_number_of_players);
+		this->sortList_name.clear();
+//		this->sortList_name=std::vector<Player*>(total_number_of_players);
 
 		foreach(player, this->playerList) {
 			if(player->activeFlag)
@@ -192,7 +199,7 @@ namespace Pairing {
 		}
 		std::stable_sort(sortList.begin(),sortList.end());
 
-		i = 1;
+		i = 0;
 		foreach(s, this->sortList) {			
 			s->value = i;
 			this->sortList_name[s->name]=&*s;
@@ -252,12 +259,12 @@ namespace Pairing {
 	//- GetSortPlayer ------------------------------
 	Player *Tourney::GetSortPlayer(int place)
 	{
-//		if(place<=(int)sortList.size())
-//			return &sortList[place-1];
+		if(place<(int)sortList.size())
+			return &sortList[place];
 		
-		foreach(p, this->sortList)
-			if(p->value == place)
-				return &*p;
+//		foreach(p, this->sortList)
+//			if(p->value == place)
+//				return &*p;
 		
 
 		return 0;
@@ -311,7 +318,7 @@ namespace Pairing {
 
 	int Tourney::PopLastPairedPlayer()
 	{
-		int last=0;
+		int last=-1;
 
 		if(not this->pairedPlayers.empty()) {
 			last = this->pairedPlayers.back().second;
@@ -369,18 +376,18 @@ namespace Pairing {
 			p=&*player;
 			if((style == 'd') || (style == 'r')) {
 				// If this is a round robin we don't need to or WANT to sort the players first
-				tp = GetPlayer(player-this->sortList.begin()+1);
+				tp = GetPlayer(player-this->sortList.begin());
 			} else {
-				p = GetSortPlayer(player-this->sortList.begin()+1);
+				p = GetSortPlayer(player-this->sortList.begin());
 				tp = GetPlayerByName(p->name);
 			}
 			if( ( !tp->IsPaired() ) && tp->activeFlag && tp->alive) {
 				while(this->TryToPair(playerCount,tp,&opponent)==0) {
 						tp->oppChoice = 0;
 						i = PopLastPairedPlayer();
-						if(i <= 0) return 0;
+						if(i < 0) return 0;
 
-						player=this->sortList.begin()-1; //be carefull with this
+						player=this->sortList.begin()+i;
 
 						if((style == 'd') || (style == 'r'))
 							tp = GetPlayer(i);
@@ -399,15 +406,16 @@ namespace Pairing {
 				pairedPlayers.push_back(PairedPlayer(tp->name, i));
 				PairPlayers(tp, opponent);
 			}
+			i++;
 		}
 		return 1;
 	}
-/*
+
 	int Tourney::SwissAssign(int playerCount)
 	{
 		TourneyPlayers *tp = NULL, *opponent = NULL;
 		Player *p=NULL;
-		int everybodyPaired=0, i=1;
+		int everybodyPaired=0, i=0;
 
 		if(playerCount <= 0) return 0;
 		while(everybodyPaired == 0) {
@@ -422,7 +430,8 @@ namespace Pairing {
 			// PrintPotentialLists();
 			if(tp == NULL) return 0;
 			if( ( !tp->IsPaired() ) && tp->activeFlag && tp->alive) {  // If I am not paired and I am active pair me
-				if((opponent = FindBestOpponent(tp))) {
+				SetPairingScores(tp);
+				if((opponent = FindBestOpponent(tp,this->potentialOpponentList))) {
 					// keep a list of paired players
 					pairedPlayers.push_back(PairedPlayer(tp->name, i));
 					//if(gMamer.debugLevel >= 5)
@@ -433,7 +442,7 @@ namespace Pairing {
 					if(tp->oppChoice > playerCount) {                     // If I have tried all my opponents
 						tp->oppChoice = 0;                                  // reset me so I can try again later
 						i = PopLastPairedPlayer();                          // returns int of last paired & del's from paired list
-						if(i <= 0)  {                                       // this is really bad; means we can't even find
+						if(i < 0)  {                                       // this is really bad; means we can't even find
 							return 0;                                         // an opp for 1st player.  Tourney has to be over now
 						}
 						if((style == 'd') || (style == 'r'))
@@ -460,7 +469,7 @@ namespace Pairing {
 		}
 		return 1;
 	}
-*/
+
 	void Tourney::ColorizeTourney(void) {
 		TourneyPlayers *opponent = NULL;
 
@@ -477,7 +486,7 @@ namespace Pairing {
 		}
 	}
 
-	void Tourney::SetByeResult(void) {
+	int Tourney::SetByeResult(void) {
 
 		foreach(tp, this->playerList) {
 			if(tp->name == _BYE_) {                     // If I am the bye
@@ -488,16 +497,18 @@ namespace Pairing {
 						else
 							SetGameResult(tp->oppName, tp->name, 1);
 						tp->AddBye();
+						return tp->oppName;
 						/*gMamer.TellUser(ByeRound, opp->name);*/              // Tell him about it.
 					}
 				}
 			}
 		}
+		return -1;
 	}
 
 	int Tourney::MakeAssignments(void)
 	{
-		int playerCount = 0, ret = 0;
+		int playerCount = 0;
 
 		currentRound++;
 
@@ -509,14 +520,14 @@ namespace Pairing {
 		SetOffsets();
 
 		// Set up the PairingScores
-//		foreach(tp, this->playerList) { if(!tp->IsPaired()) SetPairingScores(&*tp); }
+		//foreach(tp, this->playerList) { if(!tp->IsPaired()) SetPairingScores(&*tp); }
 
 		foreach(tp, this->playerList) { UnPairPlayer(&*tp); tp->oppChoice = 0; }  // unpair all the players
 
 		ClearPairedPlayers();
 
-		ret = SwissAssign2(playerCount);
-		if(ret == 0) return 0;
+		if(SwissAssign2(playerCount) == 0)
+			return 0;
 
 		ColorizeTourney();
 

@@ -84,6 +84,7 @@ namespace Pairing {
 
 			/* add and remove players, this may stay like this */
 			int AddPlayer(int name, int rating, float score = 0.0);
+			int AddPlayer(const TourneyPlayers& tp);
 			void RemovePlayer(int name);
 
 			/* sort player stuff, seems important */
@@ -109,7 +110,7 @@ namespace Pairing {
 			 * 0 black wins
 			 * 2 draw*/
 			int SetGameResult(int white, int black, int result);
-			void SetByeResult();
+			int SetByeResult();
 
 		private:
 			/* Set the torunamets properties */
@@ -130,7 +131,7 @@ namespace Pairing {
 			int TryToPair(int player_count, TourneyPlayers* tp, TourneyPlayers** opponent) ;
 
 			/* pairing stuff */
-//			int SwissAssign(int);
+			int SwissAssign(int);
 			int SwissAssign2(int);
 			int UnpairAndCheckBye();
 			void ColorizeTourney();
@@ -148,7 +149,7 @@ namespace Pairing {
 			std::vector<Player> sortList;
 			std::map<int/*name*/,TourneyPlayers*> playerList_name;
 //			std::map<int/*name*/,Player*> sortList_name;
-			std::vector<Player*> sortList_name;// indexed by name
+			std::map<int/*name*/,Player*> sortList_name;
 			std::map<int/*name*/,int> sortList_value;
 			std::list<PairedPlayer> pairedPlayers;
 			std::vector<Player> potentialOpponentList;

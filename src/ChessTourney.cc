@@ -75,13 +75,24 @@ void ChessTourney::addResult(const std::vector<GamePlayerResult>& prl) {
 	this->_players[player_map[prl[1].player.jid]].score=tourney.GetPlayerByName(this->player_map[prl[1].player.jid])->score;
 }
 
-std::vector<Game*>* ChessTourney::makeGames(const std::list<Pairing::Game>& games) const {
+std::vector<Game*>* ChessTourney::makeGames(const std::list<Pairing::Game>& games) {
 	std::vector<Game*>* g = new std::vector<Game*>;
+	int bye=0;
 	foreach(it,games) {
 		std::vector<GamePlayer> players;
-		players.push_back(GamePlayer(this->_players[it->whiteName].jid,this->initial_time,this->inc,WHITE));
-		players.push_back(GamePlayer(this->_players[it->blackName].jid,this->initial_time,this->inc,BLACK));
-		g->push_back(new GameChess(players,this->game_attributes));
+		if(it->whiteName==-1 or it->blackName==-1) {
+			bye++;
+		} else {
+			players.push_back(GamePlayer(this->_players[it->whiteName].jid,this->initial_time,this->inc,WHITE));
+			players.push_back(GamePlayer(this->_players[it->blackName].jid,this->initial_time,this->inc,BLACK));
+			g->push_back(new GameChess(players,this->game_attributes));
+		}
+	}
+	if(bye==1) {
+			int name=this->tourney.SetByeResult();
+			this->_players[name].score=tourney.GetPlayerByName(name)->score;
+	} else if(bye>1) {
+		throw "muita merda\n";
 	}
 	return g;
 }
