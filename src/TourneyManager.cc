@@ -98,9 +98,9 @@ void TourneyManager::handleCreate(const Stanza& stanza) {
     /* create tourney */
     auto_ptr<TourneyStatus> tourney(new TourneyStatus);
 
-    tourney->name = tourney_attributes.findChild("name").getCData();
+    tourney->name = tourney_attributes.findTag("name").getCData();
     tourney->description =
-        tourney_attributes.findChild("description").getCData();
+        tourney_attributes.findTag("description").getCData();
     tourney->running = false;
     tourney->start_time = start_time;
     tourney->tourney = auto_ptr<Tourney>(
@@ -143,15 +143,17 @@ void TourneyManager::startTourney(uint64_t tourney_id) {
 }
 
 void TourneyManager::startNextRound(uint64_t tourney_id) {
+    /* check if the tourney exists */
     if(this->tourneys.count(tourney_id) == 0) {
-        /* the tourney has been canceled */
         return;
     }
 
+    /* get the tourney */
     TourneyStatus& tourney = *this->tourneys.find(tourney_id)->second;
 
     try {
 
+        /* create the games */
         auto_ptr<vector<Game*> > games(tourney.tourney->match());
 
         if(games.get() == 0) {
@@ -159,48 +161,42 @@ void TourneyManager::startNextRound(uint64_t tourney_id) {
             return;
         }
 
+        /* create the notification message */
+        TagGenerator generator;
+        generator.openTag("start_game");
+        generator.addAttribute("xmlns", XMLNS_CHESSD_TOURNEY);
+        generator.openTag("game");
+        generator.addAttribute("tourney_id", to_string(tourney_id));
+
+        Stanza notification("iq");
+        notification.subtype() = "set";
+        notification.children().push_back(generator.getTag());
+
+        Tag& game_tag = notification.firstTag().firstTag();
+
+        /* send notifications to all players */
         foreach(game, *games) {
-            this->game_manager.createGame(*game,
-                    boost::bind(&TourneyManager::notifyGame, this,
-                        tourney_id, (*game)->players(), _1),
+            /* TODO handle exception */
+
+            /* get the players */
+            vector<GamePlayer> players = (*game)->players();
+
+            /* creat the game in the server core */
+            Jid game_room = this->game_manager.createGame(*game,
                     boost::bind(&TourneyManager::reportResult, this,
                         tourney_id, _1, _2));
+
+            /* set the game_room */
+            game_tag.setAttribute("game_room", game_room.full());
+
+            /* send note to the players */
+            foreach(player, players) {
+                notification.to() = player->jid;
+                this->sendIq(new Stanza(notification));
+            }
         }
     } catch(const tourney_over& over) {
         /* the tourney is over */
-    }
-}
-
-void TourneyManager::notifyGame(uint64_t tourney_id,
-                                const vector<GamePlayer>& players,
-                                const Jid& game_room) {
-    /* tunnel to the manager's thread,
-     * this function may be called from
-     * another thread */
-    this->dispatcher.queue(boost::bind(&TourneyManager::_notifyGame,
-                this, tourney_id, players, game_room));
-}
-
-void TourneyManager::_notifyGame(uint64_t tourney_id,
-                                const vector<GamePlayer>& players,
-                                const Jid& game_room) {
-
-
-    /* create the notification message */
-    auto_ptr<Stanza> notification(new Stanza("iq"));
-    notification->subtype() = "set";
-    TagGenerator generator;
-    generator.openTag("game");
-    generator.addAttribute("xmlns", XMLNS_CHESSD_TOURNEY);
-    generator.addAttribute("room", game_room.full());
-    generator.openTag("tourney");
-    generator.addAttribute("id", to_string(tourney_id));
-    notification->children().push_back(generator.getTag());
-
-    /* send int to the players */
-    foreach(player, players) {
-        notification->to() = player->jid;
-        this->sendIq(new Stanza(*notification));
     }
 }
 

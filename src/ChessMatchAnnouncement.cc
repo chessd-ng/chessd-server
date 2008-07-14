@@ -49,7 +49,7 @@ Game* ChessMatchAnnouncement::createGame(const XMPP::Jid& player) const {
 
 XML::Tag* ChessMatchAnnouncement::notification() const {
 	XML::TagGenerator t;
-    t.openTag("match_announcement");
+    t.openTag("announcement");
 
     foreach(it,this->_attributes)
         t.addAttribute(it->first,it->second);

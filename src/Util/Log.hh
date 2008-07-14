@@ -22,18 +22,26 @@
 #include <ostream>
 #include <string>
 
+#include "Threads/Dispatcher.hh"
+
 namespace Util {
     class Log {
         public:
 
             Log();
 
+            ~Log();
+
             void setOutput(std::ostream& output);
 
             void log(const std::string& msg);
         private:
 
+            void _log(const std::string& msg);
+
             std::ostream* output;
+
+            Threads::Dispatcher dispatcher;
     };
 
     extern Log log;

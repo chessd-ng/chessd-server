@@ -25,7 +25,7 @@
 
 #include "ServerModule.hh"
 #include "DatabaseManager.hh"
-#include "Util/Date.hh"
+#include "Util/Timer.hh"
 
 #include "Threads/SafeObject.hh"
 
@@ -96,11 +96,18 @@ class ProfileManager : public ServerModule {
                               int increment,
                               DatabaseInterface& database);
 
+        /*! \brief Receive notification of a change in the status of a user */
+        void handleUserStatus(const XMPP::Jid& user_name,
+                              const UserStatus& status);
+
+        /*! \brief Receie an order to stop activities */
+        void onStop();
+
         XMPP::ErrorHandler error_handler;
 
         DatabaseManager& database;
 
-        Threads::SafeObject<std::map<XMPP::PartialJid, boost::posix_time::ptime> > last_logons;
+        Threads::SafeObject<std::map<XMPP::PartialJid, Util::Time> > last_logons;
 };
 
 #endif

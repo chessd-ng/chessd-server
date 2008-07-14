@@ -50,7 +50,7 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 			//FIXME workarround to get initial time
 			if(category!="untimed") {
 				if(players[p]->hasAttribute("time")==false) {
-					std::stringstream s(history_tag->findChild("moves").getAttribute("movetext"));
+					std::stringstream s(history_tag->findTag("moves").getAttribute("movetext"));
 					std::string tmp;
 					if(s >> tmp >> tmp) {
 						players[p]->attributes()["time"]=tmp;
@@ -68,7 +68,7 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 		new_history.addChild(players[0]);
 		new_history.addChild(players[1]);
 
-		std::stringstream s(history_tag->findChild("moves").getAttribute("movetext"));
+		std::stringstream s(history_tag->findTag("moves").getAttribute("movetext"));
 		std::string move;
 		new_time=-1;
 		new_history.addChild(generateStateTag(chess.getChessState(),initial_time,"",""));

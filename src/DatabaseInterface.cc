@@ -67,7 +67,7 @@ string DatabaseInterface::getUsername(int user_id) {
     /* prepare the query */
     query = "SELECT user_name "
             "FROM users "
-            "WHERE user_id=" + pqxx::to_string(user_id);
+            "WHERE user_id=" + to_string(user_id);
 
     /* execute the query */
     result = this->work.exec(query);
@@ -100,12 +100,12 @@ vector<pair<string, PersistentRating> >
             query =
                 "SELECT * "
                 " FROM player_rating "
-                " WHERE user_id='" + pqxx::to_string(user_id) + "'";
+                " WHERE user_id='" + to_string(user_id) + "'";
         } else {
             query = 
                 "SELECT * "
                 " FROM player_rating "
-                " WHERE user_id='" + pqxx::to_string(user_id) + "' AND";
+                " WHERE user_id='" + to_string(user_id) + "' AND";
             "       category='" + this->work.esc(category) + "'";
         }
 
@@ -163,7 +163,7 @@ DatabaseInterface::getRatingForUpdate(const string& username,
     string query =
         "SELECT * "
         " FROM player_rating "
-        " WHERE user_id=" + pqxx::to_string(user_id) + " AND " +
+        " WHERE user_id=" + to_string(user_id) + " AND " +
         "       category='" + this->work.esc(category) + "' " +
         " FOR UPDATE";
     
@@ -198,15 +198,15 @@ void DatabaseInterface::setRating(const string& username,
     /* prepare query */
     string query =
         " UPDATE player_rating"
-        " SET rating=" + pqxx::to_string(rating.rating) +
-        "    ,volatility=" + pqxx::to_string(rating.volatility) +
-        "    ,wins=" + pqxx::to_string(rating.wins) +
-        "    ,defeats=" + pqxx::to_string(rating.defeats) +
-        "    ,draws=" + pqxx::to_string(rating.draws) +
-        "    ,max_rating=" + pqxx::to_string(rating.max_rating) +
-        "    ,max_timestamp=" + pqxx::to_string(Util::ptime_to_time_t(rating.max_timestamp)) +
-        "    ,last_game=" + pqxx::to_string(rating.last_game) +
-        " WHERE user_id='" + pqxx::to_string(user_id) + "' AND " +
+        " SET rating=" + to_string(rating.rating) +
+        "    ,volatility=" + to_string(rating.volatility) +
+        "    ,wins=" + to_string(rating.wins) +
+        "    ,defeats=" + to_string(rating.defeats) +
+        "    ,draws=" + to_string(rating.draws) +
+        "    ,max_rating=" + to_string(rating.max_rating) +
+        "    ,max_timestamp=" + to_string(Util::ptime_to_time_t(rating.max_timestamp)) +
+        "    ,last_game=" + to_string(rating.last_game) +
+        " WHERE user_id='" + to_string(user_id) + "' AND " +
         "       category='" + this->work.esc(category) + "'";
     
     /* execute query */
@@ -219,16 +219,16 @@ void DatabaseInterface::setRating(const string& username,
 
         query = 
             "INSERT INTO player_rating VALUES"
-            "  ( " + pqxx::to_string(user_id) + "," +
+            "  ( " + to_string(user_id) + "," +
             "   '" + this->work.esc(category) + "'," +
-            "    " + pqxx::to_string(rating.rating) + ","
-            "    " + pqxx::to_string(rating.volatility) + ","
-            "    " + pqxx::to_string(rating.wins) + ","
-            "    " + pqxx::to_string(rating.draws) + ","
-            "    " + pqxx::to_string(rating.defeats) + ","
-            "    " + pqxx::to_string(rating.max_rating) + ","
-            "    " + pqxx::to_string(Util::ptime_to_time_t(rating.max_timestamp)) + ","
-            "    " + pqxx::to_string(rating.last_game) + ")";
+            "    " + to_string(rating.rating) + ","
+            "    " + to_string(rating.volatility) + ","
+            "    " + to_string(rating.wins) + ","
+            "    " + to_string(rating.draws) + ","
+            "    " + to_string(rating.defeats) + ","
+            "    " + to_string(rating.max_rating) + ","
+            "    " + to_string(Util::ptime_to_time_t(rating.max_timestamp)) + ","
+            "    " + to_string(rating.last_game) + ")";
         
         work.exec(query);
     }
@@ -304,9 +304,9 @@ int DatabaseInterface::insertGame(const PersistentGame& game) {
             " INSERT INTO games (category, time_stamp, history, result) "
             " VALUES "
             "   ('" + this->work.esc(game.category) + "'" +
-            "   , " + pqxx::to_string(Util::ptime_to_time_t(game.time_stamp)) + "" +
+            "   , " + to_string(Util::ptime_to_time_t(game.time_stamp)) + "" +
             "   ,'" + this->work.esc(game.history) + "'"
-            "   , " + pqxx::to_string(int(game.result)) + ")";
+            "   , " + to_string(int(game.result)) + ")";
     this->work.exec(query);
 
     /* get the game_id */
@@ -319,12 +319,12 @@ int DatabaseInterface::insertGame(const PersistentGame& game) {
         query =
             " INSERT INTO game_players (game_id, user_id, result, role, time, inc)"
             " VALUES "
-            "   ( " + pqxx::to_string(game_id) +
-            "   , " + pqxx::to_string(user_id) +
-            "   , " + pqxx::to_string(int(result->result)) +
-            "   , " + pqxx::to_string(int(result->player.color)) + 
-            "   , " + pqxx::to_string(result->player.time.getSeconds()) +
-            "   , " + pqxx::to_string(result->player.inc.getSeconds()) + ")";
+            "   ( " + to_string(game_id) +
+            "   , " + to_string(user_id) +
+            "   , " + to_string(int(result->result)) +
+            "   , " + to_string(int(result->player.color)) + 
+            "   , " + to_string(result->player.time.getSeconds()) +
+            "   , " + to_string(result->player.inc.getSeconds()) + ")";
         work.exec(query);
     }
 
@@ -336,7 +336,7 @@ string DatabaseInterface::getGameHistory(int game_id) {
 
     /* find the game in the database */
     string query = 
-        "SELECT history FROM games WHERE game_id = " + pqxx::to_string(game_id);
+        "SELECT history FROM games WHERE game_id = " + to_string(game_id);
     pqxx::result result = this->work.exec(query);
 
     /* check result */
@@ -348,7 +348,7 @@ string DatabaseInterface::getGameHistory(int game_id) {
 }
 
 vector<PersistentGame> DatabaseInterface::searchGames(
-        const vector<pair<string, string> > players,
+        const vector<pair<string, PLAYER_COLOR> > players,
         int time_begin, int time_end,
         int offset,
         int max_results)
@@ -372,10 +372,10 @@ vector<PersistentGame> DatabaseInterface::searchGames(
             if(not where.empty())
                 where += " AND ";
             where += " games.game_id = g" + id_str + ".game_id AND g" +
-                id_str + ".user_id = " + pqxx::to_string(user_id) + " ";
-            if(not players[i].second.empty()) {
-                where += " AND g" + id_str + ".role = '"
-                    + this->work.esc(players[i].second) + "' ";
+                id_str + ".user_id = " + to_string(user_id) + " ";
+            if(players[i].second != UNDEFINED) {
+                where += " AND g" + id_str + ".role = "
+                    + to_string(int(players[i].second)) + " ";
             }
 
         }
@@ -384,7 +384,7 @@ vector<PersistentGame> DatabaseInterface::searchGames(
             if(not where.empty())
                 where += " AND ";
             where += " games.time_stamp >= " +
-                pqxx::to_string(time_begin) + " ";
+                to_string(time_begin) + " ";
         }
 
         /* set time interval search */
@@ -392,7 +392,7 @@ vector<PersistentGame> DatabaseInterface::searchGames(
             if(not where.empty())
                 where += " AND ";
             where += " games.time_stamp <= " +
-                pqxx::to_string(time_end) + " ";
+                to_string(time_end) + " ";
         }
 
         if(not where.empty()) {
@@ -402,8 +402,8 @@ vector<PersistentGame> DatabaseInterface::searchGames(
 
         string query = select + from + where +
             " ORDER BY game_id DESC " +
-            " LIMIT " + pqxx::to_string(max_results) +
-            " OFFSET " + pqxx::to_string(offset);
+            " LIMIT " + to_string(max_results) +
+            " OFFSET " + to_string(offset);
 
         /* execute query */
         pqxx::result result = this->work.exec(query);
@@ -455,7 +455,7 @@ void DatabaseInterface::insertAdjournedGame(const PersistentAdjournedGame& game)
     query =
             " INSERT INTO adjourned_games (category, time_stamp, history) VALUES"
             "   ('" + this->work.esc(game.category) + "'" +
-            "   , " + pqxx::to_string(Util::ptime_to_time_t(game.time_stamp)) + "" +
+            "   , " + to_string(Util::ptime_to_time_t(game.time_stamp)) + "" +
             "   ,'" + this->work.esc(game.history) + "')";
     this->work.exec(query);
 
@@ -468,11 +468,11 @@ void DatabaseInterface::insertAdjournedGame(const PersistentAdjournedGame& game)
         query =
             " INSERT INTO adjourned_game_players (game_id, user_id, role, time, inc)"
             " VALUES "
-            "   ( " + pqxx::to_string(game_id) +
-            "   , " + pqxx::to_string(user_id) +
-            "   , " + pqxx::to_string(int(player->color)) + 
-            "   , " + pqxx::to_string(player->time.getSeconds()) +
-            "   , " + pqxx::to_string(player->inc.getSeconds()) + ")";
+            "   ( " + to_string(game_id) +
+            "   , " + to_string(user_id) +
+            "   , " + to_string(int(player->color)) + 
+            "   , " + to_string(player->time.getSeconds()) +
+            "   , " + to_string(player->inc.getSeconds()) + ")";
         work.exec(query);
     }
 }
@@ -516,7 +516,7 @@ vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
                 where = " WHERE ";
             where += " adjourned_games.game_id = g" + id_str
                 + ".game_id AND g" + id_str + ".user_id = '"
-                + pqxx::to_string(user_id) + "' ";
+                + to_string(user_id) + "' ";
         }
         string query = select + from + where + " limit " + Util::to_string(max_results) + " offset " + Util::to_string(offset);
 
@@ -534,7 +534,7 @@ vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
             /* get players */
             string query =
                 "SELECT * FROM adjourned_game_players WHERE game_id = "
-                + pqxx::to_string(game.id);
+                + to_string(game.id);
             pqxx::result result = this->work.exec(query);
 
             foreach(r, result) {
@@ -561,7 +561,7 @@ void DatabaseInterface::eraseAdjournedGame(int game_id) {
     /* erase game */
     query =
             " DELETE FROM adjourned_games WHERE "
-            "   game_id=" + pqxx::to_string(game_id);
+            "   game_id=" + to_string(game_id);
     this->work.exec(query);
 }
 
@@ -604,7 +604,7 @@ void DatabaseInterface::updateOnlineTime(const string& username,
 
     /* update info game */
     query =
-            " UPDATE users SET online_time=online_time+" + pqxx::to_string(increment) + " WHERE "
+            " UPDATE users SET online_time=online_time+" + to_string(increment) + " WHERE "
             "   user_name='" + this->work.esc(username) + "'";
 
     this->work.exec(query);
@@ -647,7 +647,7 @@ void DatabaseInterface::banUser(const string& username,
     /* prepare query */
     string query =
         "UPDATE banned_users SET reason='" + this->work.esc(reason) + "' "
-        "WHERE user_id=" + pqxx::to_string(user_id);
+        "WHERE user_id=" + to_string(user_id);
 
     /* execute query */
     pqxx::result result = work.exec(query);
@@ -660,7 +660,7 @@ void DatabaseInterface::banUser(const string& username,
         /* prepare query */
         query =
             "INSERT INTO banned_users (user_id, reason) "
-            "VALUES ("  + pqxx::to_string(user_id) + "," +
+            "VALUES ("  + to_string(user_id) + "," +
             "'" + this->work.esc(reason) + "')";
 
         work.exec(query);
@@ -679,7 +679,7 @@ void DatabaseInterface::unbanUser(const string& username) {
     /* prepare query */
     string query =
         "DELETE FROM banned_users "
-        "WHERE user_id=" + pqxx::to_string(user_id);
+        "WHERE user_id=" + to_string(user_id);
 
     /* execute query */
     work.exec(query);
@@ -702,8 +702,8 @@ vector<pair<string, string> > DatabaseInterface::searchBannedUsers (
     if(max_results != -1) {
         query +=
             " ORDER BY users.user_id "
-            " LIMIT " + pqxx::to_string(max_results) +
-            " OFFSET " + pqxx::to_string(offset);
+            " LIMIT " + to_string(max_results) +
+            " OFFSET " + to_string(offset);
     }
 
     /* execute query */

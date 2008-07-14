@@ -86,37 +86,12 @@ class AdjournedWrapper : public Match {
 };
 
 MatchManager::MatchManager(
-        const Tag& config,
         ServerCore& game_manager,
         DatabaseManager& database,
         const StanzaHandler& send_stanza) :
     ServerModule(send_stanza),
     game_manager(game_manager),
-    database(database)
-{
-
-    /* Set the root_node to route presence stanzas to the roster */
-    //this->root_node.setPresenceHandler(boost::bind(&Roster::handlePresence, &this->roster, _1));
-
-    /* Set features */
-    //this->root_node.disco().features().insert("presence");
-    //this->root_node.disco().features().insert(XMLNS_MATCH);
-    //this->root_node.disco().features().insert(XMLNS_ADJOURNED_LIST);
-
-    /* Set match iqs */
-    /*
-    this->root_node.setIqHandler(boost::bind(&MatchManager::handleOffer, this, _1),
-            XMLNS_MATCH_OFFER);
-    this->root_node.setIqHandler(boost::bind(&MatchManager::handleAccept, this, _1),
-            XMLNS_MATCH_ACCEPT);
-    this->root_node.setIqHandler(boost::bind(&MatchManager::handleDecline, this, _1),
-            XMLNS_MATCH_DECLINE);
-    this->root_node.setIqHandler(boost::bind(&MatchManager::handleDecline, this, _1),
-            XMLNS_MATCH_DECLINE);
-    this->root_node.setIqHandler(boost::bind(&MatchManager::handleList, this, _1),
-            XMLNS_ADJOURNED_LIST);
-            */
-}
+    database(database) { }
 
 MatchManager::~MatchManager() {
     vector<int> matchs = this->match_db.getActiveMatchs();
@@ -172,7 +147,7 @@ void MatchManager::handleOffer(const Stanza& stanza) {
     try {
 
         /* parse message */
-        const Tag& offer = stanza.query().findChild("match");
+        const Tag& offer = stanza.query().findTag("match");
 
         /* Is the offer to resume an adjourned game? */
         if(offer.hasAttribute("adjourned_id")) {
@@ -201,7 +176,7 @@ void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
         std::auto_ptr<Match> match(_match);
 
         /* parse message */
-        const Tag& offer = stanza.query().findChild("match");
+        const Tag& offer = stanza.query().findTag("match");
         int match_id;
 
         /* is it a rematch? */
@@ -214,8 +189,8 @@ void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
         /* check if everyone is available and if the sender is in the match */
         bool valid = false;
         foreach(player, match->players()) {
-            if(not this->isUserAvailable(player->jid))
-                throw match_error("User is not available");
+            if(not this->canPlay(player->jid))
+                throw match_error("User is unable to play the game");
             if(player->jid == stanza.from())
                 valid = true;
         }
@@ -317,7 +292,7 @@ void MatchManager::notifyOffer(int id, const Jid& requester) {
 void MatchManager::handleAccept(const Stanza& stanza) {
     try {
         /* get match */
-        const Tag& match = stanza.query().findChild("match");
+        const Tag& match = stanza.query().findTag("match");
         /* parse message */
         int id = parse_string<int>(match.getAttribute("id"));
         /* update accepted */
@@ -338,7 +313,7 @@ void MatchManager::handleAccept(const Stanza& stanza) {
 void MatchManager::handleDecline(const Stanza& stanza) {
     try {
         /* get match */
-        const Tag& match = stanza.query().findChild("match");
+        const Tag& match = stanza.query().findTag("match");
         /* parse message */
         int id = parse_string<int>(match.getAttribute("id"));
         /* sanity check */
@@ -358,31 +333,26 @@ void MatchManager::handleDecline(const Stanza& stanza) {
 void MatchManager::closeMatch(int id, bool accepted) {
     std::auto_ptr<Match> match(this->match_db.closeMatch(id));
     if(accepted) {
-        /* close all other matchs */
+        /* close all other matchs if the user is not multi game */
         foreach(player, match->players()) {
-            set<int> matchs = this->match_db.getPlayerMatchs(player->jid);
-            foreach(id, matchs) {
-                this->closeMatch(*id, false);
+            if(this->isMultigameUser(player->jid)) {
+                set<int> matchs = this->match_db.getPlayerMatchs(player->jid);
+                foreach(id, matchs) {
+                    this->closeMatch(*id, false);
+                }
             }
         }
         /* create the game */
         Game* game = match->createGame();
-        this->game_manager.createGame(
-                game,
-                boost::bind(&MatchManager::notifyGameStart,
-                    this, id, match.release(), _1));
+        Jid game_room = this->game_manager.createGame(game);
+
+        this->notifyGameStart(id, match.release(), game_room);
     } else {
         this->notifyResult(*match, id, accepted);
     }
 }
 
 void MatchManager::notifyGameStart(int match_id, Match* match, const Jid& jid) {
-    /* receive a notification when the game is created,
-     * it has to be tunneled due to thread safety*/
-    this->dispatcher.queue(boost::bind(&MatchManager::_notifyGameStart, this, match_id, match, jid));
-}
-
-void MatchManager::_notifyGameStart(int match_id, Match* match, const Jid& jid) {
     /* the game has been created
      * we need to tell the game room
      * to the players */
@@ -439,7 +409,7 @@ void MatchManager::listAdjournedGames(const Stanza& query, DatabaseInterface& da
             TagGenerator generator;
 
             /* Parse request */
-            const Tag& search_tag = query.query().findChild("search");
+            const Tag& search_tag = query.query().findTag("search");
             offset = parse_string<int>(search_tag.getAttribute("offset"));
             max_results = min(max_results, parse_string<int>(search_tag.getAttribute("results")));
             players.push_back(query.from().partial());

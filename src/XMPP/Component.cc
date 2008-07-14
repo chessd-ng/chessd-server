@@ -48,9 +48,8 @@ namespace XMPP {
 	}
 
 	void Component::sendStanza(Stanza* stanza) {
-		/*if(stanza->from().empty())
-			stanza->from() = this->component_name;
-		Tag *tag = stanza->tag();*/
+		if(stanza->from().empty())
+			stanza->from() = Jid(this->component_name);
 		this->stream.sendTag(Stanza::createTag(stanza));
 	}
 

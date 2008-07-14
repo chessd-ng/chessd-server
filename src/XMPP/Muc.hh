@@ -102,6 +102,9 @@ namespace XMPP {
             int size() const {
                 return this->users.size();
             }
+            bool empty() const {
+                return this->users.empty();
+            }
 			void insert(MucUser* user) {
 				Jid jid = user->jid();
 				this->users.insert(jid, user);
@@ -157,6 +160,8 @@ namespace XMPP {
 
             virtual void handleStanza(Stanza* stanza) throw();
 
+            void close();
+
         protected:
 
             virtual void notifyUserStatus(
@@ -176,6 +181,8 @@ namespace XMPP {
 			void addUser(const Stanza& presence);
 
 			void removeUser(const Stanza& presence);
+
+            void removeUser(MucUserSet::iterator user);
 
 			Stanza* createPresenceStanza(const MucUser& user);
 

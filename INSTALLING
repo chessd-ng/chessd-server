@@ -110,6 +110,7 @@ component and for the database server.
         db_name="chessd-dev"
         user="chessd"
         password="chessd"
+        max_connections="50"
     />
     <log
         filename="log/chessd.log"

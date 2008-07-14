@@ -49,9 +49,13 @@ class ServerModule {
 
         void start();
 
+        void stop();
+
     protected:
 
         virtual void onStart();
+
+        virtual void onStop();
 
         virtual void handleIq(const XMPP::Stanza& iq) = 0;
 
@@ -68,6 +72,10 @@ class ServerModule {
         bool isUserAvailable(const XMPP::Jid& user) const;
 
         bool isUserPlaying(const XMPP::Jid& user) const;
+
+        bool isMultigameUser(const XMPP::Jid& user) const;
+
+        bool canPlay(const XMPP::Jid& user) const;
 
         Threads::Dispatcher dispatcher;
 

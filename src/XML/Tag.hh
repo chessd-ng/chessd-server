@@ -104,7 +104,7 @@ namespace XML {
                     return this->attributes().find(name)->second;
             }
 
-			Tag& findChild(const std::string& name) {
+			Tag& findTag(const std::string& name) {
                 foreach(tag, this->tags()) {
                     if(tag->name() == name)
                         return *tag;
@@ -112,7 +112,7 @@ namespace XML {
                 throw (child_not_found("Tag not found"));
             }
 
-			const Tag& findChild(const std::string& name) const {
+			const Tag& findTag(const std::string& name) const {
                 foreach(tag, this->tags()) {
                     if(tag->name() == name)
                         return *tag;
@@ -153,14 +153,14 @@ namespace XML {
 
             const Tag& firstTag() const {
                 if(this->tags().begin() == this->tags().end()) {
-                    throw XML::child_not_found("Child not found");
+                    throw XML::child_not_found("Tag not found");
                 }
                 return *this->tags().begin();
             }
 
             Tag& firstTag() {
                 if(this->tags().begin() == this->tags().end()) {
-                    throw XML::child_not_found("Child not found");
+                    throw XML::child_not_found("Tag not found");
                 }
                 return *this->tags().begin();
             }

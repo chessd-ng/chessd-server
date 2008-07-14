@@ -25,6 +25,8 @@
 
 #include "Util/Log.hh"
 
+#include <stdexcept>
+
 using namespace std;
 using namespace XML;
 
@@ -58,19 +60,8 @@ namespace XMPP {
 	Stream::Stream(const string& ns) :
 			hinfo(new HookInfo),
 			ns(strdup(ns.c_str())),
-			active(false), 
-            _socket_fd(-1) {
+			active(false) {
 		this->hinfo->parser = iks_stream_new(this->ns, this->hinfo, hook);
-		//iks_set_log_hook(this->hinfo->parser, log);
-	}
-
-	Stream::Stream(int socket_fd) :
-			hinfo(new HookInfo),
-			ns(strdup("")),
-			active(true),
-            _socket_fd(socket_fd) {
-		this->hinfo->parser = iks_stream_new(this->ns, this->hinfo, hook);
-        iks_connect_fd(this->hinfo->parser, socket_fd);
 		//iks_set_log_hook(this->hinfo->parser, log);
 	}
 
@@ -88,17 +79,17 @@ namespace XMPP {
 		ret = iks_connect_tcp(this->hinfo->parser, host.c_str(), port);
 		this->active = (ret == IKS_OK);
 		if(not this->active) {
-			throw "Connection failed";
+			throw runtime_error("Connection failed");
 		}
 	}
+
+    int Stream::getFD() const {
+        return iks_fd(this->hinfo->parser);
+    }
 
 	void Stream::close() {
 		iks_disconnect(this->hinfo->parser);
 		this->active = false;
-        if(this->_socket_fd != -1) {
-            ::close(this->_socket_fd);
-            this->_socket_fd = -1;
-        }
 	}
 
 	Tag* Stream::recvTag(int timeout) {
@@ -108,21 +99,21 @@ namespace XMPP {
 		}
 		if(ret != IKS_OK) {
 			this->active = false;
-			iks_disconnect(this->hinfo->parser);
-            throw "Connection lost";
+			//iks_disconnect(this->hinfo->parser);
+            throw runtime_error("Connection lost");
 		} else if(this->hinfo->incoming.empty()) {
 			return 0;
 		} else {
 			Tag* tag = this->hinfo->incoming.front();
 			this->hinfo->incoming.pop();
-            Util::log.log(" <<<<<<<<<<<< Chegando <<<<<<<<<<<<<");
+            Util::log.log(" <<<<<<<<<<<< Receiving <<<<<<<<<<<<<");
 			Util::log.log(tag->xml());
 			return tag;
 		}
 	}
 
 	void Stream::sendTag(Tag* tag) {
-        Util::log.log(" >>>>>>>>>>>> Mandando >>>>>>>>>>>>>> ");
+        Util::log.log(" >>>>>>>>>>>> Sending >>>>>>>>>>>>>> ");
 		Util::log.log(tag->xml());
 		iks* tree = tag2iks(*tag);
 		delete tag;
@@ -131,7 +122,7 @@ namespace XMPP {
 		if(ret != IKS_OK) {
 			this->active = false;
 			iks_disconnect(this->hinfo->parser);
-			throw "Connection lost";
+			throw runtime_error("Connection lost");
 		}
 	}
 

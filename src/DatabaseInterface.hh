@@ -90,7 +90,7 @@ class DatabaseInterface : public pqxx::transactor<>
 
         /*! \brief Search games in the database */
         std::vector<PersistentGame> searchGames(
-                const std::vector<std::pair<std::string, std::string> > players,
+                const std::vector<std::pair<std::string,PLAYER_COLOR> > players,
                 int time_begin, int time_end,
                 int offset,
                 int max_results);

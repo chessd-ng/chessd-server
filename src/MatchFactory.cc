@@ -53,7 +53,7 @@ bool MatchFactory::isTimeValid(const XML::Tag& _player,const std::string& catego
 //FIXME
 //does not work for untimed matches
 void MatchFactory::validateXML(XML::Tag& _match_offer,int num_players) {
-	if(_match_offer.name()!="match" and _match_offer.name()!="match_announcement")
+	if(_match_offer.name()!="match" and _match_offer.name()!="announcement")
 		throw bad_information("wrong matchrule xml name");
 
 	if(_match_offer.hasAttribute("category")==false)

@@ -17,6 +17,7 @@
  */
 
 #include "Dispatcher.hh"
+#include "SimpleSemaphore.hh"
 
 namespace Threads {
 
@@ -28,8 +29,9 @@ namespace Threads {
     }
 
     void Dispatcher::start() {
-        this->running = true;
-        this->task.start();
+        if(__sync_val_compare_and_swap(&this->running,false,true) == false) {
+            this->task.start();
+        }
     }
 
     void Dispatcher::run() {
@@ -45,14 +47,22 @@ namespace Threads {
             }
             message();
         }
+        /* call remaining messages */
+        while(this->_queue.try_pop(message)) {
+            message();
+        }
     }
+
+    static void func() { }
 
     void Dispatcher::stop() {
         /* A stop message is sent to the dispatcher instead of just
          * setting running to false. This way we make sure the dispatcher
-         * will stop immediately. */
-        if(this->running == true) {
-            this->queue(boost::bind(&Dispatcher::_stop, this));
+         * will stop as soon as possible. */
+        if(__sync_val_compare_and_swap(&this->running,true,false) == true) {
+            /* wake the dispatcher if necessary */
+            this->queue(func);
+            /* wait for it to stop */
             this->join();
         }
     }
@@ -62,7 +72,37 @@ namespace Threads {
     }
 
     void Dispatcher::_stop() {
-        this->running = false;
+        if(__sync_val_compare_and_swap(&this->running,true,false) == false) {
+            /* was stopped already */
+        }
     }
 
+    void Dispatcher::queue(const Message& message) {
+        this->_queue.push(message);
+    }
+
+    static void execMessage(const Message& message, SimpleSemaphore& sem) {
+        message();
+        sem.post();
+    }
+
+    void Dispatcher::exec(const Message& message) {
+        /* if this is a different thread, put it inthe queue,
+         * otherwise, just call the message */
+        if(getCurrentThreadId() != this->task.getThreadId()) {
+            SimpleSemaphore sem;
+            this->_queue.push(boost::bind(execMessage, message, boost::ref(sem)));
+            sem.wait();
+        } else {
+            message();
+        }
+    }
+
+    void Dispatcher::schedule(const Message& message, Util::Time when) {
+        this->queue(boost::bind(&Dispatcher::_schedule, this, message, when));
+    }
+
+    void Dispatcher::_schedule(const Message& message, Util::Time when) {
+        this->agenda.insert(std::make_pair(when, message));
+    }
 }

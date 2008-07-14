@@ -44,7 +44,6 @@ void ServerModule::notifyUserStatus(const Jid& user_name,
 
 void ServerModule::_notifyUserStatus(const Jid& user_name,
                                     const UserStatus& status) {
-
     this->users_status[user_name] = status;
     this->handleUserStatus(user_name, status);
 }
@@ -71,6 +70,9 @@ void ServerModule::_handleStanza(Stanza* _stanza) {
     auto_ptr<Stanza> stanza(_stanza);
     try {
         if(stanza->type() == "iq") {
+            if(not this->isUserAvailable(stanza->from())) {
+                throw not_acceptable("User is not allowed to send messages while not available");
+            }
             if(stanza->type() == "result") {
                 if(not stanza->id().empty()) {
                     uint64_t id = parse_string<uint64_t>(stanza->id());
@@ -101,10 +103,29 @@ bool ServerModule::isUserPlaying(const Jid& user) const {
     if(it == this->users_status.end()) {
         return false;
     }
-    return it->second.playing;
+    return it->second.games_playing > 0;
+}
+
+bool ServerModule::isMultigameUser(const Jid& user) const {
+    map<Jid, UserStatus>::const_iterator it = this->users_status.find(user);
+    if(it == this->users_status.end()) {
+        return false;
+    }
+    return it->second.multigame;
+}
+
+bool ServerModule::canPlay(const Jid& user) const {
+    map<Jid, UserStatus>::const_iterator it = this->users_status.find(user);
+    if(it == this->users_status.end()) {
+        return false;
+    }
+    return it->second.canPlay();
 }
 
 void ServerModule::onStart() {
+}
+
+void ServerModule::onStop() {
 }
 
 void ServerModule::handleUserStatus(const Jid&, const UserStatus&) {
@@ -112,4 +133,8 @@ void ServerModule::handleUserStatus(const Jid&, const UserStatus&) {
 
 void ServerModule::start() {
     this->dispatcher.queue(boost::bind(&ServerModule::onStart, this));
+}
+
+void ServerModule::stop() {
+    this->dispatcher.exec(boost::bind(&ServerModule::onStop, this));
 }

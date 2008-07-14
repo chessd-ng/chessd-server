@@ -37,6 +37,7 @@ namespace Threads {
 	void Task::run() {
 		this->condition.lock();
 		this->status = TaskRunning;
+        this->thread_id = getCurrentThreadId();
 		this->condition.unlock();
 		this->function();
 		this->condition.lock();

@@ -51,7 +51,7 @@ namespace XMPP {
 			ChildrenList& children() { return this->_children; }
 			const ChildrenList& children() const { return this->_children; }
 
-			XML::Tag& findChild(const std::string& name) {
+			XML::Tag& findTag(const std::string& name) {
                 foreach(tag, this->children().tags()) {
                     if(tag->name() == name)
                         return *tag;
@@ -59,7 +59,7 @@ namespace XMPP {
                 throw XML::child_not_found("Child not found");
             }
 
-			const XML::Tag& findChild(const std::string& name) const {
+			const XML::Tag& findTag(const std::string& name) const {
                 foreach(tag, this->children().tags()) {
                     if(tag->name() == name)
                         return *tag;
@@ -85,8 +85,8 @@ namespace XMPP {
 
 			Stanza* createIQResult() const;
 
-            XML::Tag& query() { return this->findChild("query"); }
-            const XML::Tag& query() const { return this->findChild("query"); }
+            XML::Tag& query() { return this->findTag("query"); }
+            const XML::Tag& query() const { return this->findTag("query"); }
 
             XML::Tag& firstTag() {
                 if(this->children().tags().begin() == this->children().tags().end()) {

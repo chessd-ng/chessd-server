@@ -33,7 +33,6 @@ using namespace XML;
 using namespace XMPP;
 using namespace Util;
 using namespace Threads;
-using namespace boost::posix_time;
 
 #define XMLNS_CHESSD_INFO "http://c3sl.ufpr.br/chessd#info"
 #define XMLNS_CHESSD_PROFILE "http://c3sl.ufpr.br/chessd#profile"
@@ -45,26 +44,7 @@ ProfileManager::ProfileManager(
         const XMPP::StanzaHandler& send_stanza) :
     ServerModule(send_stanza),
     database(database)
-{
-
-    /* Set features */
-    //this->root_node.disco().features().insert(XMLNS_CHESSD_INFO);
-
-    /* Set iqs */
-    /*
-    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleRating, this, _1),
-            XMLNS_CHESSD_INFO);
-    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleSearchGame, this, _1),
-            XMLNS_CHESSD_GAME_SEARCH);
-    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleFetchGame, this, _1),
-            XMLNS_CHESSD_GAME_FETCH);
-    this->root_node.setIqHandler(boost::bind(&ProfileManager::handleProfile, this, _1),
-            XMLNS_CHESSD_PROFILE);
-            */
-
-    /* Set presence handler */
-    //this->root_node.setPresenceHandler(boost::bind(&ProfileManager::handlePresence, this, _1));
-}
+{ }
 
 ProfileManager::~ProfileManager() {
 }
@@ -170,19 +150,29 @@ void ProfileManager::updateProfile(const Stanza& stanza, DatabaseInterface& data
     }
 }
 
+PLAYER_COLOR translate_role(const std::string& role) {
+    if(role == "white") {
+        return WHITE;
+    } else if(role == "black") {
+        return BLACK;
+    } else {
+        return UNDEFINED;
+    }
+}
+
 void ProfileManager::searchGame(const Stanza& stanza, DatabaseInterface& database) {
     try  {
         try {
             XML::TagGenerator generator;
-            std::vector<std::pair<std::string, std::string> > players;
+            std::vector<std::pair<std::string, PLAYER_COLOR> > players;
             unsigned int max_results = 50;
             unsigned int offset = 0;
             int time_begin = -1, time_end = -1;
             bool has_more = false;
 
             /* Parse request */
-            const Tag& query = stanza.findChild("query");
-            const Tag& search_tag = query.findChild("search");
+            const Tag& query = stanza.findTag("query");
+            const Tag& search_tag = query.findTag("search");
             if(search_tag.hasAttribute("offset")) {
                 offset = parse_string<int>(search_tag.getAttribute("offset"));
             }
@@ -191,8 +181,8 @@ void ProfileManager::searchGame(const Stanza& stanza, DatabaseInterface& databas
             }
             foreach(field, search_tag.tags()) {
                 if(field->name() == "player") {
-                    std::string username = field->getAttribute("jid");
-                    std::string role = field->getAttribute("role", "");
+                    const std::string& username = field->getAttribute("jid");
+                    PLAYER_COLOR role = translate_role(field->getAttribute("role", ""));
                     players.push_back(make_pair(username, role));
                 } else if (field->name() == "date") {
                     std::string begin = field->getAttribute("begin", "");
@@ -269,8 +259,8 @@ void ProfileManager::fetchGame(const Stanza& stanza, DatabaseInterface& database
             XML::TagGenerator generator;
 
             /* Parse request */
-            const Tag& query = stanza.findChild("query");
-            const Tag& game_tag = query.findChild("game");
+            const Tag& query = stanza.findTag("query");
+            const Tag& game_tag = query.findTag("game");
             int game_id = parse_string<int>(game_tag.getAttribute("id"));
             std::string game_history = database.getGameHistory(game_id);
 
@@ -298,7 +288,7 @@ void ProfileManager::fetchGame(const Stanza& stanza, DatabaseInterface& database
 
 void ProfileManager::fetchRating(const Stanza& stanza, DatabaseInterface& database) {
     XML::TagGenerator generator;
-    const Tag& query = stanza.findChild("query");
+    const Tag& query = stanza.findTag("query");
     std::string category, jid;
 
     /* create message */
@@ -355,10 +345,10 @@ void ProfileManager::fetchRating(const Stanza& stanza, DatabaseInterface& databa
 
 void ProfileManager::fetchProfile(const Stanza& stanza, DatabaseInterface& database) {
     XML::TagGenerator generator;
-    const Tag& query = stanza.findChild("query");
+    const Tag& query = stanza.findTag("query");
     std::string category, user;
 
-    ReadLock<map<PartialJid, ptime> > logons(this->last_logons);
+    ReadLock<map<PartialJid, Time> > logons(this->last_logons);
 
     /* create message */
     generator.openTag("iq");
@@ -413,8 +403,7 @@ void ProfileManager::fetchProfile(const Stanza& stanza, DatabaseInterface& datab
 
             /* get the user's uptime */
             if_find(it, PartialJid(user), *logons) {
-                int uptime = (second_clock::local_time() - 
-                              it->second).total_seconds();
+                int uptime = (Timer::now() - it->second).getSeconds();
                 generator.openTag("uptime");
                 generator.addAttribute("seconds", to_string(uptime));
                 generator.closeTag();
@@ -428,19 +417,16 @@ void ProfileManager::fetchProfile(const Stanza& stanza, DatabaseInterface& datab
     this->sendStanza(new XMPP::Stanza(generator.getTag()));
 }
 
-void ProfileManager::handlePresence(const XMPP::Stanza& stanza) {
-    XMPP::PartialJid user = stanza.from();
+void ProfileManager::handleUserStatus(const Jid& user, const UserStatus& status) {
 
-    WriteLock<map<PartialJid, ptime> > logons(this->last_logons);
+    WriteLock<map<PartialJid, Time> > logons(this->last_logons);
 
-    if(stanza.subtype().empty()) {
+    if(status.available) {
         /* the user is online */
         if(logons->find(user) == logons->end()) {
-            logons->insert(
-                make_pair(user,
-                          second_clock::local_time()));
+            logons->insert(make_pair(user, Timer::now()));
         }
-    } else if(stanza.subtype() == "unavailable") {
+    } else {
         /* the user went offline */
         if(logons->find(user) != logons->end()) {
             this->database.queueTransaction(
@@ -448,8 +434,8 @@ void ProfileManager::handlePresence(const XMPP::Stanza& stanza) {
                     &ProfileManager::updateOnlineTime,
                     this,
                     user,
-                    (second_clock::local_time() -
-                     logons->find(user)->second).total_seconds(),
+                    (Timer::now() -
+                     logons->find(user)->second).getSeconds(),
                     _1));
             logons->erase(user);
         }
@@ -462,3 +448,16 @@ void ProfileManager::updateOnlineTime(const XMPP::PartialJid& user,
     database.updateOnlineTime(user.full(), increment);
 }
 
+void ProfileManager::onStop() {
+    /* stop counting online time, set every one to offline */
+    WriteLock<map<PartialJid, Time> > logons(this->last_logons);
+    Time now = Timer::now();
+    foreach(logon, *logons) {
+        this->database.queueTransaction(
+                boost::bind(
+                    &ProfileManager::updateOnlineTime,
+                    this, logon->first,
+                    (now - logon->second).getSeconds(), _1));
+    }
+    logons->clear();
+}

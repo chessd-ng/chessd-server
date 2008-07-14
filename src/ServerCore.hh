@@ -26,6 +26,7 @@
 #include <memory>
 #include <boost/ptr_container/ptr_map.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
+#include <stdint.h>
 
 #include "ComponentBase.hh"
 
@@ -33,79 +34,85 @@
 
 #include "DatabaseManager.hh"
 
-#include <stdint.h>
+#include "Threads/SafeObject.hh"
 
-typedef uint64_t GameId;
+
+typedef uint32_t GameId;
 
 typedef boost::function<void (const XMPP::Jid& game_room)> OnGameStart;
 
 /*! \brief Manage all games in the server plus control the game component. */
 class ServerCore : public ComponentBase {
-	public:
-		/*! \brief Constructor.
-		 *
-		 * \param config is the configuration for this component.
-		 */
-		ServerCore(const XML::Tag& config,
-                    DatabaseManager& database_manager,
-                    const XMPP::ErrorHandler& handle_error);
+    public:
+        /*! \brief Constructor.
+         *
+         * \param config is the configuration for this component.
+         */
+        ServerCore(const XML::Tag& config,
+                   DatabaseManager& database_manager,
+                   const XMPP::ErrorHandler& handle_error);
 
-		/*! \brief Destructor.
-		 *
-		 * Closes server connection if available.
-		 */
-		~ServerCore();
+        /*! \brief Destructor.
+         *
+         * Closes server connection if available.
+         */
+        ~ServerCore();
 
-		/*! \brief Create a game
-		 *
-		 * \param game is the game to be inserted.
-		 * \param on_game_start is a notifier for the game jid.
-		 * This is a tunnel the real one.
-		 */
-		void createGame(Game* game,
-                        const OnGameStart& on_game_start = OnGameStart(),
-                        const OnGameEnd& on_game_end = OnGameEnd());
+        /*! \brief Create a game
+         *
+         * \param game is the game to be inserted.
+         * \param on_game_start is a notifier for the game jid.
+         * \return Returns the jid of the game room
+         */
+        XMPP::Jid createGame(Game* game,
+                const OnGameEnd& on_game_end = OnGameEnd());
 
     private:
         void onConnect();
 
+        /*! \brief Handle an incoming iq */
+        void handleIq(const XMPP::Stanza& stanza);
+
+        /*! \brief Handle an incoming search request */
+        void handleSearch(const XMPP::Stanza& stanza);
+
         /*! \brief Handle an incoming presence */
         void handlePresence(const XMPP::Stanza& stanza);
 
-		/*! \brief Create a game. The real one.
-		 *
-		 * This one is not thread safe.
-		 */
-		void _createGame(Game* game,
-                         const OnGameStart& on_game_start = OnGameStart(),
-                         const OnGameEnd& on_game_end = OnGameEnd());
+        /*! \brief Create a game. The real one.
+         *
+         * This one is not thread safe.
+         */
+        void _createGame(Game* game,
+                GameId game_id,
+                const OnGameEnd& on_game_end);
 
-		/*! \brief Close a game room.
+        /*! \brief Close a game room.
          *
          * This is a tunnel.
          * */
-		void closeGame(GameId game_id);
+        void closeGame(GameId game_id);
 
-		/*! \brief close a game room.
+        /*! \brief close a game room.
          *
          * This is the real one.
          * */
-		void _closeGame(GameId game_id);
+        void _closeGame(GameId game_id);
 
-		/*! \brief Hide a game room.
+        /*! \brief Hide a game room.
          *
          * This is a tunnel.
          * */
-		void hideGame(GameId game_id);
+        void endGame(GameId game_id, const std::vector<GamePlayer>& players);
 
-		/*! \brief Hide a game room.
+        /*! \brief Hide a game room.
          *
          * This is the real one.
          * */
-		void _hideGame(GameId game_id);
+        void _endGame(GameId game_id, const std::vector<GamePlayer>& players);
 
         /*! \brief handle an error */
-		void handleError(const std::string& error);
+        void handleError(const std::string& error);
 
         /*! \brief Receive a close notification */
         void onClose();
@@ -116,19 +123,19 @@ class ServerCore : public ComponentBase {
         /*! \brief Notify all server modules the user status  */
         void notifyUserStatus(const XMPP::Jid& user_name, const UserStatus& status);
 
-		std::string node_name;
-
-		boost::ptr_map<GameId, GameRoom> game_rooms;
+        std::string node_name;
 
         DatabaseManager& database_manager;
 
-		XMPP::ErrorHandler handle_error;
-
-		GameId game_ids;
+        Threads::SafeObject<std::map<XMPP::Jid, UserStatus> > users_status;
 
         boost::ptr_vector<ServerModule> modules;
 
-        std::map<XMPP::Jid, UserStatus> users_status;
+        boost::ptr_map<GameId, GameRoom> game_rooms;
+
+        XMPP::ErrorHandler handle_error;
+
+        GameId game_ids;
 
 };
 

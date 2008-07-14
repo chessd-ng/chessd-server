@@ -63,18 +63,20 @@ void ComponentBase::connect() {
 }
 
 void ComponentBase::close() {
-    this->dispatcher.queue(boost::bind(&ComponentBase::_close, this));
+    this->dispatcher.exec(boost::bind(&ComponentBase::_close, this));
 }
 
 void ComponentBase::_close() {
-	if(this->running) {
+	if(__sync_val_compare_and_swap(&this->running, true, false) == true) {
+
+        /* stop receiving */
+		this->task_recv.join();
+
         /* call handler */
         this->onClose();
 
-        /* close threads */
-		this->running = false;
+        /* stop sending */
 		this->stanza_queue.push(0);
-		this->task_recv.join();
 		this->task_send.join();
 
         /* close connection */
@@ -83,7 +85,7 @@ void ComponentBase::_close() {
 }
 
 void ComponentBase::handleError(const std::string& error) {
-    /* tunel the call */
+    /* tunnel the call */
     this->dispatcher.queue(boost::bind(&ComponentBase::_handleError, this, error));
 }
 
@@ -100,7 +102,7 @@ void ComponentBase::handleStanza(XMPP::Stanza* stanza) {
 }
 
 void ComponentBase::run_recv() {
-    XMPP::Stanza* stanza;
+    XMPP::Stanza* stanza = 0;
 	try {
 		while(this->running) {
             /* receive stanzas */
@@ -110,26 +112,33 @@ void ComponentBase::run_recv() {
                 this->handleStanza(stanza);
             }
 		}
-	} catch (const char* error) {
-		if(this->running)
-			this->handleError(error);
+	} catch (const runtime_error& error) {
+        this->handleError(error.what());
 	}
 }
 
 void ComponentBase::run_send() {
-	XMPP::Stanza* stanza;
-	while(this->running) {
-        /* take one stanza from the queue */
-		stanza = this->stanza_queue.pop();
-		if(stanza==0)
-			break;
-        /* deliver it */
-        try {
-            this->component.sendStanza(stanza);
-        } catch (const char* error) {
-            this->handleError(error);
+	XMPP::Stanza* stanza = 0;
+    try {
+        while(this->running) {
+            /* take one stanza from the queue */
+            stanza = this->stanza_queue.pop();
+
+            /* we have to stop when we get a null pointer */
+            if(stanza==0) {
+                break;
+            }
+
+            /* deliver it */
+            if(this->running) {
+                this->component.sendStanza(stanza);
+            } else {
+                delete stanza;
+            }
         }
-	}
+    } catch (const runtime_error& error) {
+        this->handleError(error.what());
+    }
 }
 
 void ComponentBase::sendStanza(XMPP::Stanza* stanza) {

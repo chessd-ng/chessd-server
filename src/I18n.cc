@@ -73,8 +73,8 @@ void I18n::loadLang(const std::string& filename) {
 
     /* get strings */
     foreach(child, xml->tags()) {
-        const std::string& text_name = child->findChild("name").findCData().data();
-        const std::string& text = child->findChild("text").findCData().data();
+        const std::string& text_name = child->findTag("name").findCData().data();
+        const std::string& text = child->findTag("text").findCData().data();
         this->langs[lang][text_name] = text;
     }
 }

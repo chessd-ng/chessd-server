@@ -35,6 +35,10 @@ namespace Threads {
 		TaskRunning
 	};
 
+    inline pthread_t getCurrentThreadId() {
+        return pthread_self();
+    }
+
 
 	/*! \brief Executes stuff in parallel
 	 */
@@ -73,11 +77,18 @@ namespace Threads {
 
 			/*! \brief Run the task */
 			void run();
+
+            /*! \brief The the id of the thread that this task is running */
+            pthread_t getThreadId() const {
+                return thread_id;
+            }
+
 		private:
 			Condition condition;
 			TaskStatus status;
 			bool waiting;
 			boost::function<void ()> function;
+            pthread_t thread_id;
 	};
 
 }

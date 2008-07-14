@@ -5,16 +5,22 @@ may my break compatibility with previous versions.
 Any date and time is in the format specified by the XEP-082.
 
 <!--
-     First thing to do is to send a presence to the match component.
-     Note: the field to depends on the server configuration.
+     First thing to do is to send a presence to the chessd component.
+     The optional child cofig has some attributes. For now there is
+     only one possible attribute which is multigame, this is whether
+     the player supports playing more than one game at a time, this
+     is most usefull for chess engines that want to connect to the
+     server.
 -->
-<presence to='match.shiva'/>
+<presence to='chessd.shiva'>
+    <config multigame='false'/>
+</presence>
 
 <!--
-    Now you can offer a match to somone who is available to play.
+    Now you can offer a match to someone who is available to play.
     Currently supported categories are standard, blitz and lightning.
 -->
-<iq type='set' to='match.shiva' id='match'>
+<iq type='set' to='chessd.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'>
         <match category='standard' autoflag='true' rated='false'>
             <player jid='raphaelhr@shiva/Psi' time='900' inc='1' color='white'/>
@@ -36,7 +42,7 @@ Any date and time is in the format specified by the XEP-082.
 <!--
     The other player will receive a notification of the offer.
 -->
-<iq from='match.shiva' type='set' id='1' to='eduari@shiva/Psi' >
+<iq from='chessd.shiva' type='set' id='1' to='eduari@shiva/Psi' >
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'/>
         <match category='standard' id='0' >
             <player inc='1' color='white' time='900' jid='raphaelhr@shiva/Psi' />
@@ -49,7 +55,7 @@ Any date and time is in the format specified by the XEP-082.
     In order to accept the offer, the player must send
     an iq to the server with the offer's id.
 -->
-<iq type='set' to='match.shiva' id='match'>
+<iq type='set' to='chessd.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#accept'>
         <match id='0'/>
     </query>
@@ -60,7 +66,7 @@ Any date and time is in the format specified by the XEP-082.
     Note that both users, the one who offered and the one who received the offer,
     can send this message and the effect is the same, the offer is canceled.
 -->
-<iq type='set' to='match.shiva' id='match'>
+<iq type='set' to='chessd.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#decline'>
         <match id='0'/>
     </query>
@@ -71,9 +77,9 @@ Any date and time is in the format specified by the XEP-082.
     a notification with the offer's id and the game room where
     the game started.
 -->
-<iq type='set' from='match.shiva' id='match'>
+<iq type='set' from='chessd.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#decline/accept'>
-        <match id='0' room='game_0@games.shiva'/>
+        <match id='0' room='game_0@chessd.shiva'/>
     </query>
 </iq>
 
@@ -82,7 +88,7 @@ Any date and time is in the format specified by the XEP-082.
     could send a reoffer, which is the same of a offer but
     it carries the offer's id being replaced.
 -->
-<iq type='set' to='match.shiva' id='match'>
+<iq type='set' to='chessd.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'>
         <match category='standard' id='0'>
             <player jid='raphaelhr@shiva/Psi' time='1000' inc='2' color='white'/>
@@ -95,12 +101,12 @@ Any date and time is in the format specified by the XEP-082.
     The game room work just like Muc extension.
     The players must join the room before start playing.
 -->
-<presence to='game_0@games.shiva/raphaelhr'/>
+<presence to='game_0@chessd.shiva/raphaelhr'/>
 
 <!--
     When a player joins a game he will receive the current game state.
 -->
-<iq from='game_0@games.shiva' type='set' id='0' to='raphaelhr@shiva/Psi' >
+<iq from='game_0@chessd.shiva' type='set' id='0' to='raphaelhr@shiva/Psi' >
     <query xmlns='http://c3sl.ufpr.br/chessd#game#state'>
         <state category='standard' >
             <board fullmoves='1' enpassant='-' castle='KQkq' halfmoves='0' state='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR' turn='white' />
@@ -113,13 +119,13 @@ Any date and time is in the format specified by the XEP-082.
 <!--
     A player can issue a move sending the following message
 -->
-<iq type='set' to='game_0@games.shiva' id='match'>
+<iq type='set' to='game_0@chessd.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#game#move'>
         <move long='e2e4'/>
     </query>
 </iq>
 
-<iq type='set' to='game_0@games.shiva' id='match'>
+<iq type='set' to='game_0@chessd.shiva' id='match'>
     <query xmlns='http://c3sl.ufpr.br/chessd#game#move'>
         <move long='e7e5'/>
     </query>
@@ -134,7 +140,7 @@ Any date and time is in the format specified by the XEP-082.
     For each move in the game, the players in the room will receive
     a notification of the move and the state of the board.
 -->
-<iq from='game_0@games.shiva' type='set' id='0' to='raphaelhr@shiva/Psi' >
+<iq from='game_0@chessd.shiva' type='set' id='0' to='raphaelhr@shiva/Psi' >
     <query xmlns='http://c3sl.ufpr.br/chessd#game#move'>
         <move long='e2e4'/>
         <state category='standard' >
@@ -149,14 +155,14 @@ Any date and time is in the format specified by the XEP-082.
     A player can resign, offer draw/cancel/adjourn using the folowing message.
     The diference is just the xmlns.
 -->
-<iq type='set' to='game_0@games.shiva' id='draw'>
+<iq type='set' to='game_0@chessd.shiva' id='draw'>
     <query xmlns='http://c3sl.ufpr.br/chessd#game#resign/draw/cancel/adjourn'/>
 </iq>
 
 <!--
     The players will be notified of the offer.
 -->
-<iq type='set' from='game_0@games.shiva' id='draw'>
+<iq type='set' from='game_0@chessd.shiva' id='draw'>
     <query xmlns='http://c3sl.ufpr.br/chessd#game#draw/cancel/adjourn'/>
 </iq>
 
@@ -188,10 +194,14 @@ Any date and time is in the format specified by the XEP-082.
     draw-fifty-moves - The game was a draw due to the 50 half moves rule
     draw-impossible-mate - The game was a draw due the lack ofm aterial to mate
     draw-timeover - Both players ran out of time
+    canceled-agreement - The players agreed on calceling the game
+    canceled-timed-out - The game was canceled due to inactivity
+    adjourned-agreement - The players agreed on adjourning the game
+    adjourned-shutdown - The game was adjourned because the server is shutting down.
 
     The player's result attribute can be 'won', 'lost' or 'draw'.
 -->
-<iq from='game_0@games.shiva' type='set' id='2' to='eduari@shiva/Psi' >
+<iq from='game_0@chessd.shiva' type='set' id='2' to='eduari@shiva/Psi' >
     <query xmlns='http://c3sl.ufpr.br/chessd#game#end'>
         <end type='normal' result='black-mated'/>
             <player role='white' result='won' jid='raphaelhr@shiva/Psi'/>
@@ -204,7 +214,7 @@ Any date and time is in the format specified by the XEP-082.
     To list adjourned games
 --!>
 
-<iq type='get' to='match.shiva' id='get_adj'>
+<iq type='get' to='chessd.shiva' id='get_adj'>
     <query xmlns='http://c3sl.ufpr.br/chessd#adjourned#list'>
         <search results='10' offset='0'/>
     </query>
@@ -214,7 +224,7 @@ Any date and time is in the format specified by the XEP-082.
     The result.
 --!>
 
-<iq from='match.shiva' type='result' id='get_adj'>
+<iq from='chessd.shiva' type='result' id='get_adj'>
     <query xmlns='http://c3sl.ufpr.br/chessd#adjourned#list'>
         <game time_stamp='2008-03-06T15:19:09Z' category='blitz' id='89'>
             <player jid='ulyssesb@shiva' time='900' inc='6' role='white'/>
@@ -227,7 +237,7 @@ Any date and time is in the format specified by the XEP-082.
     To offer a player to resume an adjourned game.
 --!>
 
-<iq to='match.shiva' type='set' id='offer_adj'>
+<iq to='chessd.shiva' type='set' id='offer_adj'>
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'>
         <match adjourned_id='4'/>
     </query>
@@ -239,7 +249,7 @@ Any date and time is in the format specified by the XEP-082.
     a normal offer, but with a type set to adjourned.
 --!>
 
-<iq from='match.shiva' type='set' id='1' to='eduari@shiva/Psi' >
+<iq from='chessd.shiva' type='set' id='1' to='eduari@shiva/Psi' >
     <query xmlns='http://c3sl.ufpr.br/chessd#match#offer'/>
         <match category='standard' id='0' type='adjourned'>
             <player inc='1' color='white' time='521' jid='raphaelhr@shiva/Psi'/>
@@ -251,7 +261,8 @@ Any date and time is in the format specified by the XEP-082.
 <!--
     After the game is over, the players may leave the room.
 -->
-<presence to='game_0@games.shiva/raphaelhr' type='unavailable'/>
+
+<presence to='game_0@chessd.shiva/raphaelhr' type='unavailable'/>
 
 <!--
       To request users info one should send the following message.
@@ -279,7 +290,6 @@ Any date and time is in the format specified by the XEP-082.
         <type jid='raphaelhr@shiva' type='robot'/>
     </query>
 </iq>
-
 
 <!--
     Search for previous games.
@@ -334,7 +344,7 @@ Any date and time is in the format specified by the XEP-082.
     To kick a user from the server
 --!>
 
-<iq type='set' to='admin.shiva' id='12345'>
+<iq type='set' to='chessd.shiva' id='12345'>
     <kick xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva/ChessD'>
         <reason>Stop fooling around.</reason>
     </kick>
@@ -344,7 +354,7 @@ Any date and time is in the format specified by the XEP-082.
     To ban a user from the server
 --!>
 
-<iq type='set' to='admin.shiva' id='12345'>
+<iq type='set' to='chessd.shiva' id='12345'>
     <ban xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva/ChessD'>
         <reason>Had you listened to me you would not get banned.</reason>
     </ban>
@@ -370,7 +380,7 @@ Any date and time is in the format specified by the XEP-082.
     To unban a user from the server
 --!>
 
-<iq type='set' to='admin.shiva' id='12345'>
+<iq type='set' to='chessd.shiva' id='12345'>
     <unban xmlns='http://c3sl.ufpr.br/chessd#admin' jid='eduari@shiva'/>
 </iq>
 
@@ -378,7 +388,7 @@ Any date and time is in the format specified by the XEP-082.
     To list all banned users
 --!>
 
-<iq type='get' to='admin.shiva' id='12345'>
+<iq type='get' to='chessd.shiva' id='12345'>
     <banned-list xmlns='http://c3sl.ufpr.br/chessd#admin'/>
 </iq>
 
@@ -386,7 +396,7 @@ Any date and time is in the format specified by the XEP-082.
     The result will be like this.
 --!>
 
-<iq type='get' to='admin.shiva' id='12345'>
+<iq type='get' to='chessd.shiva' id='12345'>
     <banned-list xmlns='http://c3sl.ufpr.br/chessd#admin'>
         <user jid='buguens@shiva'>He is a bad guy</user>
         <user jid='eduari@shiva'>The user is a spam bot</user>
@@ -452,13 +462,13 @@ Any date and time is in the format specified by the XEP-082.
     The result
 --!>
 
-<iq from='tourneydev.shiva' type='result' id='1234' to='raphaelhr@shiva/guinness' >
+<iq from='tourneydev.shiva' type='result' id='1234' to='raphaelhr@shiva/ChessD' >
     <list xmlns='http://c3sl.ufpr.br/chessd#tourney'>
         <tourney id='0' />
     </list>
 </iq>
 
-<!-- To join a tournet --!>
+<!-- To join a tourney --!>
 
 <iq type='set' to='tourneydev.shiva' id='1234'>
     <join xmlns='http://c3sl.ufpr.br/chessd#tourney'>
@@ -468,19 +478,130 @@ Any date and time is in the format specified by the XEP-082.
 
 <!-- When a round begins the players will receive a notification with their game rooms --!>
 
-<iq from='tourneydev.shiva' type='set' id='0' to='raphaelhr@shiva/guinness' >
+<iq from='tourneydev.shiva' type='set' id='0' to='raphaelhr@shiva/ChessD' >
     <game xmlns='http://c3sl.ufpr.br/chessd#tourney' room='game_0@gamesdev.shiva' >
         <tourney id='0' />
     </game>
 </iq>
 
 <!--
+	To create a match annoucement send the message:
+--!>
+
+<iq type='set' to='chessd.shiva' id='1234'>
+    <create xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
+        <announcement rated='true' category='standard' autoflag='true'>
+            <player jid='raphaelhr@shiva/ChessD' time='900' inc='1' color='white'/>
+        </announcement>
+    </create>
+</iq>
+
+<iq type='result' to='chessd.shiva' id='1234'>
+    <create xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
+        <announcement id='0'/>
+    </create>
+</iq>
+
+<!--
+	To search for available annoucments.
+    The paramaters are:
+        - offset is the number of results to skip
+        - results is the liit of results to return
+        - minimum_time is minimum game time for each player
+        - maximum_time is maximum game time for each player
+        - category is the game category
+        - player is the opponent name
+    All these parameters are optional and may be omited, the effect
+    of omiting a parameter is as if the parameter didn't exist.
+--!>
+
+<iq type='get' to='chessd.shiva' id='1234'>
+    <search xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
+        <parameters
+            offset='1'
+            results='10'
+            minimum_time='800'
+            maximum_time='1000'
+            category='standard'
+            player='raphaelhr@shiva/ChessD'/>
+    </search>
+</iq>
+
+<!--
+    The result is a list of annoucements that obey the paramaeters given.
+    There may be a tag <more/> to indicate that there are more results that
+    could not be listed due to the limit of results.
+--!>
+
+<iq from="chessddev.shiva" type="result" id="1234" to="raphaelhr@shiva/guinness" >
+    <search xmlns="http://c3sl.ufpr.br/chessd#match_announcement">
+        <announcement category="standard" autoflag="true" id="0" rated="true" >
+            <player inc="1" color="white" time="900" jid="raphaelhr@shiva/guinness" />
+        </announcement>
+        <more/>
+    </search>
+</iq>
+
+<!--
+    To take an annoucement send the message
+--!>
+
+<iq type='set' to='chessd.shiva' id='1234'>
+    <accept xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
+        <announcement id='0'/>
+    </accept>
+</iq>
+
+<!--
+    When someone take an announcement, the players involved will
+    be notified that a game has started
+--!>
+
+<iq from="chessd.shiva" type="set" id="0" to="raphaelhr@shiva/guinness" >
+    <start_game xmlns="http://c3sl.ufpr.br/chessd#match_announcement">
+        <game_room jid="game_0@chessd.shiva"/>
+    </start_game>
+</iq>
+
+<!--
+    To delete an annoucement send the message.
+--!>
+
+<iq type='set' to='chessd.shiva' id='1234'>
+    <delete xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
+        <announcement id='0'/>
+    </delete>
+</iq>
+
+<!--
+    To search for current games
+--!>
+
+<iq type='get' to='chessd.shiva' id='1234'>
+    <search xmlns='http://c3sl.ufpr.br/chessd#game'>
+        <game>
+            <player jid='buguens@shiva/ChessD'/>
+        </game>
+    </search>
+</iq>
+
+<!--
+    The result is like this
+--!>
+
+<iq type='result' to='chessd.shiva' id='1234'>
+    <search xmlns='http://c3sl.ufpr.br/chessd#game'>
+        <game game_room='game_1234@chessd.shiva'/>
+    </search>
+</iq>
+
+<!--
 	Match Announcement
 	//FIXME explain more
 --!>
-<match_announcement category='standard' autoflag='true' rated='false'>
+<announcement category='standard' autoflag='true' rated='false'>
 	<player jid='raphaelhr@shiva/Psi' time='900' inc='1' color='white'/>
-</match>
+</announcement>
 
 
 <!--
@@ -519,7 +640,6 @@ Any date and time is in the format specified by the XEP-082.
 	<state board='rnbqkbnr/1ppp1ppp/8/p3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR' move='a6a5' short='a5' time='662' turn='white'/>
 	<state board='rnbqkbnr/1ppp1Qpp/8/p3p3/2B1P3/8/PPPP1PPP/RNB1K1NR' move='f3f7' short='Qxf7#' time='663' turn='black'/>
 </history>
-
 
 <!--
     Tourney

@@ -34,11 +34,14 @@
 using namespace std;
 using namespace XML;
 
+volatile bool running = true;
 pthread_t main_thread;
 
 void handleError(const string& error) {
     cerr << error << endl;
-    pthread_kill(main_thread, SIGINT);
+    if(__sync_val_compare_and_swap(&running, true, false) == true) {
+        pthread_kill(main_thread, SIGINT);
+    }
 }
 
 int main(int argc, char** argv) {
@@ -60,16 +63,16 @@ int main(int argc, char** argv) {
         std::auto_ptr<XML::Tag> config(XML::parseXmlFile(file_name));
 
         /* Init database manager */
-        DatabaseManager database_manager(config->findChild("database"));
+        DatabaseManager database_manager(config->findTag("database"));
 
         /* Init the game server */
-        ServerCore server(config->findChild("xmpp-component"),
+        ServerCore server(config->findTag("xmpp-component"),
                 database_manager,
                 boost::bind(handleError, _1));
 
         /* Set log output */
         try {
-            log_file.open(config->findChild("log").getAttribute("filename").c_str(), iostream::out);
+            log_file.open(config->findTag("log").getAttribute("filename").c_str(), iostream::out);
             if(not log_file.fail()) {
                 Util::log.setOutput(log_file);
             } else {
@@ -87,7 +90,7 @@ int main(int argc, char** argv) {
         sigwait(&signal_set, &sig_number);
 
         /* Close the server */
-        cerr << "Shutting down..." << endl;
+        cerr << "Exiting..." << endl;
         server.close();
     } catch (const char* msg) {
         cerr << "Error: " << msg << endl;

@@ -43,8 +43,7 @@ class MatchManager : public ServerModule {
          * \param core_interface is the interface to the core.
          * \param config is the configuration for this component.
          */
-        MatchManager(const XML::Tag& config,
-                     ServerCore& game_manager,
+        MatchManager(ServerCore& game_manager,
                      DatabaseManager& database_manager,
                      const XMPP::StanzaHandler& sendStanza);
 

@@ -138,16 +138,20 @@ namespace XMPP {
 		MucUserSet::iterator it = this->users().find_jid(user_jid);
 		if(it != this->users().end()) {
             it->presence() = std::auto_ptr<Stanza>(new Stanza(presence));
-			Stanza* stanza = this->createPresenceStanza(*it);
-			stanza->subtype() = "unavailable";
-			this->broadcast(stanza);
-			Jid jid = this->jid();
-			jid.resource() = it->nick();
-			this->disco().items().erase(jid);
-			this->users().erase(it);
-            this->notifyUserStatus(user_jid, jid.resource(), false);
+            this->removeUser(it);
 		}
 	}
+
+    void Muc::removeUser(MucUserSet::iterator user) {
+        Stanza* stanza = this->createPresenceStanza(*user);
+        stanza->subtype() = "unavailable";
+        this->broadcast(stanza);
+        Jid jid = this->jid();
+        jid.resource() = user->nick();
+        this->disco().items().erase(jid);
+        this->notifyUserStatus(user->jid(), user->nick(), false);
+        this->users().erase(user);
+    }
 
 	void Muc::handleGroupChat(const Stanza& stanza) {
 		MucUserSet::iterator it = this->users().find_jid(stanza.from());
@@ -183,6 +187,12 @@ namespace XMPP {
             }
         } catch (const xmpp_exception& exception) {
             this->sendStanza(exception.getErrorStanza(stanza.release()));
+        }
+    }
+
+    void Muc::close() {
+        while(not this->users().empty()) {
+            this->removeUser(this->users().begin());
         }
     }
 

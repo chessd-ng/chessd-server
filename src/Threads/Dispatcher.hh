@@ -38,27 +38,29 @@ namespace Threads {
 
 			~Dispatcher();
 
-			void run();
-
+            /*! \brief Start to run the dispatcher */
 			void start();
 
+            /*! \brief Stop the dispatcher */
 			void stop();
 
+            /*! \brief Join the dispatcher's thread */
             void join();
 
-			void queue(const Message& message) {
-				this->_queue.push(message);
-			}
+            /*! \brief Put a message in the queue to be executed and returns immediately */
+            void queue(const Message& message);
 
-			void schedule(const Message& message, Util::Time when) {
-                this->queue(boost::bind(&Dispatcher::_schedule, this, message, when));
-			}
+            /*! \brief Put a message in the queue to be executed and wait for it to be executed */
+            void exec(const Message& message);
+
+            /*! \brief Schedule a message to be executed in the given time */
+            void schedule(const Message& message, Util::Time when);
 
 		private:
 
-			void _schedule(const Message& message, Util::Time when) {
-				this->agenda.insert(std::make_pair(when, message));
-			}
+			void run();
+
+            void _schedule(const Message& message, Util::Time when);
 
 			Task task;
 
@@ -66,7 +68,7 @@ namespace Threads {
 
             std::map<Util::Time, Message> agenda;
 
-			bool running;
+			volatile bool running;
 
 			void _stop();
 
