@@ -46,7 +46,7 @@ class ChessTourney : public Tourney {
 		int missing_rounds() const { return this->_missing_rounds;}
 
 	protected:
-		std::vector<Game*>* makeGames(const std::list<Pairing::Game>& games) const;
+		std::vector<Game*>* makeGames(const std::list<Pairing::Game>& games) ;
 
 		std::string _category;
 
