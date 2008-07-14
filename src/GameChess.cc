@@ -284,7 +284,7 @@ std::vector<GamePlayerResult> GameChessUntimed::donePlayerResultList() const {
 	if(this->_done >= 8 and this->_done <=12) //if it is a draw
 		prl[0].result=prl[1].result=DRAW;
 	else if (this->_done!=END_NO_REASON) { //if the game ended
-		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->whoTimedOver()==1/*black*/);
+		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->whoTimedOver()==1/*black*/) or (this->_done==END_BLACK_WO);
 		prl[0].result=(aux==true)?WIN:LOSE;
 		prl[1].result=(aux==true)?LOSE:WIN;
 	}
