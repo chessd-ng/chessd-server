@@ -95,15 +95,15 @@ namespace Util {
 	}
 
 	long long Time::getSeconds() const {
-		return this->_nanoseconds / double(one_second);
+		return this->_nanoseconds / one_second;
 	}
 
 	long long Time::getMiliseconds() const {
-		return this->_nanoseconds / double(one_milisecond);
+		return this->_nanoseconds / one_milisecond;
 	}
 
 	long long Time::getMicroseconds() const {
-		return this->_nanoseconds / double(one_microsecond);
+		return this->_nanoseconds / one_microsecond;
 	}
 
 	Time Time::Hours(long long constant) {

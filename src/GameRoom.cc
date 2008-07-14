@@ -180,7 +180,7 @@ void GameRoom::checkTime() {
                 timedout_players.push_back(player->first);
             }
         }
-        /* if everyonw has timedout, cancel the game */
+        /* if everyone has timedout, cancel the game */
         if(timedout_players.size() == this->all_players.size()) {
             this->endGame(END_TYPE_CANCELED, END_CANCELED_TIMED_OUT);
         } else {
