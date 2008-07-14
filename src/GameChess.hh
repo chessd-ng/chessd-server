@@ -59,6 +59,9 @@ class GameChessUntimed : public Game {
 		/*! \brief The player has resigned */
 		virtual void resign(const XMPP::Jid& player);
 
+		/*! \brief The players have lost by W.O. */
+		virtual void wo(const std::vector<XMPP::Jid>& wos);
+
 		/*! \brief The player has called a flag */
 		virtual void call_flag(const Util::Time& current_time); //TODO
 
