@@ -175,6 +175,13 @@ void GameChessUntimed::resign(const XMPP::Jid& player) {
 	this->_done=(this->_resign==Chess::WHITE?END_WHITE_RESIGNED:END_BLACK_RESIGNED);
 }
 
+void GameChessUntimed::wo(const std::vector<XMPP::Jid>& wos) {
+	if(this->colormap[wos[0]]==Chess::WHITE)
+		this->_done=END_WHITE_WO;
+	else
+		this->_done=END_BLACK_WO;
+}
+
 void GameChessUntimed::call_flag(const Util::Time& current_time) {
 	if(this->_done==END_NO_REASON) {
 		int aux;
@@ -274,7 +281,7 @@ std::vector<GamePlayerResult> GameChessUntimed::donePlayerResultList() const {
 	foreach(it,_players)
 		prl.push_back(GamePlayerResult(*it,NORESULT));
 
-	if(this->_done >= 8) //if it is a draw
+	if(this->_done >= 8 and this->_done <=12) //if it is a draw
 		prl[0].result=prl[1].result=DRAW;
 	else if (this->_done!=END_NO_REASON) { //if the game ended
 		bool aux=this->_resign==Chess::BLACK or (chess.winner()==Chess::WHITE) or (this->whoTimedOver()==1/*black*/);

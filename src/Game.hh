@@ -51,7 +51,11 @@ enum END_CODE {
 
     END_CANCELED=13,
 
-    END_ADJOURNED=14
+    END_ADJOURNED=14,
+
+	END_WHITE_WO=15,
+	END_BLACK_WO=16,
+	END_BOTH_WO=17
 };
 
 static const char game_end_reason_table[][32] = {
@@ -140,6 +144,9 @@ class Game {
 
 		/*! \brief The player has resigned. */
 		virtual void resign(const XMPP::Jid& player) = 0;
+
+		/*! \brief The players have lost by W.O. */
+		virtual void wo(const std::vector<XMPP::Jid>& wos) = 0;
 
 		/*! \brief The player has called a flag. */
 		virtual void call_flag(const Util::Time& current_time) = 0;
