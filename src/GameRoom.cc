@@ -167,25 +167,27 @@ void GameRoom::checkTime() {
     }
 
     /* check players timeout */
-    Time timeout = now;
-    foreach(player, this->player_timeout) {
-        timeout = min(timeout, player->second);
-    }
-    /* if someone timedout, end the game */
-    if(timeout < now) {
-        /* check all the players that timedout first */
-        vector<Jid> timedout_players;
+    if(this->game_active) {
+        Time timeout = now;
         foreach(player, this->player_timeout) {
-            if(player->second == timeout) {
-                timedout_players.push_back(player->first);
-            }
+            timeout = min(timeout, player->second);
         }
-        /* if everyone has timedout, cancel the game */
-        if(timedout_players.size() == this->all_players.size()) {
-            this->endGame(END_TYPE_CANCELED, END_CANCELED_TIMED_OUT);
-        } else {
-            /* give wo to absent users */
-            this->_game->wo(timedout_players);
+        /* if someone timedout, end the game */
+        if(timeout < now) {
+            /* check all the players that timedout first */
+            vector<Jid> timedout_players;
+            foreach(player, this->player_timeout) {
+                if(player->second == timeout) {
+                    timedout_players.push_back(player->first);
+                }
+            }
+            /* if everyone has timedout, cancel the game */
+            if(timedout_players.size() == this->all_players.size()) {
+                this->endGame(END_TYPE_CANCELED, END_CANCELED_TIMED_OUT);
+            } else {
+                /* give wo to absent users */
+                this->_game->wo(timedout_players);
+            }
         }
     }
 
