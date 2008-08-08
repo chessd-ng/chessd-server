@@ -24,7 +24,7 @@
 #include "XMPP/Exception.hh"
 #include "GameException.hh"
 
-#include "I18n.hh"
+#include "Util/Log.hh"
 
 #define XMLNS_GAME                  "http://c3sl.ufpr.br/chessd#game"
 #define XMLNS_GAME_MOVE             "http://c3sl.ufpr.br/chessd#game#move"
@@ -187,6 +187,7 @@ void GameRoom::checkTime() {
             } else {
                 /* give wo to absent users */
                 this->_game->wo(timedout_players);
+                this->endGame(END_TYPE_NORMAL);
             }
         }
     }
@@ -265,7 +266,7 @@ void GameRoom::handleGameIq(const Stanza& stanza) {
         }
 
         /* check if the game is over */
-        if(this->_game->done(this->currentTime())) {
+        if(this->game_active and this->_game->done(this->currentTime())) {
             this->endGame(END_TYPE_NORMAL);
         }
     } catch (const XML::xml_error& error) {
@@ -488,7 +489,8 @@ void GameRoom::endGame(GameEndType type, END_CODE end_code) {
 
     } else if(type == END_TYPE_ADJOURNED) {
         /* get the adjourned game */
-        auto_ptr<AdjournedGame> adj_game(this->_game->adjourn(this->currentTime()));
+        auto_ptr<AdjournedGame> adj_game(this->_game->adjourn(
+                    this->currentTime()));
 
         /* set result */
         this->result_reason = end_code;
