@@ -21,6 +21,8 @@
 #include "XML/Xml.hh"
 #include "Util/utils.hh"
 
+/* XXX This is currently unused code */
+
 I18n i18n;
 
 uint32_t I18n::getTextCode(const std::string& text_name) const {

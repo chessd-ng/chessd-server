@@ -23,6 +23,8 @@
 #include <string>
 #include <stdint.h>
 
+/* XXX This is currently unused code */
+
 class I18n {
     public:
 
