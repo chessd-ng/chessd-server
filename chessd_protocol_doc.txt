@@ -492,7 +492,7 @@ Any date and time is in the format specified by the XEP-082.
 
 <iq type='set' to='chessd.shiva' id='1234'>
     <create xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
-        <announcement rated='true' category='standard' autoflag='true'>
+        <announcement rated='true' category='standard' autoflag='true' minimum_rating='1000' maximum_rating='1500'>
             <player jid='raphaelhr@shiva/ChessD' time='900' inc='1' color='white'/>
         </announcement>
     </create>
@@ -511,7 +511,6 @@ Any date and time is in the format specified by the XEP-082.
         - results is the liit of results to return
         - minimum_time is minimum game time for each player
         - maximum_time is maximum game time for each player
-        - category is the game category
         - player is the opponent name
     All these parameters are optional and may be omited, the effect
     of omiting a parameter is as if the parameter didn't exist.
@@ -524,7 +523,6 @@ Any date and time is in the format specified by the XEP-082.
             results='10'
             minimum_time='800'
             maximum_time='1000'
-            category='standard'
             player='raphaelhr@shiva/ChessD'/>
     </search>
 </iq>

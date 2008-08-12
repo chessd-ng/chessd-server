@@ -157,6 +157,18 @@ class DatabaseInterface : public pqxx::transactor<>
              int offset = 0,
              int max_results = -1);
 
+        void insertAnnouncement(int id, const std::string& username,
+                Util::Time time, int min_rating, int max_rating,
+                const std::string& category);
+
+        std::vector<int> searchAnnouncement(const std::string& username,
+                const std::string& announcer, Util::Time min_time,
+                Util::Time max_time, int max_results, int offset);
+
+        void clearAnnouncements();
+
+        void eraseAnnouncement(int id);
+
     private:
 
         /*! \brief Get the user's id by his name */

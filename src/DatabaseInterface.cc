@@ -16,6 +16,8 @@
  *   You should have received a copy of the GNU General Public License
  */
 
+#include <iostream>
+
 #include "DatabaseInterface.hh"
 
 #include "Util/Date.hh"
@@ -687,7 +689,7 @@ void DatabaseInterface::unbanUser(const string& username) {
 
 
 vector<pair<string, string> > DatabaseInterface::searchBannedUsers (
-        const std::string& username,
+        const string& username,
         int offset,
         int max_results) {
 
@@ -707,13 +709,123 @@ vector<pair<string, string> > DatabaseInterface::searchBannedUsers (
     }
 
     /* execute query */
-    pqxx::result results = work.exec(query);
+    pqxx::result results = this->work.exec(query);
     
     vector<pair<string, string> > ret;
 
     foreach(res, results) {
         ret.push_back(make_pair(res->at("user_name").c_str(),
                                 res->at("reason").c_str()));
+    }
+
+    return ret;
+}
+
+void DatabaseInterface::clearAnnouncements() {
+    /* prepare query */
+    string query = "DELETE FROM annoucements";
+
+    /* execute query */
+    this->work.exec(query);
+}
+
+void DatabaseInterface::eraseAnnouncement(int id) {
+    /* prepare query */
+    string query = "DELETE FROM annoucements WHERE id = " + to_string(id);
+
+    /* execute query */
+    this->work.exec(query);
+}
+
+void DatabaseInterface::insertAnnouncement(int id, const string& username,
+        Util::Time time, int min_rating, int max_rating,
+        const string& category) {
+
+    /* get user id */
+    int user_id = this->getUserId(username, true);
+
+    /* prepare query */
+    string query = "INSERT INTO annoucements (id, user_id, time, min_rating, "
+                                             "max_rating, category) "
+        " VALUES "
+        "(  " + to_string(id) +
+        " , " + to_string(user_id) +
+        " , " + to_string(time.getSeconds()) +
+        " , " + to_string(min_rating) +
+        " , " + to_string(max_rating) +
+        " ,'" + this->work.esc(category) + "')";
+
+    /* execute query */
+    this->work.exec(query);
+}
+
+vector<int> DatabaseInterface::searchAnnouncement(const string& username,
+        const string& announcer, Util::Time min_time, Util::Time max_time,
+        int max_results, int offset) {
+
+    int user_id = -1, annoucer_id = -1;
+    
+    /* prepare query */
+    string select = "SELECT an.id ";
+    string from = "FROM annoucements as an ";
+    string where;
+
+    vector<int> ret;
+
+    try {
+
+        /* put rating restrictions to the one who is searching */
+        if(not username.empty()) {
+            user_id = this->getUserId(username, false);
+            from += ", player_rating as pr ";
+            where += "an.user_id = " + to_string(user_id) + " OR ";
+            where += "pr.user_id = " + to_string(user_id) + " AND ";
+            where += "pr.category = an.category AND ";
+            where += "pr.rating >= an.min_rating AND ";
+            where += "pr.rating <= an.max_rating AND ";
+        }
+
+        /* put time lower bound */
+        if(min_time.getSeconds() >= 0) {
+            where += "an.time >= " + to_string(min_time.getSeconds()) + " AND ";
+        }
+        /* put time upper bound */
+        if(max_time.getSeconds() >= 0) {
+            where += "an.time <= " + to_string(max_time.getSeconds()) + " AND ";
+        }
+        /* match requested announcer */
+        if(not announcer.empty()) {
+            annoucer_id = this->getUserId(announcer, false);
+            where += "an.id = " + to_string(annoucer_id) + " AND ";
+        }
+
+        /* erase extra AND */
+        if(not where.empty()) {
+            where.resize(where.size() - 4);
+            where = " WHERE " + where;
+        }
+
+        /* limit results and add the offset */
+        where += "ORDER BY an.id ";
+        where += "LIMIT " + to_string(max_results) + " ";
+        where += "OFFSET " + to_string(offset) + " ";
+
+        /* finish the query */
+        string query;
+        query += select;
+        query += from;
+        query += where;
+
+        /*  execute thequery*/
+        pqxx::result results = this->work.exec(query);
+
+        /* add results to the answer */
+        foreach(result, results) {
+            ret.push_back(result->at(0).as<int>());
+        }
+
+    } catch (const user_not_found&) {
+        /* do nothing */
     }
 
     return ret;
