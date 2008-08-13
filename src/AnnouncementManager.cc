@@ -100,11 +100,11 @@ void AnnouncementManager::handleCreate(const Stanza& stanza) {
         /* get rating limits */
         if(announcement_tag.hasAttribute("minimum_rating")) {
             min_rating = parse_string<int>(
-                    announcement_tag.getAttribute("min_rating"));
+                    announcement_tag.getAttribute("minimum_rating"));
         }
         if(announcement_tag.hasAttribute("maximum_rating")) {
             max_rating = parse_string<int>(
-                    announcement_tag.getAttribute("max_rating"));
+                    announcement_tag.getAttribute("maximum_rating"));
         }
 
         /* get an id */
