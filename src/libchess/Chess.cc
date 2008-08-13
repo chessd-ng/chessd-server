@@ -414,42 +414,45 @@ bool Chess::differentRows(Position where, const std::vector<Position>& pos) {
 }
 
 std::string Chess::ChessMoveToPGN(const ChessMove& mv) const {
+	std::string from,to,promotion,check;
+
 	if(this->verifyCastle(mv)==true) {
 		//this difference in short castles is always > 0
 		if(mv.to().x - mv.from().x > 0)
-			return "O-O";
-		return "O-O-O";
-	}
-	std::string from,to,promotion,check;
-	std::vector<Position> pieces_positions;
+			to="O-O";
+		else
+			to="O-O-O";
+	} else {
 
-	//set to that is always present
-	to=mv.to().toStringNotation();
+		//set to that is always present
+		to=mv.to().toStringNotation();
 
-	//only pawns that don't require the name of the piece
-	if(this->gameboard->getType(mv.from()) != ChessPiece::PAWN)
-		//set the name of the piece at the beginning
-		from=toupper(this->gameboard->getPieceReal(mv.from()));
+		//only pawns that don't require the name of the piece
+		if(this->gameboard->getType(mv.from()) != ChessPiece::PAWN)
+			//set the name of the piece at the beginning
+			from=toupper(this->gameboard->getPieceReal(mv.from()));
 
-	//if more than one piece of the same type can go to that position
-	if((pieces_positions=howmanyCanMove(mv.to(),this->gameboard->getType(mv.from()))).size() > 1) {
-		/*if the piece going to position mv.to() is in a different
-		  column from the others*/
-		if(differentColumns(mv.from(),pieces_positions)==true)
-			from+=char(mv.from().x+'a');
-		/*if the piece going to position mv.to() is in a different
-		  row from the others*/
-		else if(differentRows(mv.from(),pieces_positions)==true)
-			from+=char(mv.from().y+'0');
-		else /*need a full position*/
-			from+=mv.from().toStringNotation();
-	}
+		std::vector<Position> pieces_positions;
+		//if more than one piece of the same type can go to that position
+		if((pieces_positions=howmanyCanMove(mv.to(),this->gameboard->getType(mv.from()))).size() > 1) {
+			/*if the piece going to position mv.to() is in a different
+			  column from the others*/
+			if(differentColumns(mv.from(),pieces_positions)==true)
+				from+=char(mv.from().x+'a');
+			/*if the piece going to position mv.to() is in a different
+			  row from the others*/
+			else if(differentRows(mv.from(),pieces_positions)==true)
+				from+=char(mv.from().y+'0');
+			else /*need a full position*/
+				from+=mv.from().toStringNotation();
+		}
 
-	/*if a piece will be captured*/
-	if( (this->gameboard->getType(mv.to()) != ChessPiece::NOTYPE) or this->verifyEnPassant(mv)) {
-		if(this->gameboard->getType(mv.from()) == ChessPiece::PAWN)
-			from=char(mv.from().x+'a');
-		from+="x";
+		/*if a piece will be captured*/
+		if( (this->gameboard->getType(mv.to()) != ChessPiece::NOTYPE) or this->verifyEnPassant(mv)) {
+			if(this->gameboard->getType(mv.from()) == ChessPiece::PAWN)
+				from=char(mv.from().x+'a');
+			from+="x";
+		}
 	}
 
 	/*if the player made a check*/

@@ -149,8 +149,10 @@ namespace Pairing {
 			std::vector<Player> sortList;
 			std::map<int/*name*/,TourneyPlayers*> playerList_name;
 //			std::map<int/*name*/,Player*> sortList_name;
-			std::map<int/*name*/,Player*> sortList_name;
-			std::map<int/*name*/,int> sortList_value;
+			std::vector<Player*> sortList_name;
+//			std::map<int/*name*/,int> sortList_value;
+			std::vector<int> sortList_value;
+			
 			std::list<PairedPlayer> pairedPlayers;
 			std::vector<Player> potentialOpponentList;
 
@@ -159,6 +161,8 @@ namespace Pairing {
 			int currentRound;
 
 			char style;
+
+			int has_bye;
 	};
 
 }
