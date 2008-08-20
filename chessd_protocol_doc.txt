@@ -505,10 +505,10 @@ Any date and time is in the format specified by the XEP-082.
 </iq>
 
 <!--
-	To search for available annoucments.
+	To search for available announcements.
     The paramaters are:
         - offset is the number of results to skip
-        - results is the liit of results to return
+        - results is the limit of results to return
         - minimum_time is minimum game time for each player
         - maximum_time is maximum game time for each player
         - player is the opponent name

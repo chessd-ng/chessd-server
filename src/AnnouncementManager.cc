@@ -140,75 +140,81 @@ void AnnouncementManager::handleSearch(const Stanza& stanza) {
 }
 
 void AnnouncementManager::searchAnnouncement(DatabaseInterface& database, const Stanza& stanza) {
-    const Tag& search_tag = stanza.firstTag();
+    try {
+        try {
+            const Tag& search_tag = stanza.firstTag().firstTag();
 
-    /* parse the message */
+            /* parse the message */
 
-    bool has_minimum_time;
-    Time minimum_time = Time::Seconds(-1);
+            Time minimum_time = Time::Seconds(-1);
 
-    bool has_maximum_time;
-    Time maximum_time = Time::Seconds(-1);
+            Time maximum_time = Time::Seconds(-1);
 
-    bool has_player;
-    PartialJid player;
+            PartialJid player;
 
-    PartialJid from = stanza.from();
+            PartialJid from = stanza.from();
 
-    int offset, results;
+            int offset, results;
 
-    /* check time lower bound */
-    if((has_minimum_time = search_tag.hasAttribute("minimum_time"))) {
-        minimum_time = Time::Seconds(search_tag.getAttribute("minimum_time"));
+            /* check time lower bound */
+            if(search_tag.hasAttribute("minimum_time")) {
+                minimum_time = Time::Seconds(search_tag.getAttribute("minimum_time"));
+            }
+
+            /* check time upper bound */
+            if(search_tag.hasAttribute("maximum_time")) {
+                maximum_time = Time::Seconds(search_tag.getAttribute("maximum_time"));
+            }
+
+            /* check for a player */
+            if(search_tag.hasAttribute("player")) {
+                player = PartialJid(search_tag.getAttribute("player"));
+            }
+
+            /* check for number of results */
+            if(search_tag.hasAttribute("results")) {
+                results = min(50, parse_string<int>(search_tag.getAttribute("results")));
+            } else {
+                results = 10;
+            }
+
+            /* check for offset */
+            if(search_tag.hasAttribute("offset")) {
+                offset = parse_string<int>(search_tag.getAttribute("offset"));
+            } else {
+                offset = 0;
+            }
+
+            /* perform the search */
+            cout << from.full() << ' ' << player.full() << endl;
+            vector<int> ids = database.searchAnnouncement(from.full(),
+                    player.full(), minimum_time, maximum_time, results, offset);
+
+            TagGenerator generator;
+            generator.openTag("search");
+            generator.addAttribute("xmlns", XMLNS_CHESSD_MATCH_ANNOUNCEMENT);
+            foreach(id, ids) {
+                ptr_map<uint64_t, MatchAnnouncement>::iterator it =
+                    this->announcements.find(*id);
+
+                /* add announcement to the result */
+                auto_ptr<Tag> announce_tag(it->second->notification());
+                announce_tag->setAttribute("id", to_string(*id));
+                generator.addChild(announce_tag.release());
+            }
+
+            /* create message */
+            auto_ptr<Stanza> result(stanza.createIQResult());
+            result->children().push_back(generator.getTag());
+
+            /* send message  */
+            this->sendStanza(result.release());
+        } catch(const xml_error& error) {
+            throw bad_request("wrong format");
+        }
+    } catch(const XMPP::xmpp_exception& error) {
+        this->sendStanza(error.getErrorStanza(new Stanza(stanza)));
     }
-
-    /* check time upper bound */
-    if((has_maximum_time = search_tag.hasAttribute("maximum_time"))) {
-        maximum_time = Time::Seconds(search_tag.getAttribute("maximum_time"));
-    }
-
-    /* check for a player */
-    if((has_player = search_tag.hasAttribute("player"))) {
-        player = PartialJid(search_tag.getAttribute("player"));
-    }
-
-    /* check for number of results */
-    if(search_tag.hasAttribute("results")) {
-        results = min(50, parse_string<int>(search_tag.getAttribute("results")));
-    } else {
-        results = 10;
-    }
-
-    /* check for offset */
-    if(search_tag.hasAttribute("offset")) {
-        offset = parse_string<int>(search_tag.getAttribute("offset"));
-    } else {
-        offset = 0;
-    }
-
-    /* perform the search */
-    vector<int> ids = database.searchAnnouncement(from.full(),
-            player.full(), minimum_time, maximum_time, results, offset);
-
-    TagGenerator generator;
-    generator.openTag("search");
-    generator.addAttribute("xmlns", XMLNS_CHESSD_MATCH_ANNOUNCEMENT);
-    foreach(id, ids) {
-        ptr_map<uint64_t, MatchAnnouncement>::iterator it =
-            this->announcements.find(*id);
-
-        /* add announcement to the result */
-        auto_ptr<Tag> announce_tag(it->second->notification());
-        announce_tag->setAttribute("id", to_string(*id));
-        generator.addChild(announce_tag.release());
-    }
-
-    /* create message */
-    auto_ptr<Stanza> result(stanza.createIQResult());
-    result->children().push_back(generator.getTag());
-
-    /* send message  */
-    this->sendStanza(result.release());
 }
 
 void AnnouncementManager::handleDelete(const Stanza& stanza) {
