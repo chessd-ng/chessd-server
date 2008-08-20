@@ -186,7 +186,6 @@ void AnnouncementManager::searchAnnouncement(DatabaseInterface& database, const 
             }
 
             /* perform the search */
-            cout << from.full() << ' ' << player.full() << endl;
             vector<int> ids = database.searchAnnouncement(from.full(),
                     player.full(), minimum_time, maximum_time, results, offset);
 

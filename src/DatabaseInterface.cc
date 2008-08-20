@@ -775,7 +775,7 @@ vector<int> DatabaseInterface::searchAnnouncement(const string& username,
         /* search announcements from a specific user */
         if(not announcer.empty()) {
             annoucer_id = this->getUserId(announcer, false);
-            where += "an.id = " + to_string(annoucer_id) + " AND ";
+            where += "an.user_id = " + to_string(annoucer_id) + " AND ";
         } else if(not username.empty()) {
             /* put rating restrictions to the one who is searching */
             user_id = this->getUserId(username, false);
