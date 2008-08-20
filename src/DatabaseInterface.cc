@@ -16,8 +16,6 @@
  *   You should have received a copy of the GNU General Public License
  */
 
-#include <iostream>
-
 #include "DatabaseInterface.hh"
 
 #include "Util/Date.hh"
@@ -774,29 +772,30 @@ vector<int> DatabaseInterface::searchAnnouncement(const string& username,
 
     try {
 
-        /* put rating restrictions to the one who is searching */
-        if(not username.empty()) {
+        /* search announcements from a specific user */
+        if(not announcer.empty()) {
+            annoucer_id = this->getUserId(announcer, false);
+            where += "an.id = " + to_string(annoucer_id) + " AND ";
+        } else if(not username.empty()) {
+            /* put rating restrictions to the one who is searching */
             user_id = this->getUserId(username, false);
             from += ", player_rating as pr ";
-            where += "an.user_id = " + to_string(user_id) + " OR ";
             where += "pr.user_id = " + to_string(user_id) + " AND ";
+            where += "an.user_id <> " + to_string(user_id) + " AND ";
             where += "pr.category = an.category AND ";
             where += "pr.rating >= an.min_rating AND ";
             where += "pr.rating <= an.max_rating AND ";
         }
 
+
         /* put time lower bound */
         if(min_time.getSeconds() >= 0) {
             where += "an.time >= " + to_string(min_time.getSeconds()) + " AND ";
         }
+
         /* put time upper bound */
         if(max_time.getSeconds() >= 0) {
             where += "an.time <= " + to_string(max_time.getSeconds()) + " AND ";
-        }
-        /* match requested announcer */
-        if(not announcer.empty()) {
-            annoucer_id = this->getUserId(announcer, false);
-            where += "an.id = " + to_string(annoucer_id) + " AND ";
         }
 
         /* erase extra AND */

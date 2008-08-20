@@ -176,7 +176,7 @@ void AnnouncementManager::searchAnnouncement(DatabaseInterface& database, const 
     if(search_tag.hasAttribute("results")) {
         results = min(50, parse_string<int>(search_tag.getAttribute("results")));
     } else {
-        results = 50;
+        results = 10;
     }
 
     /* check for offset */
