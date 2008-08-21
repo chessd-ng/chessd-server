@@ -240,6 +240,11 @@ void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
 void MatchManager::resumeOffer(int adj_id, const std::string& history) {
     std::auto_ptr<Stanza> stanza;
     try {
+        /* if the history is empty, it means that the id does not exist */
+        if(history.empty()) {
+            throw(xmpp_exception("Invalid adjourned game id"));
+        }
+
         /* now we are to resume an adjourned game */
         /* find the offer message */
         foreach(offer, this->delayed_offer) {
