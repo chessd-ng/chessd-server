@@ -96,12 +96,6 @@ GameRoom::GameRoom(
     /* Set features */
     this->disco().features().insert(XMLNS_GAME);
 
-    /* Set extended info */
-    XML::TagGenerator generator;
-    generator.openTag("game");
-    generator.addAttribute("category", game->category());
-    this->disco().setExtendedInfo(generator.getTag());
-
     /* Set game iqs */
     this->setIqHandler(boost::bind(&GameRoom::handleGameIq, this, _1),
             XMLNS_GAME_MOVE);
@@ -122,8 +116,8 @@ GameRoom::GameRoom(
     this->setIqHandler(boost::bind(&GameRoom::handleGameIq, this, _1),
             XMLNS_GAME_STATE);
 
+    /* init agreements and timeouts */
     Time timeout = Timer::now() + Time::Minutes(5);
-    /* init agreements and tiemouts */
     foreach(player, game->players()) {
         this->draw_agreement.insert(player->jid);
         this->cancel_agreement.insert(player->jid);
@@ -134,10 +128,12 @@ GameRoom::GameRoom(
 
     /* set time check */
     this->dispatcher.schedule(boost::bind(&GameRoom::checkTime, this),
-                              Timer::now() + Time::Seconds(20));
+                              Timer::now() + Time::Seconds(10));
 
     /* start the dispatcher */
     this->dispatcher.start();
+
+    this->setExtendedInfo();
 }
 
 GameRoom::~GameRoom() {
@@ -147,6 +143,22 @@ GameRoom::~GameRoom() {
 
 void GameRoom::stop() {
     this->dispatcher.exec(boost::bind(&GameRoom::onStop, this));
+}
+
+void GameRoom::setExtendedInfo() {
+    /* Set extended info */
+    XML::TagGenerator generator;
+    generator.openTag("game");
+    generator.addAttribute("category", this->game().category());
+    foreach(player, this->game().players()) {
+        generator.openTag("player");
+        generator.addAttribute("jid", player->jid.full());
+        generator.addAttribute("role", PLAYER_ROLE_NAME[player->color]);
+        generator.addAttribute("time", to_string(player->time.getSeconds()));
+        generator.addAttribute("inc", to_string(player->inc.getSeconds()));
+        generator.closeTag();
+    }
+    this->disco().setExtendedInfo(generator.getTag());
 }
 
 void GameRoom::onStop() {
@@ -160,6 +172,9 @@ void GameRoom::onStop() {
 
 void GameRoom::checkTime() {
     Time now = Timer::now();
+
+    /* update the extended info */
+    this->setExtendedInfo();
 
     /* check whether the time is over */
     if(this->game_active and this->_game->done(this->currentTime())) {
@@ -315,14 +330,20 @@ void GameRoom::handleResign(const Stanza& stanza) {
 
 void GameRoom::handleDrawAccept(const Stanza& stanza) {
 
-    this->draw_agreement.agreed(stanza.from());
+    /* send a iq result */
     this->sendStanza(stanza.createIQResult());
+
+    /* check if this is the first offer, if so notify the other players */
+    if(this->draw_agreement.agreed_count() == 0) {
+        this->notifyRequest(REQUEST_DRAW, stanza.from());
+    }
+
+    /* set player status as agreed */
+    this->draw_agreement.agreed(stanza.from());
 
     /* check if all players agreed on a draw */
     if(this->draw_agreement.left_count() == 0) {
         this->_game->draw();
-    } else if(this->draw_agreement.agreed_count() == 1) {
-        this->notifyRequest(REQUEST_DRAW, stanza.from());
     }
 }
 
@@ -333,15 +354,23 @@ void GameRoom::handleDrawDecline(const Stanza& stanza) {
 }
 
 void GameRoom::handleCancelAccept(const Stanza& stanza) {
-    this->cancel_agreement.agreed(stanza.from());
+
+    /* send a iq result */
     this->sendStanza(stanza.createIQResult());
 
-    /* check if all players agreed on canceling the game */
-    if(this->cancel_agreement.left_count()==0) {
-        this->endGame(END_TYPE_CANCELED, END_CANCELED_AGREEMENT);
-    } else if(this->cancel_agreement.agreed_count() == 1) {
+    /* check if this is the first offer, if so notify the other players */
+    if(this->cancel_agreement.agreed_count() == 0) {
         this->notifyRequest(REQUEST_CANCEL, stanza.from());
     }
+
+    /* set player status as agreed */
+    this->cancel_agreement.agreed(stanza.from());
+
+    /* check if all players agreed on a draw */
+    if(this->cancel_agreement.left_count() == 0) {
+        this->endGame(END_TYPE_CANCELED, END_CANCELED_AGREEMENT);
+    }
+
 }
 
 void GameRoom::handleCancelDecline(const Stanza& stanza) {
@@ -351,15 +380,23 @@ void GameRoom::handleCancelDecline(const Stanza& stanza) {
 }
 
 void GameRoom::handleAdjournAccept(const Stanza& stanza) {
-    this->adjourn_agreement.agreed(stanza.from());
+
+    /* send a iq result */
     this->sendStanza(stanza.createIQResult());
 
-    /* check whether all players agreed on adjourning the game */
-    if(this->adjourn_agreement.left_count()==0) {
-        this->endGame(END_TYPE_ADJOURNED, END_ADJOURNED_AGREEMENT);
-    } else if(this->adjourn_agreement.agreed_count() == 1) {
+    /* check if this is the first offer, if so notify the other players */
+    if(this->adjourn_agreement.agreed_count() == 0) {
         this->notifyRequest(REQUEST_ADJOURN, stanza.from());
     }
+
+    /* set player status as agreed */
+    this->adjourn_agreement.agreed(stanza.from());
+
+    /* check if all players agreed on a draw */
+    if(this->adjourn_agreement.left_count() == 0) {
+        this->endGame(END_TYPE_ADJOURNED, END_ADJOURNED_AGREEMENT);
+    }
+
 }
 
 void GameRoom::handleAdjournDecline(const Stanza& stanza) {

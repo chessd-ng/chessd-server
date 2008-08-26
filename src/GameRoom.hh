@@ -158,6 +158,8 @@ class GameRoom : public XMPP::Muc {
 
         void setResult(const GameResult& result);
 
+        void setExtendedInfo();
+
         XMPP::Stanza* createStateStanza();
 
         XMPP::Stanza* createResultStanza(const std::string& lang);
