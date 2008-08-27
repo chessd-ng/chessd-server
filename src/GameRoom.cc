@@ -150,6 +150,7 @@ void GameRoom::setExtendedInfo() {
     XML::TagGenerator generator;
     generator.openTag("game");
     generator.addAttribute("category", this->game().category());
+    generator.addAttribute("moves", to_string(this->move_count));
     foreach(player, this->game().players()) {
         generator.openTag("player");
         generator.addAttribute("jid", player->jid.full());
