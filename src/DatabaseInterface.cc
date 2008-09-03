@@ -602,10 +602,12 @@ void DatabaseInterface::updateOnlineTime(const string& username,
                                          int increment) {
     string query;
 
+    int id = this->getUserId(username, true);
+
     /* update info game */
     query =
             " UPDATE users SET online_time=online_time+" + to_string(increment) + " WHERE "
-            "   user_name='" + this->work.esc(username) + "'";
+            "   user_id=" + to_string(id) + "";
 
     this->work.exec(query);
 }

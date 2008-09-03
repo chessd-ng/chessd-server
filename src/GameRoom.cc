@@ -174,9 +174,6 @@ void GameRoom::onStop() {
 void GameRoom::checkTime() {
     Time now = Timer::now();
 
-    /* update the extended info */
-    this->setExtendedInfo();
-
     /* check whether the time is over */
     if(this->game_active and this->_game->done(this->currentTime())) {
         this->endGame(END_TYPE_NORMAL);
@@ -285,6 +282,9 @@ void GameRoom::handleGameIq(const Stanza& stanza) {
         if(this->game_active and this->_game->done(this->currentTime())) {
             this->endGame(END_TYPE_NORMAL);
         }
+
+        /* update the extended info */
+        this->setExtendedInfo();
     } catch (const XML::xml_error& error) {
         throw bad_request("Bad format");
     }
