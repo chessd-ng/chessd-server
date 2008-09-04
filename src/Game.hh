@@ -79,7 +79,10 @@ static const char game_end_reason_table[][32] = {
     "canceled-agreement",
     "canceled-timed-out",
     "adjourned-agreement",
-    "adjourned-shutdown"
+    "adjourned-shutdown",
+    "white-wo",
+    "black-wo",
+    "both-wo"
 };
 
 class GameResult {

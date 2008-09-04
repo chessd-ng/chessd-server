@@ -44,7 +44,7 @@ namespace Threads {
 
 			Pool();
 
-			~Pool();
+			virtual ~Pool();
 
             class PoolThread : public Thread {
                 public:

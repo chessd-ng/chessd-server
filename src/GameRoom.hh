@@ -158,6 +158,8 @@ class GameRoom : public XMPP::Muc {
 
         void setResult(const GameResult& result);
 
+        void setExtendedInfo();
+
         XMPP::Stanza* createStateStanza();
 
         XMPP::Stanza* createResultStanza(const std::string& lang);
@@ -197,6 +199,8 @@ class GameRoom : public XMPP::Muc {
         int move_count;
 
         GameEndType end_type;
+
+        std::map<XMPP::Jid, Util::Time> player_timeout;
 };
 
 #endif

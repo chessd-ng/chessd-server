@@ -27,6 +27,8 @@
 
 #include "utils.hh"
 
+/* XXX This code is currently unused */
+
 namespace Util {
 
 	template <class Data> class SimpleDatabase;

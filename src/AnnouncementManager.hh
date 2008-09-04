@@ -56,6 +56,15 @@ class AnnouncementManager : public ServerModule {
 
     private:
 
+        /*! \brief Store information about an annoucement */
+        struct Announcement {
+            Util::Time time;
+            std::string category;
+            int min_rating, max_rating;
+            std::set<XMPP::Jid> players;
+            std::auto_ptr<MatchAnnouncement> announcement;
+        };
+
         /*! \brief Receive a notification of a status change */
         void handleUserStatus(const XMPP::Jid& user_name,
                               const UserStatus& status);
@@ -80,6 +89,10 @@ class AnnouncementManager : public ServerModule {
 
         /*! \brief Send a notification to the users that a game has started */
         void _notifyGame(const std::vector<GamePlayer>& players, const XMPP::Jid& room);
+
+        /*! \brief perform a search for annoucements in the database */
+        void searchAnnouncement(DatabaseInterface& database,
+                const XMPP::Stanza& stanza);
 
         ServerCore& game_manager;
 

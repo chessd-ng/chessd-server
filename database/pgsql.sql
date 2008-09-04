@@ -12,7 +12,7 @@ BEGIN;
     CREATE INDEX users_type_idx ON users ("user_type");
 
     CREATE TABLE banned_users (
-        user_id     integer PRIMARY KEY REFERENCES users,
+        user_id     integer PRIMARY KEY REFERENCES users ON DELETE CASCADE,
         reason      varchar
     );
 
@@ -55,7 +55,7 @@ BEGIN;
     CREATE INDEX games_user_id_idx ON game_players (user_id);
 
     CREATE TABLE player_rating (
-        user_id         integer REFERENCES users,
+        user_id         integer REFERENCES users ON DELETE CASCADE,
         category        varchar NOT NULL,
         rating          integer NOT NULL,
         volatility      numeric NOT NULL,
@@ -70,5 +70,20 @@ BEGIN;
 
     CREATE INDEX player_rating_rating_idx ON player_rating (rating);
     CREATE INDEX player_rating_user_id_idx ON player_rating (user_id);
+
+    CREATE TABLE annoucements (
+        id          integer PRIMARY KEY,
+        user_id     integer REFERENCES users ON DELETE CASCADE,
+        time        integer NOT NULL,
+        min_rating  integer NOT NULL,
+        max_rating  integer NOT NULL,
+        category    varchar NOT NULL
+    );
+
+    CREATE INDEX annoucements_user_id ON annoucements(user_id);
+    CREATE INDEX annoucements_time ON annoucements(time);
+    CREATE INDEX annoucements_min_rating ON annoucements(min_rating);
+    CREATE INDEX annoucements_max_rating ON annoucements(max_rating);
+    CREATE INDEX annoucements_category ON annoucements(category);
 
 COMMIT;

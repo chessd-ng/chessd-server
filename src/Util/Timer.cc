@@ -27,10 +27,13 @@
 
 namespace Util {
 
-	static const long long one_microsecond = 1000ll;
+	static const long long one_nanosecond = 1ll;
+    static const long long one_microsecond = one_nanosecond * 1000ll;
 	static const long long one_milisecond = one_microsecond * 1000ll;
 	static const long long one_second = one_milisecond * 1000ll;
 	static const long long one_minute = one_second * 60ll;
+	static const long long one_hour = one_minute * 60ll;
+	static const long long one_day = one_hour * 24ll;
 
 	Time Timer::now() {
 		/*timespec ts;
@@ -92,15 +95,19 @@ namespace Util {
 	}
 
 	long long Time::getSeconds() const {
-		return this->_nanoseconds / double(one_second);
+		return this->_nanoseconds / one_second;
 	}
 
 	long long Time::getMiliseconds() const {
-		return this->_nanoseconds / double(one_milisecond);
+		return this->_nanoseconds / one_milisecond;
 	}
 
 	long long Time::getMicroseconds() const {
-		return this->_nanoseconds / double(one_microsecond);
+		return this->_nanoseconds / one_microsecond;
+	}
+
+	Time Time::Hours(long long constant) {
+        return Time(constant * one_hour);
 	}
 
 	Time Time::Minutes(long long constant) {

@@ -63,6 +63,7 @@ namespace Util {
 			Time(const Time& time) :
 				_nanoseconds(time._nanoseconds) { }
 
+            static Time Hours(long long);
             static Time Minutes(long long);
             static Time Seconds(long long);
             static Time Miliseconds(long long);

@@ -37,7 +37,8 @@ namespace XMPP {
         this->domain() = jid.substr(arroba, barra - arroba);
     }
 
-    PartialJid::PartialJid(const PartialJid& jid) : _node(jid.node()), _domain(jid.domain()) { }
+    PartialJid::PartialJid(const PartialJid& jid) : _node(jid.node()),
+        _domain(jid.domain()) { }
 
     PartialJid::PartialJid(const std::string& node,
                            const std::string& domain) :

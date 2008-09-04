@@ -120,7 +120,7 @@ void ComponentBase::run_recv() {
 void ComponentBase::run_send() {
 	XMPP::Stanza* stanza = 0;
     try {
-        while(this->running) {
+        while(1) {
             /* take one stanza from the queue */
             stanza = this->stanza_queue.pop();
 
@@ -130,11 +130,7 @@ void ComponentBase::run_send() {
             }
 
             /* deliver it */
-            if(this->running) {
-                this->component.sendStanza(stanza);
-            } else {
-                delete stanza;
-            }
+            this->component.sendStanza(stanza);
         }
     } catch (const runtime_error& error) {
         this->handleError(error.what());

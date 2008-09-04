@@ -321,7 +321,8 @@ void ServerCore::handleSearch(const Stanza& stanza) {
         /* add the game to the message */
         if(match) {
             generator.openTag("game");
-            generator.addAttribute("room", "game_" + to_string(game_room->first));
+            generator.addAttribute("room", "game_" +
+                    to_string(game_room->first));
             generator.closeTag();
         }
     }

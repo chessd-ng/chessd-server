@@ -26,7 +26,7 @@ struct UserStatus {
     bool multigame;
 
     bool canPlay() const {
-        return this->available and (this->games_playing == 0 or this->multigame);
+        return this->available and (this->games_playing <= 0 or this->multigame);
     }
 
 };

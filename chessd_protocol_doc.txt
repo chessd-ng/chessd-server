@@ -1,4 +1,4 @@
-this document assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
+thi docu assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
 The protocol described here is in development and will suffer changes in the future that
 may my break compatibility with previous versions.
 
@@ -192,12 +192,14 @@ Any date and time is in the format specified by the XEP-082.
     draw-agreement - The players agreed on a draw
     draw-repetition - The game was a draw due to the repetition rule
     draw-fifty-moves - The game was a draw due to the 50 half moves rule
-    draw-impossible-mate - The game was a draw due the lack ofm aterial to mate
+    draw-impossible-mate - The game was a draw due the lack of material to mate
     draw-timeover - Both players ran out of time
     canceled-agreement - The players agreed on calceling the game
-    canceled-timed-out - The game was canceled due to inactivity
+    canceled-timed-out - The game was canceled because no players showed up.
     adjourned-agreement - The players agreed on adjourning the game
     adjourned-shutdown - The game was adjourned because the server is shutting down.
+    white-wo - White won the game because the oponent was absent or abandoned the game.
+    black-wo - Black won the game because the oponent was absent or abandoned the game.
 
     The player's result attribute can be 'won', 'lost' or 'draw'.
 -->
@@ -207,6 +209,22 @@ Any date and time is in the format specified by the XEP-082.
             <player role='white' result='won' jid='raphaelhr@shiva/Psi'/>
             <player role='black' result='lost' jid='eduari@shiva/Psi'/>
         </end>
+    </query>
+</iq>
+
+<!--
+    To get information about a game that is running,
+    a iq info message a specified by the service discovery
+    protocol of the standard extensions. The game
+    information will game in the extended data fo the info
+!-->
+<iq from='game_0@chessd.shiva' type='set' id='2' to='eduari@shiva/Psi' >
+    <query xmlns='http://jabber.org/protocol/disco#info'>
+        ...
+        <game category='standard' moves='10'>
+            <player jid='eduari@shiva/Psi' time='100' inc='1'/>
+            <player jid='mega@shiva/Psi' time='90' inc='1'/>
+        </game>
     </query>
 </iq>
 
@@ -490,7 +508,7 @@ Any date and time is in the format specified by the XEP-082.
 
 <iq type='set' to='chessd.shiva' id='1234'>
     <create xmlns='http://c3sl.ufpr.br/chessd#match_announcement'>
-        <announcement rated='true' category='standard' autoflag='true'>
+        <announcement rated='true' category='standard' autoflag='true' minimum_rating='1000' maximum_rating='1500'>
             <player jid='raphaelhr@shiva/ChessD' time='900' inc='1' color='white'/>
         </announcement>
     </create>
@@ -503,13 +521,12 @@ Any date and time is in the format specified by the XEP-082.
 </iq>
 
 <!--
-	To search for available annoucments.
+	To search for available announcements.
     The paramaters are:
         - offset is the number of results to skip
-        - results is the liit of results to return
+        - results is the limit of results to return
         - minimum_time is minimum game time for each player
         - maximum_time is maximum game time for each player
-        - category is the game category
         - player is the opponent name
     All these parameters are optional and may be omited, the effect
     of omiting a parameter is as if the parameter didn't exist.
@@ -522,7 +539,6 @@ Any date and time is in the format specified by the XEP-082.
             results='10'
             minimum_time='800'
             maximum_time='1000'
-            category='standard'
             player='raphaelhr@shiva/ChessD'/>
     </search>
 </iq>

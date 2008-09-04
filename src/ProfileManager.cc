@@ -26,8 +26,6 @@
 
 #include "HistoryProcess.hh"
 
-#include "I18n.hh"
-
 using namespace std;
 using namespace XML;
 using namespace XMPP;

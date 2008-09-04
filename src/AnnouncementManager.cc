@@ -46,7 +46,9 @@ AnnouncementManager::AnnouncementManager(
     database(database),
     announcement_ids(0)
 {
-
+    /* erase all announcements in tha database */
+    this->database.execTransaction(boost::bind(
+                &DatabaseInterface::clearAnnouncements, _1));
 }
 
 AnnouncementManager::~AnnouncementManager() {
@@ -83,6 +85,8 @@ void AnnouncementManager::handleCreate(const Stanza& stanza) {
         const Tag& query = stanza.firstTag();
         const Tag& announcement_tag = query.firstTag();
 
+        int min_rating = 0, max_rating = 100000;
+
         /* create the announcment */
         TeamDatabase tmp;
         auto_ptr<MatchAnnouncement> announcement(
@@ -93,8 +97,24 @@ void AnnouncementManager::handleCreate(const Stanza& stanza) {
             throw bad_request("You can not create an annoucement in the name of another player");
         }
 
+        /* get rating limits */
+        if(announcement_tag.hasAttribute("minimum_rating")) {
+            min_rating = parse_string<int>(
+                    announcement_tag.getAttribute("minimum_rating"));
+        }
+        if(announcement_tag.hasAttribute("maximum_rating")) {
+            max_rating = parse_string<int>(
+                    announcement_tag.getAttribute("maximum_rating"));
+        }
+
         /* get an id */
         uint64_t id = this->announcement_ids++;
+
+        /* insert the announcement into the database */
+        this->database.queueTransaction(boost::bind(
+                    &DatabaseInterface::insertAnnouncement, _1, id,
+                    stanza.from().partial(), announcement->players()[0].time,
+                    min_rating, max_rating, announcement->category()));
 
         /* insert to the annoucement list */
         this->announcements.insert(id, announcement.release());
@@ -115,116 +135,85 @@ void AnnouncementManager::handleCreate(const Stanza& stanza) {
 }
 
 void AnnouncementManager::handleSearch(const Stanza& stanza) {
-    const Tag& search_tag = stanza.firstTag();
+    this->database.queueTransaction(boost::bind(
+                &AnnouncementManager::searchAnnouncement, this, _1, stanza));
+}
 
-    /* parse the message */
+void AnnouncementManager::searchAnnouncement(DatabaseInterface& database, const Stanza& stanza) {
+    try {
+        try {
+            const Tag& search_tag = stanza.firstTag().firstTag();
 
-    bool has_minimum_time;
-    Time minimum_time;
+            /* parse the message */
 
-    bool has_maximum_time;
-    Time maximum_time;
+            Time minimum_time = Time::Seconds(-1);
 
-    bool has_category;
-    string category;
+            Time maximum_time = Time::Seconds(-1);
 
-    bool has_player;
-    Jid player;
+            PartialJid player;
 
-    int offset, results;
+            PartialJid from = stanza.from();
 
-    /* check time lower bound */
-    if((has_minimum_time = search_tag.hasAttribute("minimum_time"))) {
-        minimum_time = Time::Seconds(search_tag.getAttribute("minimum_time"));
-    }
+            int offset, results;
 
-    /* check time upper bound */
-    if((has_maximum_time = search_tag.hasAttribute("maximum_time"))) {
-        maximum_time = Time::Seconds(search_tag.getAttribute("maximum_time"));
-    }
+            /* check time lower bound */
+            if(search_tag.hasAttribute("minimum_time")) {
+                minimum_time = Time::Seconds(search_tag.getAttribute("minimum_time"));
+            }
 
-    /* check for category */
-    if((has_category = search_tag.hasAttribute("category"))) {
-        category = search_tag.getAttribute("category");
-    }
+            /* check time upper bound */
+            if(search_tag.hasAttribute("maximum_time")) {
+                maximum_time = Time::Seconds(search_tag.getAttribute("maximum_time"));
+            }
 
-    /* check for a player */
-    if((has_player = search_tag.hasAttribute("player"))) {
-        player = Jid(search_tag.getAttribute("player"));
-    }
+            /* check for a player */
+            if(search_tag.hasAttribute("player")) {
+                player = PartialJid(search_tag.getAttribute("player"));
+            }
 
-    /* check for number of results */
-    if(search_tag.hasAttribute("results")) {
-        results = min(50, parse_string<int>(search_tag.getAttribute("results")));
-    } else {
-        results = 50;
-    }
+            /* check for number of results */
+            if(search_tag.hasAttribute("results")) {
+                results = min(50, parse_string<int>(search_tag.getAttribute("results")));
+            } else {
+                results = 10;
+            }
 
-    /* check for offset */
-    if(search_tag.hasAttribute("offset")) {
-        offset = parse_string<int>(search_tag.getAttribute("offset"));
-    } else {
-        offset = 0;
-    }
+            /* check for offset */
+            if(search_tag.hasAttribute("offset")) {
+                offset = parse_string<int>(search_tag.getAttribute("offset"));
+            } else {
+                offset = 0;
+            }
 
-    /* perform the search */
-    TagGenerator generator;
-    generator.openTag("search");
-    generator.addAttribute("xmlns", XMLNS_CHESSD_MATCH_ANNOUNCEMENT);
-    foreach(announcement, this->announcements) {
+            /* perform the search */
+            vector<int> ids = database.searchAnnouncement(from.full(),
+                    player.full(), minimum_time, maximum_time, results, offset);
 
-        GamePlayer params = announcement->second->players()[0];
+            TagGenerator generator;
+            generator.openTag("search");
+            generator.addAttribute("xmlns", XMLNS_CHESSD_MATCH_ANNOUNCEMENT);
+            foreach(id, ids) {
+                ptr_map<uint64_t, MatchAnnouncement>::iterator it =
+                    this->announcements.find(*id);
 
-        /* check if the announcement owner is available to play */
-        if(not this->canPlay(params.jid)) {
-            continue;
+                /* add announcement to the result */
+                auto_ptr<Tag> announce_tag(it->second->notification());
+                announce_tag->setAttribute("id", to_string(*id));
+                generator.addChild(announce_tag.release());
+            }
+
+            /* create message */
+            auto_ptr<Stanza> result(stanza.createIQResult());
+            result->children().push_back(generator.getTag());
+
+            /* send message  */
+            this->sendStanza(result.release());
+        } catch(const xml_error& error) {
+            throw bad_request("wrong format");
         }
-
-        /* compare maximum time */
-        if(has_minimum_time and params.time < minimum_time) {
-            continue;
-        }
-
-        /* compare minimum time */
-        if(has_maximum_time and params.time > maximum_time) {
-            continue;
-        }
-
-        /* compare category */
-        if(has_category and announcement->second->category() != category) {
-            continue;
-        }
-
-        /* compare player */
-        if(has_player and params.jid.node() != player.node()) {
-            continue;
-        }
-
-        /* skip offset */
-        if(offset > 0) {
-            offset --;
-            continue;
-        }
-
-        /* limit results */
-        if(results == 0) {
-            generator.openTag("more");
-            break;
-        } else {
-            --results;
-        }
-
-        /* add announcement to the result */
-        auto_ptr<Tag> announce_tag(announcement->second->notification());
-        announce_tag->setAttribute("id", to_string(announcement->first));
-        generator.addChild(announce_tag.release());
+    } catch(const XMPP::xmpp_exception& error) {
+        this->sendStanza(error.getErrorStanza(new Stanza(stanza)));
     }
-    /* create message */
-    auto_ptr<Stanza> result(stanza.createIQResult());
-    result->children().push_back(generator.getTag());
-
-    /* send message  */
-    this->sendStanza(result.release());
 }
 
 void AnnouncementManager::handleDelete(const Stanza& stanza) {
@@ -248,6 +237,10 @@ void AnnouncementManager::handleDelete(const Stanza& stanza) {
 
     /* erase from the list */
     this->announcements.erase(it);
+
+    /* delete the announcement from the database */
+    this->database.queueTransaction(boost::bind(
+                &DatabaseInterface::eraseAnnouncement, _1, id));
 
     /* send a the result confirming */
     auto_ptr<Stanza> result(stanza.createIQResult());
@@ -281,6 +274,13 @@ void AnnouncementManager::handleAccept(const Stanza& stanza) {
         /* create the game */
         auto_ptr<Game> game(it->second->createGame(stanza.from()));
 
+        /* delete the annoucement */
+        this->announcements.erase(it);
+
+        /* delete the announcement from the database */
+        this->database.queueTransaction(boost::bind(
+                    &DatabaseInterface::eraseAnnouncement, _1, id));
+
         /* get the players list */
         vector<GamePlayer> players = game->players();
 
@@ -297,6 +297,8 @@ void AnnouncementManager::handleAccept(const Stanza& stanza) {
 
         /* send notifications */
         this->notifyGame(players, game_room);
+
+
     } catch (const create_game_error& error) {
         throw bad_request(error.what());
     }
@@ -327,6 +329,10 @@ void AnnouncementManager::handleUserStatus(const Jid& user, const UserStatus& st
         ptr_map<uint64_t, MatchAnnouncement>::iterator it;
         for(it = this->announcements.begin(); it != this->announcements.end();) {
             if(it->second->players()[0].jid == user) {
+                /* delete the announcement from the database */
+                this->database.queueTransaction(boost::bind(
+                            &DatabaseInterface::eraseAnnouncement, _1, it->first));
+                /* erase the annoucement from the list */
                 this->announcements.erase(it++);
             } else {
                 ++it;

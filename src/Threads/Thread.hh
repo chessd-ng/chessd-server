@@ -33,7 +33,7 @@ namespace Threads {
         public:
             Thread();
 
-            ~Thread();
+            virtual ~Thread();
 
             bool start();
 
