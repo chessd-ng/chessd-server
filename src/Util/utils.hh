@@ -102,7 +102,7 @@ namespace Util {
 
     /* Parse a string */
     template <class T> T parse_string(const std::string& str) {
-        T tmp;
+        T tmp = T();
         std::stringstream stream(str);
         stream >> tmp;
         return tmp;
