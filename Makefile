@@ -1,3 +1,7 @@
+CONFIG = makefile.config
+
+-include ${CONFIG}
+
 SOURCES += src/AdminComponent.cc
 SOURCES += src/Agreement.cc
 SOURCES += src/ChessTourney.cc
@@ -60,14 +64,12 @@ SOURCES += src/AnnouncementManager.cc
 SRCDIR = src
 OBJDIR = obj
 DEPSDIR = .deps
-CXXFLAGS+=-Wall -ggdb3
-#CXXFLAGS+=-Wall -O2 -pg -march=native
-#CXXFLAGS+=-Wall -O3 -fomit-frame-pointer
-CXXFLAGS+=-I${SRCDIR} `pkg-config --cflags iksemel` `pkg-config --cflags libpqxx`
-LDLIBS+=-lrt -lpthread `pkg-config --libs iksemel` `pkg-config --libs libpqxx` -lboost_date_time
-TARGET=chessd
-CC=gcc
-CXX=g++
+CXXFLAGS += -Wall
+CXXFLAGS += -I${SRCDIR} `pkg-config --cflags iksemel` `pkg-config --cflags libpqxx`
+LDLIBS += -lrt -lpthread `pkg-config --libs iksemel` `pkg-config --libs libpqxx` -lboost_date_time
+TARGET = chessd
+CC ?= gcc
+CXX ?= g++
 
 OBJECTS = $(patsubst ${SRCDIR}/%.cc,${OBJDIR}/%.o,${SOURCES})
 DEPS = $(patsubst ${SRCDIR}/%.cc,${DEPSDIR}/%.d,${SOURCES})
