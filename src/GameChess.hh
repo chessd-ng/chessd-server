@@ -165,6 +165,7 @@ class GameChess: public GameChessUntimed {
 		virtual bool done(const Util::Time& current_time) ;
 
 		virtual XML::Tag* move(const XMPP::Jid& player, const std::string& movement, const Util::Time& time_stamp);
+
 	protected:
 		virtual int whoTimedOver() const { return this->time_over;};
 
@@ -172,6 +173,7 @@ class GameChess: public GameChessUntimed {
 
 		virtual void interpretHistoryMoves(const std::string& moves);
 
+		virtual std::vector<GamePlayerResult> donePlayerResultList() const;
 	private:
 		//\brief check if the time of current player is over,
 		//if yes, then sed this->_done and this->time_over

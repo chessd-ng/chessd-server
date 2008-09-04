@@ -291,6 +291,17 @@ std::vector<GamePlayerResult> GameChessUntimed::donePlayerResultList() const {
 	return prl;
 }
 
+std::vector<GamePlayerResult> GameChess::donePlayerResultList() const {
+	/* prl is indexed for
+	 * 0 is white
+	 * 1 is black*/
+	std::vector<GamePlayerResult> prl = GameChessUntimed::donePlayerResultList();
+	prl[0].player.time=Util::Time::Seconds(this->initial_time);
+	prl[1].player.time=Util::Time::Seconds(this->initial_time);
+	return prl;
+}
+
+
 XML::Tag* GameChessUntimed::move(const XMPP::Jid& player, const std::string& movement, const Util::Time& time_stamp) {
 	//can't make a move if the game is already over
 	if(this->_done!=END_NO_REASON)
