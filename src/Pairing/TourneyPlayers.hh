@@ -86,7 +86,7 @@
 #include <map>
 
 namespace Pairing {
-#define _BYE_ -1
+#define _BYE_ 0
 
 	class TourneyPlayers {
 		public:

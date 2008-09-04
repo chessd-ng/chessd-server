@@ -94,6 +94,8 @@ void MatchFactory::validateXML(XML::Tag& _match_offer,int num_players) {
 
 			if(!c_it->hasAttribute("time") and category!="untimed")
 				throw bad_information("xml does not have time for a player");
+			if(c_it->hasAttribute("time") and category=="untimed")
+				c_it->attributes().erase("time");
 
 			if(category!="untimed") {
 				if(time.first==true) {

@@ -67,7 +67,7 @@
 namespace Pairing {
 	class Player {
 		public:
-
+			Player() { }
 			Player(int name, int);
 			Player(int name, float);
 			Player(int name, double);
@@ -83,7 +83,7 @@ namespace Pairing {
 		public:
 
 			int name;
-			double floatValue;
+			float floatValue;
 			int  value;
 			int rating;
 

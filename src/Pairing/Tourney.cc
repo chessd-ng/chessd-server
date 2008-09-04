@@ -163,10 +163,12 @@ namespace Pairing {
 	{
 		int i=0;//, added=0;
 
-		this->sortList.clear();
-		this->sortList_value.clear();
-		this->sortList_name.clear();
-//		this->sortList_name=std::vector<Player*>(total_number_of_players);
+//		this->sortList.clear();
+		this->sortList=std::vector<Player>(total_number_of_players+has_bye);
+//		this->sortList_value.clear();
+		this->sortList_value=std::vector<int>(total_number_of_players+1);
+//		this->sortList_name.clear();
+		this->sortList_name=std::vector<Player*>(total_number_of_players+1);
 
 		foreach(player, this->playerList) {
 			if(player->activeFlag)
@@ -181,7 +183,7 @@ namespace Pairing {
 			} else
 				player->sortValue = -1.0;
 		}
-
+		i=0;
 		foreach(player, this->playerList) {
 			/*
 			added=0;
@@ -195,12 +197,13 @@ namespace Pairing {
 			}
 			if(!added)
 			*/
-				sortList.push_back(Player(player->name, player->sortValue));
+			sortList[i]=Player(player->name, player->sortValue);
+			i++;
 		}
 		std::stable_sort(sortList.begin(),sortList.end());
 
 		i = 0;
-		foreach(s, this->sortList) {			
+		foreach(s, this->sortList) {
 			s->value = i;
 			this->sortList_name[s->name]=&*s;
 			this->sortList_value[s->name]=s->value;
@@ -336,17 +339,28 @@ namespace Pairing {
 	int Tourney::UnpairAndCheckBye(void)
 	{
 		int playerCount = 0, byeFlag = 1;
+		this->has_bye=0;
+		std::list<TourneyPlayers>::iterator bye_pos;
 
 		// Initialize a few things...make sure nobody is paired,
 		foreach(tp, this->playerList) {
 			UnPairPlayer(&*tp);
-			if(tp->name == _BYE_)  { byeFlag = 0; }  // unset the byeFlag
+			if(tp->name == _BYE_) {
+				byeFlag = 0;
+				bye_pos=tp;
+			}
+		}
+		if(byeFlag==0) {
+			this->playerList.erase(bye_pos);
+			byeFlag=1;
 		}
 
 		playerCount = GetPlayerCount();
 
 		if((byeFlag) && (playerCount % 2))
-		{   // we need to add a bye
+		{
+			has_bye=1;
+			// we need to add a bye
 			this->playerList.push_back(TourneyPlayers(_BYE_, 0, 0)); // add the bye to the tourney players list
 			this->playerList_name[_BYE_]=&*(this->playerList.rbegin());
 			playerCount++;
@@ -357,9 +371,9 @@ namespace Pairing {
 
 	int Tourney::TryToPair(int player_count, TourneyPlayers* tp, TourneyPlayers** opponent) {
 		this->SetPairingScores(tp);
-		for(;(*opponent = FindBestOpponent(tp,this->potentialOpponentList))==0 and (tp->oppChoice <= player_count);tp->oppChoice++);
+		for(;(tp->oppChoice < (int)potentialOpponentList.size()) and (*opponent = FindBestOpponent(tp,this->potentialOpponentList))==0 ;tp->oppChoice++);
 
-		if(tp->oppChoice > player_count) //if couldn't pair the player no mather what
+		if(tp->oppChoice >= (int)potentialOpponentList.size()) //if couldn't pair the player no mather what
 			return 0;
 
 		return 1;
@@ -383,25 +397,25 @@ namespace Pairing {
 			}
 			if( ( !tp->IsPaired() ) && tp->activeFlag && tp->alive) {
 				while(this->TryToPair(playerCount,tp,&opponent)==0) {
-						tp->oppChoice = 0;
-						i = PopLastPairedPlayer();
-						if(i < 0) return 0;
+					tp->oppChoice = 0;
+					i = PopLastPairedPlayer();
+					if(i < 0) return 0;
 
-						player=this->sortList.begin()+i;
+					player=this->sortList.begin()+i;
 
-						if((style == 'd') || (style == 'r'))
-							tp = GetPlayer(i);
-						else {
-							p = GetSortPlayer(i);
-							tp = GetPlayerByName(p->name);
-						}
-						
-						opponent = GetPlayerByName(tp->oppName);
-						tp->RemoveLastOpponent();                           // removes the person we were planning on playing
-						opponent->RemoveLastOpponent();                     // from both players!
-						UnPairPlayer(tp);                                   // unpair us so we can be re-paired
-						UnPairPlayer(opponent);
-						tp->oppChoice++;                                    // try the next possible opponent
+					if((style == 'd') || (style == 'r'))
+						tp = GetPlayer(i);
+					else {
+						p = GetSortPlayer(i);
+						tp = GetPlayerByName(p->name);
+					}
+
+					opponent = GetPlayerByName(tp->oppName);
+					tp->RemoveLastOpponent();                           // removes the person we were planning on playing
+					opponent->RemoveLastOpponent();                     // from both players!
+					UnPairPlayer(tp);                                   // unpair us so we can be re-paired
+					UnPairPlayer(opponent);
+					tp->oppChoice++;                                    // try the next possible opponent
 				}
 				pairedPlayers.push_back(PairedPlayer(tp->name, i));
 				PairPlayers(tp, opponent);
@@ -512,7 +526,7 @@ namespace Pairing {
 
 		currentRound++;
 
-		playerCount = UnpairAndCheckBye();  // Returns the # of active playe  rs in tourney
+		playerCount = UnpairAndCheckBye();  // Returns the # of active players in tourney
 
 		SortPlayers();
 
@@ -644,6 +658,7 @@ namespace Pairing {
 		foreach(opponent, this->playerList) {
 			if(tp->name == opponent->name) continue;      // If this is me do NOT score me
 			if(opponent->activeFlag == 0) continue;                  // If this person is NOT active move on
+			if(opponent->IsPaired()) continue;				//if the opponent is already paired
 			timesPlayed = tp->AlreadyPlayed(opponent->name);
 			switch(style) {
 				case 'd':                                                // If this is a double RR
