@@ -1,4 +1,4 @@
-thi docu assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
+this document assumes that the reader is familiar with the XMPP protocol (http://www.xmpp.org/).
 The protocol described here is in development and will suffer changes in the future that
 may my break compatibility with previous versions.
 

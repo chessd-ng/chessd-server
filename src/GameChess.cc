@@ -189,7 +189,14 @@ void GameChessUntimed::call_flag(const Util::Time& current_time) {
 			//there are 3 reasons for drawing and chess.verifyDraw()
 			//returns an int between 1 and 4 and the draw reasons begin
 			//at value 9, that's why +8
-			this->_done=(END_CODE)(aux+8);
+			if(aux==1)
+				this->_done=END_DRAW_REPETITION;
+			if(aux==2)
+				this->_done=END_DRAW_IMPOSSIBLE_MATE;
+			if(aux==3)
+				this->_done=END_DRAW_50_MOVES;
+			if(aux==4)
+				this->_done=END_STALEMATE;
 	}
 }
 
