@@ -56,7 +56,7 @@
 #include <vector>
 
 #include "TourneyPlayers.hh"
-#include "Game.hh"
+#include "TourneyGame.hh"
 
 namespace Pairing {
 	typedef std::pair<int/*name*/, int> PairedPlayer ;

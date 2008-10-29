@@ -64,7 +64,7 @@
 // static char RCSid[] = "$Id: Game.cc,v 1.3 2003/11/20 23:26:14 pedrorib Exp $";
 
 
-#include "Game.hh"
+#include "TourneyGame.hh"
 
 namespace Pairing {
 
