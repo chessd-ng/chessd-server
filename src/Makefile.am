@@ -1,4 +1,5 @@
 bin_PROGRAMS=chessd
+CXXFLAGS= -O2
 chessd_SOURCES=""
 chessd_CXXFLAGS=-I.
 chessd_SOURCES += AdminComponent.cc
