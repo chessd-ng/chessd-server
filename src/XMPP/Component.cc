@@ -61,9 +61,9 @@ namespace XMPP {
         tag = std::auto_ptr<Tag>(this->stream.recvTag(-1));
 
         if (tag->name() != "stream:stream") {
-            throw "Athentication error: Invalid protocol";
+            throw "Authentication error: Invalid protocol";
         } else if(not tag->hasAttribute("id")) {
-            throw "Athentication error: Invalid protocol";
+            throw "Authentication error: Invalid protocol";
         } else {
             std::string data = tag->getAttribute("id") + password;
             char hash[128];
@@ -76,7 +76,7 @@ namespace XMPP {
         tag = std::auto_ptr<Tag>(this->stream.recvTag(-1));
 
         if(tag->name() != "handshake") {
-            throw "Athentication error: Permission Denied";
+            throw "Authentication error: Permission Denied";
         }
     }
 
