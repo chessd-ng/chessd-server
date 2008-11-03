@@ -7,10 +7,12 @@ AC_INIT(chessd, 0.5 , BUG-REPORT-ADDRESS)
 AM_INIT_AUTOMAKE(chessd,0.5)
 AC_CONFIG_SRCDIR([src/TourneyManager.hh])
 #AC_CONFIG_HEADER([config.h])
-
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
+
+#CFLAGS=
+#CXXFLAGS=
 
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lboost_date_time':
@@ -26,7 +28,7 @@ AC_CHECK_LIB([pqxx], [main])
 
 #PKG_CHECK_MODULES(chessd,[libboost_date_time])
 #PKG_CHECK_MODULES(chessd,[libboost_date_time-1.0 >= 1.34 libiksemel >= 1.2 ])
-PKG_CHECK_MODULES(chessd,[iksemel >= 1.2])
+PKG_CHECK_MODULES(chessd,[iksemel >= 1.3])
 
 # Checks for header files.
 AC_HEADER_STDC

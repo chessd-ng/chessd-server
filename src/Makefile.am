@@ -1,7 +1,7 @@
 bin_PROGRAMS=chessd
-CXXFLAGS= -O2
+chessd_CXXFLAGS=-I. @chessd_CFLAGS@
+chessd_LDADD= @chessd_LIBS@
 chessd_SOURCES=""
-chessd_CXXFLAGS=-I.
 chessd_SOURCES += AdminComponent.cc
 chessd_SOURCES += Agreement.cc
 chessd_SOURCES += ChessTourney.cc
