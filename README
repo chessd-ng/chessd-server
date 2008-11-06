@@ -7,3 +7,10 @@ still in development and it is unstable, use it at your own risk.
 Suggestion, bug reports and contributions are all welcome.
 
 For instructions on how to install see INSTALL
+
+--- Compile ---
+
+There are two ways to compile chessd, one is by traditional
+./configure && make
+
+the other way is to type 'make -f Makefile.2'

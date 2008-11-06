@@ -3,8 +3,8 @@
 
 
 AC_PREREQ(2.61)
-AC_INIT(chessd, 0.5 , BUG-REPORT-ADDRESS)
-AM_INIT_AUTOMAKE(chessd,0.5)
+AC_INIT(chessd, alpha , BUG-REPORT-ADDRESS)
+AM_INIT_AUTOMAKE(chessd,alpha)
 AC_CONFIG_SRCDIR([src/TourneyManager.hh])
 #AC_CONFIG_HEADER([config.h])
 # Checks for programs.
