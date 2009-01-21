@@ -35,6 +35,9 @@ GameChessUntimed::GameChessUntimed(const std::vector<GamePlayer>& _players, cons
 	this->_players=_players;
 	this->auto_flag=this->game_attributes["autoflag"]=="true" or this->game_attributes["autoflag"]=="";
 
+	this->game_attributes["autoflag"]=this->auto_flag==true?"true":"false";
+	game_attributes["rated"]=this->isRated()?"true":"false";
+
 	/*
 	 * 0 is white
 	 * 1 is black
@@ -52,6 +55,9 @@ GameChessUntimed::GameChessUntimed(const std::vector<GamePlayer>& _players, cons
 GameChessUntimed::GameChessUntimed(XML::Tag* adjourned_game) {
 	this->game_attributes=adjourned_game->attributes();
 	this->auto_flag=true;
+
+	this->game_attributes["autoflag"]=this->auto_flag==true?"true":"false";
+	game_attributes["rated"]=this->isRated()?"true":"false";
 
 	//parse XML to get needed variables
 	//this XML is specified in chessd protocol
@@ -345,7 +351,9 @@ XML::Tag* GameChessUntimed::generateHistoryTag(Util::Time time_passed) const {
 	XML::TagGenerator gen;
 
 	gen.openTag("history");
-	gen.addAttribute("category",this->category());
+	foreach(it,this->game_attributes)
+		gen.addAttribute(it->first,it->second);
+//	gen.addAttribute("category",this->category());
 	{
 		gen.openTag("moves");
 		{

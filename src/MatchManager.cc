@@ -304,7 +304,7 @@ void MatchManager::handleAccept(const Stanza& stanza) {
         this->match_db.acceptMatch(id, stanza.from());
         /* reply result */
         this->sendStanza(stanza.createIQResult());
-        /* check whether eeryone has already accepted */
+        /* check whether everyone has already accepted */
         if(this->match_db.isDone(id)) {
             this->closeMatch(id, true);
         }

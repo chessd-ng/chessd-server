@@ -817,6 +817,9 @@ vector<int> DatabaseInterface::searchAnnouncement(const string& username,
         query += from;
         query += where;
 
+		std::cerr << "\nPARAMETROS BUSCA\n" ;
+		std::cerr << query << std::endl;
+
         /*  execute thequery*/
         pqxx::result results = this->work.exec(query);
 
