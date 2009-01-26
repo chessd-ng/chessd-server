@@ -149,7 +149,11 @@ void GameRoom::setExtendedInfo() {
     /* Set extended info */
     XML::TagGenerator generator;
     generator.openTag("game");
+	//FIXME
+	//I think there should be a function fo get all atributes of the game
+	//eliminating future problems here
     generator.addAttribute("category", this->game().category());
+    generator.addAttribute("rated", (this->game().isRated()?"true":"false"));
     generator.addAttribute("moves", to_string(this->move_count));
     foreach(player, this->game().players()) {
         generator.openTag("player");
