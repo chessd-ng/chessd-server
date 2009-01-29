@@ -148,6 +148,14 @@ class DatabaseInterface : public pqxx::transactor<>
         /*! \brief Remove a user to the banned list */
         void unbanUser(const std::string& name);
 
+		/*! \brief Ban word */
+		void banWord(const std::string& word);
+
+		/*! \brief Unban a word */
+		void unbanWord(const std::string& word);
+
+		/*! \brief get all banned words*/
+		std::vector<std::string> getBannedWords();
         /*! \brief Search the banned list
          *
          * \return Returns a list of pairs which the first element is the

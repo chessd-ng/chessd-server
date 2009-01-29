@@ -414,12 +414,57 @@ Any date and time is in the format specified by the XEP-082.
     The result will be like this.
 --!>
 
-<iq type='get' to='chessd.shiva' id='12345'>
+<iq type='get' from='chessd.shiva' id='12345'>
     <banned-list xmlns='http://c3sl.ufpr.br/chessd#admin'>
         <user jid='buguens@shiva'>He is a bad guy</user>
         <user jid='eduari@shiva'>The user is a spam bot</user>
     </banned-list>
 </iq>
+
+
+<!-- BANNED WORDS SUBCHAPTER --!>
+
+<!--
+    To list all banned words
+--!>
+
+<iq type='get' to='chessd.shiva' id='12345'>
+    <banned-words-list xmlns='http://c3sl.ufpr.br/chessd#admin'/>
+</iq>
+
+<!--
+    The result will be like this.
+--!>
+
+<iq type='get' from='chessd.shiva' id='12345'>
+    <banned-words-list xmlns='http://c3sl.ufpr.br/chessd#admin'>
+		<word word='veryfilthyword'/>
+		<word word='unwantedword'/>
+    </banned-words-list>
+</iq>
+
+
+<!--
+    To ban a word
+--!>
+
+<iq type='set' to='chessd.shiva' id='12345'>
+	<ban-word xmlns='http://c3sl.ufpr.br/chessd#admin'>
+		<word word='badword' />
+	</ban-word>
+</iq>
+
+
+<!--
+    To unban a word
+--!>
+<iq type='set' to='chessd.shiva' id='12345'>
+	<unban-word xmlns='http://c3sl.ufpr.br/chessd#admin'>
+		<word word='badword'/>
+	</unban-word>
+</iq>
+
+<!-- PROHIBITED WORDS SUBCHAPTER END --!>
 
 <!--
     To update the profile in the chess server

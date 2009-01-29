@@ -70,6 +70,15 @@ class AdminComponent : public ServerModule {
         /*! \brief handle unban request */
         void handleUnban(const XMPP::Stanza& stanza);
 
+		/*! \brief handle list banned words */
+		void handleBannedWordsList(const XMPP::Stanza& stanza);
+
+		/*! \brief handle ban word request */
+		void handleBanWord(const XMPP::Stanza& stanza);
+
+		/*! \brief handle unban word request */
+		void handleUnbanWord(const XMPP::Stanza& stanza);
+
         /*! \brief This is a transaction that reads user type. */
 		void fetchUserType(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
@@ -98,6 +107,8 @@ class AdminComponent : public ServerModule {
         std::set<XMPP::PartialJid> admins;
 
         std::map<XMPP::PartialJid, std::string> banneds;
+
+        std::set<std::string> banned_words;
 };
 
 #endif

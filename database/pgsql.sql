@@ -16,6 +16,11 @@ BEGIN;
         reason      varchar
     );
 
+	CREATE TABLE banned_words (
+		word		varchar NOT NULL,
+		UNIQUE(word)
+	);
+
     CREATE TABLE adjourned_games (
         game_id     serial PRIMARY KEY,
         category    varchar NOT NULL,

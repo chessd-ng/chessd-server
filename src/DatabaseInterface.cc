@@ -577,7 +577,7 @@ vector<string> DatabaseInterface::getAdmins() {
         " WHERE user_type='admin'";
 
     /* execute query */
-    pqxx::result result = work.exec(query);
+    pqxx::result result = this->work.exec(query);
     
     /* read result */
     foreach(r, result) {
@@ -585,6 +585,19 @@ vector<string> DatabaseInterface::getAdmins() {
     }
     
     return admins;
+}
+
+vector<string> DatabaseInterface::getBannedWords() {
+	vector<string> banned_words;
+
+	string query= "SELECT word FROM banned_words" ;
+
+	pqxx::result result= this->work.exec(query);
+
+	foreach(r,result)
+		banned_words.push_back(r->at("word").c_str());
+
+	return banned_words;
 }
 
 void DatabaseInterface::setUserEmail(const string& username, const string& email) {
@@ -687,6 +700,22 @@ void DatabaseInterface::unbanUser(const string& username) {
     work.exec(query);
 }
 
+
+void DatabaseInterface::banWord(const string& word) {
+	string query = 
+		"INSERT INTO banned_words (word) " 
+		"VALUES ('" + word + "')";
+
+	work.exec(query);
+}
+
+void DatabaseInterface::unbanWord(const string& word) {
+	string query = 
+		"DELETE FROM banned_words " 
+		"WHERE word='" + word + "'";
+
+	work.exec(query);
+}
 
 vector<pair<string, string> > DatabaseInterface::searchBannedUsers (
         const string& username,
