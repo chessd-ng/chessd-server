@@ -422,12 +422,13 @@ Any date and time is in the format specified by the XEP-082.
 </iq>
 
 
-<!-- BANNED WORDS SUBCHAPTER --!>
+<!-- ################# BANNED WORDS SUBCHAPTER ################# --!>
 
 <!--
     To list all banned words
 --!>
 
+<!-- xmlns shoudn't be admin --!>
 <iq type='get' to='chessd.shiva' id='12345'>
     <banned-words-list xmlns='http://c3sl.ufpr.br/chessd#admin'/>
 </iq>
@@ -436,7 +437,7 @@ Any date and time is in the format specified by the XEP-082.
     The result will be like this.
 --!>
 
-<iq type='get' from='chessd.shiva' id='12345'>
+<iq type='result' from='chessd.shiva' id='12345'>
     <banned-words-list xmlns='http://c3sl.ufpr.br/chessd#admin'>
 		<word word='veryfilthyword'/>
 		<word word='unwantedword'/>
@@ -454,6 +455,22 @@ Any date and time is in the format specified by the XEP-082.
 	</ban-word>
 </iq>
 
+<!--
+    The results will be like this.
+--!>
+
+<iq type='result' to='chessd.shiva' id='12345'>
+	<ban-word xmlns='http://c3sl.ufpr.br/chessd#admin'>
+		<word word='badword' />
+	</ban-word>
+</iq>
+
+<iq type='error' to='chessd.shiva' id='12345'>
+	<ban-word xmlns='http://c3sl.ufpr.br/chessd#admin'>
+		<word word='badword' />
+	</ban-word>
+</iq>
+
 
 <!--
     To unban a word
@@ -464,7 +481,23 @@ Any date and time is in the format specified by the XEP-082.
 	</unban-word>
 </iq>
 
-<!-- PROHIBITED WORDS SUBCHAPTER END --!>
+<!--
+    The result will be like this.
+--!>
+
+<iq type='result' to='chessd.shiva' id='12345'>
+	<ban-word xmlns='http://c3sl.ufpr.br/chessd#admin'>
+		<word word='badword' />
+	</ban-word>
+</iq>
+
+<iq type='error' to='chessd.shiva' id='12345'>
+	<ban-word xmlns='http://c3sl.ufpr.br/chessd#admin'>
+		<word word='badword' />
+	</ban-word>
+</iq>
+
+<!-- ################# BANNED WORDS SUBCHAPTER END ################# --!>
 
 <!--
     To update the profile in the chess server
@@ -701,9 +734,3 @@ Any date and time is in the format specified by the XEP-082.
 	<state board='rnbqkbnr/1ppp1ppp/8/p3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR' move='a6a5' short='a5' time='662' turn='white'/>
 	<state board='rnbqkbnr/1ppp1Qpp/8/p3p3/2B1P3/8/PPPP1PPP/RNB1K1NR' move='f3f7' short='Qxf7#' time='663' turn='black'/>
 </history>
-
-<!--
-    Tourney
---!>
-
-<tourney category='standard' time='660' inc='1' rounds='6'/>
