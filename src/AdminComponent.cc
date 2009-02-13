@@ -209,15 +209,21 @@ void AdminComponent::handleBanWord(const Stanza& stanza) {
     /* get word to be banned */
     string word(word_tag.getAttribute("word"));
 
+    auto_ptr<Stanza> result(stanza.createIQResult());
+	result->children().push_back(new Tag(stanza.firstTag()));
+
 	//insert banned words to set in memory
-	if(banned_words.insert(word).second==true) {
+	if(word.size()>0 and banned_words.insert(word).second==true) {
 		/* add word to database */
 		this->database.queueTransaction(boost::bind(&DatabaseInterface::banWord,
 					_1, word));
 	}
+	else {
+		result->subtype()="error";
+	}
 
     /* send result */
-	this->sendStanza(stanza.createIQResult());
+	this->sendStanza(result.release());
 }
 
 void AdminComponent::handleUnbanWord(const Stanza& stanza) {
@@ -228,17 +234,20 @@ void AdminComponent::handleUnbanWord(const Stanza& stanza) {
     /* get word to be banned */
     string word(word_tag.getAttribute("word"));
 
+    auto_ptr<Stanza> result(stanza.createIQResult());
+	result->children().push_back(new Tag(stanza.firstTag()));
 	/*Remove banned words from set in memory*/
 	if(banned_words.erase(word)==true) {
 		/* del word from database */
 		this->database.queueTransaction(boost::bind(&DatabaseInterface::unbanWord,
 					_1, word));
 	} else {
-		//TODO
+		result->subtype()="error";
 	}
 
+	std::cout << "veiooo\n";
     /* send result */
-	this->sendStanza(stanza.createIQResult());
+	this->sendStanza(result.release());
 }
 
 void AdminComponent::handleUnban(const Stanza& stanza) {
