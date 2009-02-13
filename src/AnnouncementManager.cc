@@ -189,16 +189,6 @@ void AnnouncementManager::searchAnnouncement(DatabaseInterface& database, const 
             vector<int> ids = database.searchAnnouncement(from.full(),
                     player.full(), minimum_time, maximum_time, results, offset);
 
-			std::cerr << "imprimindo ids de busca nos anuncios:\n";
-            foreach(id, ids) {
-				std::cerr << *id << std::endl;
-			}
-			std::cerr << "imprimindo ids do mapa da memoria:\n";
-            foreach(id, announcements) {
-				std::cerr << id->first << std::endl;
-			}
-
-
             TagGenerator generator;
             generator.openTag("search");
             generator.addAttribute("xmlns", XMLNS_CHESSD_MATCH_ANNOUNCEMENT);
