@@ -536,13 +536,29 @@ Any date and time is in the format specified by the XEP-082.
     start_time is when the tourney will start in seconds elapsed
                 from the time the message was sent
     time is the time of the game
-    inc is the game time inrement
-    rounds is the number of rounds in the tourney
+	rounds is the number of rounds in the tourney
+	day is the day when the tourney will start
+	hour is the hour when the tourney wil start
+	max_players is the maxinum number of players 
+		that can join the the tourney
+	rating_min
+	rating_max
+	pass is the password to have acess on tourney
+	delay
+	start_time is seconds since 1st january 1970
+	start_subscription is when the subscription will end, this field must be at least 1 minute before the start of the tourney
 -->
 
-<iq type='set' to='tourneydev.shiva' id='1234'>
+<iq type='set' to='chessddev.shiva' id='1234'>
     <create xmlns='http://c3sl.ufpr.br/chessd#tourney'>
-        <tourney category='standard' start_time='300' time='900' inc='5' rounds='6'/>
+		<tourney name='schools_tourney' category='standard' game_time='300' rounds='6' start_time='1236053100' max_players='100' min_rating='0' max_rating='1000000' password='' delay='2' sequence_rounds='false' start_subscription='900000000000' end_subscription='999999999995' >
+			<description>description of the tourney goes here</description>
+			<round start_time='100000000000' />
+			<round start_time='200000000000' />
+			<round start_time='300000000000' />
+			<round start_time='400000000000' />
+			<round start_time='500000000000' />
+		</tourney>
     </create>
 </iq>
 
@@ -579,6 +595,8 @@ Any date and time is in the format specified by the XEP-082.
         <tourney id='0' />
     </game>
 </iq>
+
+
 
 <!--
 	To create a match annoucement send the message:
