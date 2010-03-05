@@ -22,6 +22,8 @@
 #include <vector>
 #include <string>
 
+#include <stdint.h>
+
 #include "XMPP/Stanza.hh"
 #include "XMPP/Node.hh"
 #include "XMPP/handlers.hh"
