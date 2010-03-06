@@ -75,7 +75,7 @@ am_chessd_OBJECTS = chessd-AdminComponent.$(OBJEXT) \
 	chessd-TourneyManager.$(OBJEXT) chessd-ServerModule.$(OBJEXT) \
 	chessd-ChessMatchAnnouncement.$(OBJEXT) \
 	chessd-MatchAnnouncementFactory.$(OBJEXT) \
-	chessd-AnnouncementManager.$(OBJEXT)
+	chessd-AnnouncementManager.$(OBJEXT) chessd-sha1.$(OBJEXT)
 chessd_OBJECTS = $(am_chessd_OBJECTS)
 chessd_DEPENDENCIES =
 chessd_LINK = $(CXXLD) $(chessd_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
@@ -134,6 +134,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
@@ -205,7 +206,7 @@ chessd_SOURCES = "" AdminComponent.cc Agreement.cc ChessTourney.cc \
 	XMPP/Stanza.cc XMPP/Stream.cc MatchFactory.cc Util/Date.cc \
 	Threads/Thread.cc TourneyManager.cc ServerModule.cc \
 	ChessMatchAnnouncement.cc MatchAnnouncementFactory.cc \
-	AnnouncementManager.cc
+	AnnouncementManager.cc sha1.cc
 all: all-am
 
 .SUFFIXES:
@@ -344,6 +345,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chessd-Xml.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chessd-iksutil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chessd-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chessd-sha1.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -1156,6 +1158,20 @@ chessd-AnnouncementManager.obj: AnnouncementManager.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='AnnouncementManager.cc' object='chessd-AnnouncementManager.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chessd_CXXFLAGS) $(CXXFLAGS) -c -o chessd-AnnouncementManager.obj `if test -f 'AnnouncementManager.cc'; then $(CYGPATH_W) 'AnnouncementManager.cc'; else $(CYGPATH_W) '$(srcdir)/AnnouncementManager.cc'; fi`
+
+chessd-sha1.o: sha1.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chessd_CXXFLAGS) $(CXXFLAGS) -MT chessd-sha1.o -MD -MP -MF $(DEPDIR)/chessd-sha1.Tpo -c -o chessd-sha1.o `test -f 'sha1.cc' || echo '$(srcdir)/'`sha1.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/chessd-sha1.Tpo $(DEPDIR)/chessd-sha1.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='sha1.cc' object='chessd-sha1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chessd_CXXFLAGS) $(CXXFLAGS) -c -o chessd-sha1.o `test -f 'sha1.cc' || echo '$(srcdir)/'`sha1.cc
+
+chessd-sha1.obj: sha1.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chessd_CXXFLAGS) $(CXXFLAGS) -MT chessd-sha1.obj -MD -MP -MF $(DEPDIR)/chessd-sha1.Tpo -c -o chessd-sha1.obj `if test -f 'sha1.cc'; then $(CYGPATH_W) 'sha1.cc'; else $(CYGPATH_W) '$(srcdir)/sha1.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/chessd-sha1.Tpo $(DEPDIR)/chessd-sha1.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='sha1.cc' object='chessd-sha1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chessd_CXXFLAGS) $(CXXFLAGS) -c -o chessd-sha1.obj `if test -f 'sha1.cc'; then $(CYGPATH_W) 'sha1.cc'; else $(CYGPATH_W) '$(srcdir)/sha1.cc'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

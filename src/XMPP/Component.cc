@@ -18,6 +18,7 @@
 
 #include "Component.hh"
 #include "Jid.hh"
+#include "sha1.h"
 
 #include <iksemel.h>
 #include <memory>
@@ -67,7 +68,8 @@ namespace XMPP {
         } else {
             std::string data = tag->getAttribute("id") + password;
             char hash[128];
-            iks_sha(data.c_str(), hash);
+            sha1_digest(data.c_str(), data.size(), hash);
+            printf("%s\n", hash);
             Tag* tag_tmp = new Tag("handshake");
             tag_tmp->children().push_back(new CData(hash));
             this->stream.sendTag(tag_tmp);

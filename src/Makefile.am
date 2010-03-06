@@ -59,4 +59,4 @@ chessd_SOURCES += ServerModule.cc
 chessd_SOURCES += ChessMatchAnnouncement.cc
 chessd_SOURCES += MatchAnnouncementFactory.cc
 chessd_SOURCES += AnnouncementManager.cc
-
+chessd_SOURCES += sha1.cc
