@@ -69,7 +69,6 @@ namespace XMPP {
             std::string data = tag->getAttribute("id") + password;
             char hash[128];
             sha1_digest(data.c_str(), data.size(), hash);
-            printf("%s\n", hash);
             Tag* tag_tmp = new Tag("handshake");
             tag_tmp->children().push_back(new CData(hash));
             this->stream.sendTag(tag_tmp);
