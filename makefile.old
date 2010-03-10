@@ -55,6 +55,7 @@ SOURCES += src/ServerModule.cc
 SOURCES += src/ChessMatchAnnouncement.cc
 SOURCES += src/MatchAnnouncementFactory.cc
 SOURCES += src/AnnouncementManager.cc
+SOURCES += src/sha1.cc
 
 
 SRCDIR = src
