@@ -28,7 +28,7 @@ AC_CHECK_LIB([pqxx], [main])
 
 #PKG_CHECK_MODULES(chessd,[libboost_date_time])
 #PKG_CHECK_MODULES(chessd,[libboost_date_time-1.0 >= 1.34 libiksemel >= 1.2 ])
-PKG_CHECK_MODULES(chessd,[iksemel >= 1.3])
+PKG_CHECK_MODULES(chessd,[iksemel >= 1.2])
 
 # Checks for header files.
 AC_HEADER_STDC
