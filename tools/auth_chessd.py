@@ -17,12 +17,6 @@ caminho = caminho[:len(caminho)-1]
 caminho.append('log_auth')
 f = file('/'.join(caminho), 'aw')
 
-try:
-    import psyco
-    psyco.full()
-except ImportError:
-    f.write('Psyco not installed, the program will just run slower\n')
-
 """ Write log """
 def log(msg, *args, **kwargs):
     f.write(str(msg) + ' ' + str(args or '') + ' ' + str(kwargs or '') + '\n')
