@@ -41,15 +41,15 @@ enum GameStatus {
 typedef boost::function<void (int game_id, const std::vector<GamePlayerResult>& result)> OnGameEnd;
 
 struct GameRoomHandlers {
-	typedef boost::function<void ()> callback;
-	XMPP::StanzaHandler send_stanza;
-	callback close_game;
-	callback hide_game;
+    typedef boost::function<void ()> callback;
+    XMPP::StanzaHandler send_stanza;
+    callback close_game;
+    callback hide_game;
     OnGameEnd report_result;
-	GameRoomHandlers(const XMPP::StanzaHandler& send_stanza,
-                     const callback& close_game,
-                     const callback& hide_game,
-                     const OnGameEnd& report_result) :
+    GameRoomHandlers(const XMPP::StanzaHandler& send_stanza,
+            const callback& close_game,
+            const callback& hide_game,
+            const OnGameEnd& report_result) :
         send_stanza(send_stanza),
         close_game(close_game),
         hide_game(hide_game),
@@ -58,7 +58,7 @@ struct GameRoomHandlers {
 
 /*! \brief A game room. */
 class GameRoom : public XMPP::Muc {
-	public:
+    public:
         /*! \brief Constructor.
          *
          * \param game is the game being played.
@@ -67,12 +67,12 @@ class GameRoom : public XMPP::Muc {
          * \param handlers are the functions needed by the room
          */
         GameRoom(Game* game,
-                 const XMPP::Jid& room_name,
-                 DatabaseManager& database_manager,
-                 const GameRoomHandlers& handlers);
+                const XMPP::Jid& room_name,
+                DatabaseManager& database_manager,
+                const GameRoomHandlers& handlers);
 
         /*! \brief Destructor. */
-		~GameRoom();
+        ~GameRoom();
 
         virtual void handleStanza(XMPP::Stanza* stanza) throw();
 
@@ -82,15 +82,15 @@ class GameRoom : public XMPP::Muc {
 
         bool isActive() const { return this->game_active; }
 
-	private:
-		enum GameRequest {
-			REQUEST_DRAW,
-			REQUEST_CANCEL,
-			REQUEST_ADJOURN,
-			REQUEST_DRAW_DECLINE,
-			REQUEST_CANCEL_DECLINE,
-			REQUEST_ADJOURN_DECLINE
-		};
+    private:
+        enum GameRequest {
+            REQUEST_DRAW,
+            REQUEST_CANCEL,
+            REQUEST_ADJOURN,
+            REQUEST_DRAW_DECLINE,
+            REQUEST_CANCEL_DECLINE,
+            REQUEST_ADJOURN_DECLINE
+        };
 
         enum GameEndType {
             END_TYPE_NORMAL = 0,
@@ -102,47 +102,47 @@ class GameRoom : public XMPP::Muc {
 
         void _handleStanza(XMPP::Stanza* stanza);
 
-		/*! \brief Handle an incoming game iq */
-		void handleGame(XMPP::Stanza* stanza);
+        /*! \brief Handle an incoming game iq */
+        void handleGame(XMPP::Stanza* stanza);
 
-		/*! \brief Handle a move stana. */
-		void handleMove(const XMPP::Stanza& stanza);
+        /*! \brief Handle a move stana. */
+        void handleMove(const XMPP::Stanza& stanza);
 
-		/*! \brief Handle a resign stana. */
-		void handleResign(const XMPP::Stanza& stanza);
+        /*! \brief Handle a resign stana. */
+        void handleResign(const XMPP::Stanza& stanza);
 
-		/*! \brief Handle a draw stana. */
-		void handleDrawAccept(const XMPP::Stanza& stanza);
+        /*! \brief Handle a draw stana. */
+        void handleDrawAccept(const XMPP::Stanza& stanza);
 
-		/*! \brief Handle a draw-decline stana. */
-		void handleDrawDecline(const XMPP::Stanza& stanza);
+        /*! \brief Handle a draw-decline stana. */
+        void handleDrawDecline(const XMPP::Stanza& stanza);
 
-		/*! \brief Handle a cancel stanza. */
-		void handleCancelAccept(const XMPP::Stanza& stanza);
+        /*! \brief Handle a cancel stanza. */
+        void handleCancelAccept(const XMPP::Stanza& stanza);
 
-		/*! \brief Handle a cancel-decline stanza. */
-		void handleCancelDecline(const XMPP::Stanza& stanza);
+        /*! \brief Handle a cancel-decline stanza. */
+        void handleCancelDecline(const XMPP::Stanza& stanza);
 
-		/*! \brief Handle a adjourn stanza. */
-		void handleAdjournAccept(const XMPP::Stanza& stanza);
+        /*! \brief Handle a adjourn stanza. */
+        void handleAdjournAccept(const XMPP::Stanza& stanza);
 
-		/*! \brief Handle a adjourn-decline stanza. */
-		void handleAdjournDecline(const XMPP::Stanza& stanza);
+        /*! \brief Handle a adjourn-decline stanza. */
+        void handleAdjournDecline(const XMPP::Stanza& stanza);
 
-		/*! \brief Handle a state request. */
+        /*! \brief Handle a state request. */
         void handleState(const XMPP::Stanza& stanza);
 
         /*! \brief Notify a request to the users. */
-		void notifyRequest(GameRequest request, const XMPP::Jid& requester);
+        void notifyRequest(GameRequest request, const XMPP::Jid& requester);
 
         /*! \brief Send the user the current game state. */
-		void notifyState(const XMPP::Jid& jid);
+        void notifyState(const XMPP::Jid& jid);
 
         /*! \brief Send the user the game result. */
         void notifyResult(const XMPP::Jid& user);
 
         /*! \brief Notify a move to the users. */
-		void notifyMove(XML::Tag* long_tag);
+        void notifyMove(XML::Tag* long_tag);
 
         /*! \brief End the game. */
         void endGame(GameEndType type, END_CODE end_code = END_NO_REASON);
@@ -170,29 +170,25 @@ class GameRoom : public XMPP::Muc {
 
         Util::Time currentTime();
 
-		std::auto_ptr<Game> _game;
+        std::auto_ptr<Game> _game;
 
         END_CODE result_reason;
 
         std::vector<GamePlayerResult> players_result;
 
-		XMPP::Jid room_jid;
+        XMPP::Jid room_jid;
 
         DatabaseManager& database_manager;
 
         Threads::Dispatcher dispatcher;
 
-		GameRoomHandlers handlers;
+        GameRoomHandlers handlers;
 
-		Agreement draw_agreement;
+        Agreements agreement;
 
-		Agreement cancel_agreement;
+        std::set<XMPP::Jid> all_players;
 
-		Agreement adjourn_agreement;
-
-		std::set<XMPP::Jid> all_players;
-
-		volatile bool game_active;
+        volatile bool game_active;
 
         Util::Time start_time;
 

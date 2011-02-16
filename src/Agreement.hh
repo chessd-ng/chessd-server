@@ -21,37 +21,41 @@
 
 #include "XMPP/Jid.hh"
 #include <map>
+#include <set>
 
 /*! \brief A helper class to manage any kind of agreement betwen users */
 
-class Agreement {
-	public:
-		Agreement();
+class Agreements {
+    public:
+        Agreements();
 
         /*! \brief Insert a user and set its state to not agreed */
-		void insert(const XMPP::Jid& jid);
+        void insert(const XMPP::Jid& jid);
 
-        /*! \brief Set a user state to agreed*/
-		void agreed(const XMPP::Jid& jid);
+        /*! \brief Set a user state to agreed on the given agreement */
+        bool agreed(int agreement, const XMPP::Jid& jid);
 
         /*! \brief Returns how many users has not agreed */
-		int left_count() const { return this->agreement.size() - this->_agreed_count; }
+        int left_count(int agreement) const;
 
         /*! \brief Returns how many users has agreed */
-		int agreed_count() const { return this->_agreed_count; }
+        int agreed_count(int agreement) const;
 
         /*! \brief Reset the class to initial state */
-		void clear();
+        void clear(int agreement);
 
         /*! \brief Returns then number of users in he agreement */
-		int size() const { return this->agreement.size(); }
-	private:
-		typedef std::map<XMPP::Jid, bool> AgreementMap;
+        int size() const { return this->users.size(); }
+    private:
+        typedef std::set<XMPP::Jid> UserSet;
 
-		AgreementMap agreement;
+        typedef std::set<const XMPP::Jid*> Agreement;
 
-		int _agreed_count;
+        typedef std::map<int, Agreement> AgreementMap;
 
+        UserSet users;
+
+        AgreementMap agreements;
 };
 
 #endif

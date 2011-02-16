@@ -26,26 +26,30 @@
 
 #include "Util/Log.hh"
 
-#define XMLNS_GAME                  "http://c3sl.ufpr.br/chessd#game"
-#define XMLNS_GAME_MOVE             "http://c3sl.ufpr.br/chessd#game#move"
-#define XMLNS_GAME_RESIGN           "http://c3sl.ufpr.br/chessd#game#resign"
-#define XMLNS_GAME_DRAW             "http://c3sl.ufpr.br/chessd#game#draw"
-#define XMLNS_GAME_DRAW_DECLINE     "http://c3sl.ufpr.br/chessd#game#draw-decline"
-#define XMLNS_GAME_CANCEL           "http://c3sl.ufpr.br/chessd#game#cancel"
-#define XMLNS_GAME_CANCEL_DECLINE   "http://c3sl.ufpr.br/chessd#game#cancel-decline"
-#define XMLNS_GAME_CANCELED         "http://c3sl.ufpr.br/chessd#game#canceled"
-#define XMLNS_GAME_ADJOURN          "http://c3sl.ufpr.br/chessd#game#adjourn"
-#define XMLNS_GAME_ADJOURN_DECLINE  "http://c3sl.ufpr.br/chessd#game#adjourn-decline"
-#define XMLNS_GAME_START            "http://c3sl.ufpr.br/chessd#game#start"
-#define XMLNS_GAME_STATE            "http://c3sl.ufpr.br/chessd#game#state"
-#define XMLNS_GAME_END              "http://c3sl.ufpr.br/chessd#game#end"
-#define XMLNS_GAME_MOVE             "http://c3sl.ufpr.br/chessd#game#move"
+const char* XMLNS_GAME                  = "http://c3sl.ufpr.br/chessd#game";
+const char* XMLNS_GAME_MOVE             = "http://c3sl.ufpr.br/chessd#game#move";
+const char* XMLNS_GAME_RESIGN           = "http://c3sl.ufpr.br/chessd#game#resign";
+const char* XMLNS_GAME_DRAW             = "http://c3sl.ufpr.br/chessd#game#draw";
+const char* XMLNS_GAME_DRAW_DECLINE     = "http://c3sl.ufpr.br/chessd#game#draw-decline";
+const char* XMLNS_GAME_CANCEL           = "http://c3sl.ufpr.br/chessd#game#cancel";
+const char* XMLNS_GAME_CANCEL_DECLINE   = "http://c3sl.ufpr.br/chessd#game#cancel-decline";
+const char* XMLNS_GAME_CANCELED         = "http://c3sl.ufpr.br/chessd#game#canceled";
+const char* XMLNS_GAME_ADJOURN          = "http://c3sl.ufpr.br/chessd#game#adjourn";
+const char* XMLNS_GAME_ADJOURN_DECLINE  = "http://c3sl.ufpr.br/chessd#game#adjourn-decline";
+const char* XMLNS_GAME_START            = "http://c3sl.ufpr.br/chessd#game#start";
+const char* XMLNS_GAME_STATE            = "http://c3sl.ufpr.br/chessd#game#state";
+const char* XMLNS_GAME_END              = "http://c3sl.ufpr.br/chessd#game#end";
+
+const int AGREEMENT_DRAW = 1;
+const int AGREEMENT_CANCEL = 2;
+const int AGREEMENT_ADJOURN = 3;
+const int AGREEMENT_MOVE = 4;
 
 using namespace XMPP;
 using namespace Util;
 using namespace std;
 
-static const char xmlns_table[][64] = {
+static const char* xmlns_table[] = {
     XMLNS_GAME_DRAW,
     XMLNS_GAME_CANCEL,
     XMLNS_GAME_ADJOURN,
@@ -119,9 +123,7 @@ GameRoom::GameRoom(
     /* init agreements and timeouts */
     Time timeout = Timer::now() + Time::Minutes(5);
     foreach(player, game->players()) {
-        this->draw_agreement.insert(player->jid);
-        this->cancel_agreement.insert(player->jid);
-        this->adjourn_agreement.insert(player->jid);
+        this->agreement.insert(player->jid);
         this->all_players.insert(player->jid);
         this->player_timeout.insert(make_pair(player->jid, timeout));
     }
@@ -314,6 +316,7 @@ void GameRoom::handleMove(const Stanza& stanza) {
         /* make the move */
         auto_ptr<XML::Tag> move_notification(this->_game->move(stanza.from(), move_string, this->currentTime()));
         this->move_count ++;
+        this->agreement.agreed(AGREEMENT_MOVE, stanza.from());
 
         /* send the iq result */
         this->sendStanza(stanza.createIQResult());
@@ -339,21 +342,21 @@ void GameRoom::handleDrawAccept(const Stanza& stanza) {
     this->sendStanza(stanza.createIQResult());
 
     /* check if this is the first offer, if so notify the other players */
-    if(this->draw_agreement.agreed_count() == 0) {
+    if(this->agreement.agreed_count(AGREEMENT_DRAW) == 0) {
         this->notifyRequest(REQUEST_DRAW, stanza.from());
     }
 
     /* set player status as agreed */
-    this->draw_agreement.agreed(stanza.from());
+    this->agreement.agreed(AGREEMENT_DRAW, stanza.from());
 
     /* check if all players agreed on a draw */
-    if(this->draw_agreement.left_count() == 0) {
+    if(this->agreement.left_count(AGREEMENT_DRAW) == 0) {
         this->_game->draw();
     }
 }
 
 void GameRoom::handleDrawDecline(const Stanza& stanza) {
-    this->draw_agreement.clear();
+    this->agreement.clear(AGREEMENT_DRAW);
     this->sendStanza(stanza.createIQResult());
     this->notifyRequest(REQUEST_DRAW_DECLINE, stanza.from());
 }
@@ -363,23 +366,24 @@ void GameRoom::handleCancelAccept(const Stanza& stanza) {
     /* send a iq result */
     this->sendStanza(stanza.createIQResult());
 
-    /* check if this is the first offer, if so notify the other players */
-    if(this->cancel_agreement.agreed_count() == 0) {
-        this->notifyRequest(REQUEST_CANCEL, stanza.from());
-    }
-
     /* set player status as agreed */
-    this->cancel_agreement.agreed(stanza.from());
+    if(this->agreement.agreed(AGREEMENT_CANCEL, stanza.from())) {
+        /* check if all players agreed on a cancel 
+         * or not all players moved yet */
+        if(this->agreement.left_count(AGREEMENT_CANCEL) == 0 or
+                this->agreement.left_count(AGREEMENT_MOVE) > 0) {
+            this->endGame(END_TYPE_CANCELED, END_CANCELED_AGREEMENT);
+        } else if(this->agreement.agreed_count(AGREEMENT_CANCEL) == 1) {
+        /* check if this is the first offer, if so notify the other players */
+            this->notifyRequest(REQUEST_CANCEL, stanza.from());
+        }
 
-    /* check if all players agreed on a draw */
-    if(this->cancel_agreement.left_count() == 0) {
-        this->endGame(END_TYPE_CANCELED, END_CANCELED_AGREEMENT);
     }
 
 }
 
 void GameRoom::handleCancelDecline(const Stanza& stanza) {
-    this->cancel_agreement.clear();
+    this->agreement.clear(AGREEMENT_CANCEL);
     this->sendStanza(stanza.createIQResult());
     this->notifyRequest(REQUEST_CANCEL_DECLINE, stanza.from());
 }
@@ -390,22 +394,22 @@ void GameRoom::handleAdjournAccept(const Stanza& stanza) {
     this->sendStanza(stanza.createIQResult());
 
     /* check if this is the first offer, if so notify the other players */
-    if(this->adjourn_agreement.agreed_count() == 0) {
+    if(this->agreement.agreed_count(AGREEMENT_ADJOURN) == 0) {
         this->notifyRequest(REQUEST_ADJOURN, stanza.from());
     }
 
     /* set player status as agreed */
-    this->adjourn_agreement.agreed(stanza.from());
+    this->agreement.agreed(AGREEMENT_ADJOURN, stanza.from());
 
     /* check if all players agreed on a draw */
-    if(this->adjourn_agreement.left_count() == 0) {
+    if(this->agreement.left_count(AGREEMENT_ADJOURN) == 0) {
         this->endGame(END_TYPE_ADJOURNED, END_ADJOURNED_AGREEMENT);
     }
 
 }
 
 void GameRoom::handleAdjournDecline(const Stanza& stanza) {
-    this->adjourn_agreement.clear();
+    this->agreement.clear(AGREEMENT_ADJOURN);
     this->sendStanza(stanza.createIQResult());
     this->notifyRequest(REQUEST_ADJOURN_DECLINE, stanza.from());
 }

@@ -22,27 +22,39 @@
 
 using namespace std;
 
-Agreement::Agreement() : _agreed_count(0) {
+Agreements::Agreements() { }
+
+void Agreements::insert(const XMPP::Jid& jid) {
+    this->users.insert(jid);
 }
 
-void Agreement::insert(const XMPP::Jid& jid) {
-	this->agreement.insert(make_pair(jid, false));
-}
-
-void Agreement::agreed(const XMPP::Jid& jid) {
+bool Agreements::agreed(int id, const XMPP::Jid& jid) {
     /* find player */
-	AgreementMap::iterator it = this->agreement.find(jid);
+    UserSet::iterator user = this->users.find(jid);
+    if(user == this->users.end()) {
+        return false;
+    }
 
-    /* set to agreed */
-	if(not it->second) {
-		this->_agreed_count ++;
-		it->second = true;
-	}
+    /* find agreement */
+    Agreement& agreement = this->agreements[id];
+    
+    /* insert player to the agreement */
+    return agreement.insert(&*user).second;
 }
 
-void Agreement::clear() {
-	foreach(it, this->agreement) {
-		it->second = false;
-	}
-	this->_agreed_count = 0;
+int Agreements::agreed_count(int id) const {
+    AgreementMap::const_iterator it = this->agreements.find(id);
+    if(it == this->agreements.end()) {
+        return 0;
+    } else {
+        return it->second.size();
+    }
+}
+
+int Agreements::left_count(int id) const {
+    return this->size() - this->agreed_count(id);
+}
+
+void Agreements::clear(int id) {
+    this->agreements.erase(id);
 }
