@@ -28,35 +28,35 @@
 
 /*! \brief This is the component that handles user info requests */
 class AdminComponent : public ServerModule {
-	public:
-		/*! \brief Constructor
-		 *
-		 * \param core_interface is the interface to the core.
-		 * \param config is the configuration for this component.
-		 */
-		AdminComponent(
-            const std::string& server_name,
-            DatabaseManager& database,
-            const XMPP::StanzaHandler& send_stanza);
+    public:
+        /*! \brief Constructor
+         *
+         * \param core_interface is the interface to the core.
+         * \param config is the configuration for this component.
+         */
+        AdminComponent(
+                const std::string& server_name,
+                DatabaseManager& database,
+                const XMPP::StanzaHandler& send_stanza);
 
-		/*! \brief Destructor
-		 *
-		 * Closes server connection if available
-		 */
-		virtual ~AdminComponent();
+        /*! \brief Destructor
+         *
+         * Closes server connection if available
+         */
+        virtual ~AdminComponent();
 
 
         virtual std::vector<std::string> namespaces() const ;
 
-	private:
+    private:
 
         void onStart();
 
         /*! \brief handle an incoming iq */
         void handleIq(const XMPP::Stanza& iq);
 
-		/*! \brief Handle an incoming admin iq. */
-		void handleAdmin(const XMPP::Stanza& stanza);
+        /*! \brief Handle an incoming admin iq. */
+        void handleAdmin(const XMPP::Stanza& stanza);
 
         /*! \brief Handle a request for the banned user list */
         void handleBannedList(const XMPP::Stanza& stanza);
@@ -70,17 +70,17 @@ class AdminComponent : public ServerModule {
         /*! \brief handle unban request */
         void handleUnban(const XMPP::Stanza& stanza);
 
-		/*! \brief handle list banned words */
-		void handleBannedWordsList(const XMPP::Stanza& stanza);
+        /*! \brief handle list banned words */
+        void handleBannedWordsList(const XMPP::Stanza& stanza);
 
-		/*! \brief handle ban word request */
-		void handleBanWord(const XMPP::Stanza& stanza);
+        /*! \brief handle ban word request */
+        void handleBanWord(const XMPP::Stanza& stanza);
 
-		/*! \brief handle unban word request */
-		void handleUnbanWord(const XMPP::Stanza& stanza);
+        /*! \brief handle unban word request */
+        void handleUnbanWord(const XMPP::Stanza& stanza);
 
         /*! \brief This is a transaction that reads user type. */
-		void fetchUserType(const XMPP::Stanza& stanza, DatabaseInterface& database);
+        void fetchUserType(const XMPP::Stanza& stanza, DatabaseInterface& database);
 
         /*! \brief Load admins names from the database */
         void loadAcl(DatabaseInterface& database);
@@ -88,7 +88,7 @@ class AdminComponent : public ServerModule {
         /*! \brief Set the admin list */
         void setAdmins(const std::set<XMPP::PartialJid>& admins);
 
-        void setAccessRules();
+        //void setAccessRules();
 
         void updateAcl();
 
@@ -104,7 +104,7 @@ class AdminComponent : public ServerModule {
 
         XMPP::Jid server_name;
 
-        std::set<XMPP::PartialJid> admins;
+        //std::set<XMPP::PartialJid> admins;
 
         std::map<XMPP::PartialJid, std::string> banneds;
 

@@ -38,13 +38,6 @@ AdminComponent::AdminComponent(
     database(database),
     server_name(server_name)
 {
-
-    /* Set features */
-    //this->root_node.disco().features().insert(XMLNS_CHESSD_ADMIN);
-
-    /* Set iqs */
-    //this->root_node.setIqHandler(boost::bind(&AdminComponent::handleAdmin, this, _1),
-    //        XMLNS_CHESSD_ADMIN);
 }
 
 AdminComponent::~AdminComponent() {
@@ -56,20 +49,28 @@ vector<string> AdminComponent::namespaces() const {
     return ret;
 }
 
+void get_user_type(DatabaseInterface& interface, string user, string* type) {
+    *type = interface.getUserType(user);
+}
+
 void AdminComponent::handleIq(const Stanza& stanza) {
     try {
         const Tag& query = stanza.firstTag();
 
-		/*FIXME to list banned words, you do not need to be an admin, but
-		the information about banned words in memory is stored in this
-		class, so it will stay like this for now*/
+        /*FIXME to list banned words, you do not need to be an admin, but
+          the information about banned words in memory is stored in this
+          class, so it will stay like this for now*/
         if(query.name() == "banned-words-list") {
             this->handleBannedWordsList(stanza);
-			return;
-		}
+            return;
+        }
 
         /* check if the sender is an admin */
-        if(this->admins.find(stanza.from()) == this->admins.end()) {
+        /* XXX don't consult database every query */
+        string user_type;
+        this->database.execTransaction(boost::bind(get_user_type, _1,
+                    stanza.from().partial(), &user_type));
+        if(user_type != "admin") {
             throw XMPP::not_acceptable("You don't have admin privilegies");
         }
 
@@ -110,7 +111,7 @@ void AdminComponent::handleBannedList(const Stanza& stanza) {
         generator.addCData(user->second);
         generator.closeTag();
     }
-    
+
     message->children().push_back(generator.getTag());
 
     /* Send the message */
@@ -130,7 +131,7 @@ void AdminComponent::handleBannedWordsList(const XMPP::Stanza& stanza) {
         generator.addAttribute("word", *word);
         generator.closeTag();
     }
-    
+
     message->children().push_back(generator.getTag());
 
     /* Send the message */
@@ -203,51 +204,51 @@ void AdminComponent::handleBan(const Stanza& stanza) {
 
 void AdminComponent::handleBanWord(const Stanza& stanza) {
 
-	/*get word tag*/
+    /*get word tag*/
     const Tag& word_tag = stanza.firstTag().findTag("word");
 
     /* get word to be banned */
     string word(word_tag.getAttribute("word"));
 
     auto_ptr<Stanza> result(stanza.createIQResult());
-	result->children().push_back(new Tag(stanza.firstTag()));
+    result->children().push_back(new Tag(stanza.firstTag()));
 
-	//insert banned words to set in memory
-	if(word.size()>0 and banned_words.insert(word).second==true) {
-		/* add word to database */
-		this->database.queueTransaction(boost::bind(&DatabaseInterface::banWord,
-					_1, word));
-	}
-	else {
-		result->subtype()="error";
-	}
+    //insert banned words to set in memory
+    if(word.size()>0 and banned_words.insert(word).second==true) {
+        /* add word to database */
+        this->database.queueTransaction(boost::bind(&DatabaseInterface::banWord,
+                    _1, word));
+    }
+    else {
+        result->subtype()="error";
+    }
 
     /* send result */
-	this->sendStanza(result.release());
+    this->sendStanza(result.release());
 }
 
 void AdminComponent::handleUnbanWord(const Stanza& stanza) {
 
-	/*get word tag*/
+    /*get word tag*/
     const Tag& word_tag = stanza.firstTag().findTag("word");
 
     /* get word to be banned */
     string word(word_tag.getAttribute("word"));
 
     auto_ptr<Stanza> result(stanza.createIQResult());
-	result->children().push_back(new Tag(stanza.firstTag()));
-	/*Remove banned words from set in memory*/
-	if(banned_words.erase(word)==true) {
-		/* del word from database */
-		this->database.queueTransaction(boost::bind(&DatabaseInterface::unbanWord,
-					_1, word));
-	} else {
-		result->subtype()="error";
-	}
+    result->children().push_back(new Tag(stanza.firstTag()));
+    /*Remove banned words from set in memory*/
+    if(banned_words.erase(word)==true) {
+        /* del word from database */
+        this->database.queueTransaction(boost::bind(&DatabaseInterface::unbanWord,
+                    _1, word));
+    } else {
+        result->subtype()="error";
+    }
 
-	std::cout << "veiooo\n";
+    std::cout << "veiooo\n";
     /* send result */
-	this->sendStanza(result.release());
+    this->sendStanza(result.release());
 }
 
 void AdminComponent::handleUnban(const Stanza& stanza) {
@@ -271,7 +272,7 @@ void AdminComponent::kickUser(const XMPP::PartialJid& user) {
     /* Create command message with the user name */
     message->subtype() = "set";
     message->to() = this->server_name;
-    
+
     generator.openTag("command");
     generator.addAttribute("xmlns", "http://jabber.org/protocol/commands");
     generator.addAttribute("node", "http://jabber.org/protocol/admin#end-user-session");
@@ -291,7 +292,7 @@ void AdminComponent::kickUser(const XMPP::PartialJid& user) {
 }
 
 void AdminComponent::banUser(const XMPP::PartialJid& user,
-                             const string& reason) {
+        const string& reason) {
     this->kickUser(user);
     this->banneds.insert(make_pair(user, reason));
     this->updateAcl();
@@ -308,37 +309,8 @@ void AdminComponent::unbanUser(const XMPP::PartialJid& user) {
     }
 }
 
-void AdminComponent::setAccessRules() {
-    std::auto_ptr<XMPP::Stanza> message(new XMPP::Stanza("iq"));
-    XML::TagGenerator generator;
-
-    /* Create the command message */
-    message->subtype() = "set";
-    message->to() = this->server_name;
-    
-    generator.openTag("command");
-    generator.addAttribute("xmlns", "http://jabber.org/protocol/commands");
-    generator.addAttribute("node", "config/access");
-    generator.openTag("x");
-    generator.addAttribute("xmlns", "jabber:x:data");
-    generator.addAttribute("type", "submit");
-    generator.openTag("field");
-    generator.addAttribute("type", "text-multi");
-    generator.addAttribute("var", "access");
-    generator.openTag("value");
-    generator.addCData("[{access,muc_admin,[{allow,chessd_admin}]}].");
-
-    message->children().push_back(generator.getTag());
-
-    /* Send the message */
-    this->sendIq(message.release());
-}
-
 void AdminComponent::onStart() {
-    /* Set ejabberd's access rules */
-    this->setAccessRules();
-
-    /* Load admin list from the database */
+    /* Load bans list from the database */
     this->database.execTransaction(boost::bind(&AdminComponent::loadAcl, this, _1));
 
     /* Update the acl in the jabber server */
@@ -347,22 +319,16 @@ void AdminComponent::onStart() {
 
 void AdminComponent::loadAcl(DatabaseInterface& database) {
     /* read from database */
-    std::vector<std::string> admins = database.getAdmins();
     std::vector<pair<std::string, string> > banneds =
         database.searchBannedUsers();
-	std::vector<std::string> words=database.getBannedWords();
-
-    /* convert types */
-    foreach(admin, admins) {
-        this->admins.insert(XMPP::PartialJid(*admin));
-    }
+    std::vector<std::string> words=database.getBannedWords();
 
     foreach(banned, banneds) {
         this->banneds.insert(make_pair(XMPP::PartialJid(banned->first),
-                                       banned->second));
+                    banned->second));
     }
 
-	this->banned_words=std::set<std::string>(words.begin(),words.end());
+    this->banned_words=std::set<std::string>(words.begin(),words.end());
 }
 
 void AdminComponent::updateAcl() {
@@ -372,7 +338,7 @@ void AdminComponent::updateAcl() {
     /* Create the command message */
     message->subtype() = "set";
     message->to() = this->server_name;
-    
+
     generator.openTag("command");
     generator.addAttribute("xmlns", "http://jabber.org/protocol/commands");
     generator.addAttribute("node", "config/acls");
@@ -386,14 +352,12 @@ void AdminComponent::updateAcl() {
 
     /* build acl string */
     std::string acl = "[";
-    /* put the admins in chessd_admin group */
-    foreach(admin, this->admins) {
-        acl += "{acl,chessd_admin,{user,\"" + admin->node() + "\",\"" + admin->domain() + "\"}},";
-    }
+
     /* put banned users in the blocked group */
     foreach(ban, this->banneds) {
         acl += "{acl,blocked,{user,\"" + ban->first.node() + "\",\"" + ban->first.domain() + "\"}},";
     }
+
     /* remove extra comma */
     if(acl.size() > 1) {
         acl.erase(acl.end() - 1);
