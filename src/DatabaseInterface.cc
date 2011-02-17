@@ -860,3 +860,25 @@ vector<int> DatabaseInterface::searchAnnouncement(const string& username,
 
     return ret;
 }
+
+vector<string> DatabaseInterface::searchUser(const string& pattern, int max_results) {
+    pqxx::result result;
+    
+    /* prepare the query */
+    string query = "SELECT user_name "
+                        "FROM users "
+                        "WHERE user_name LIKE '" + this->work.esc(pattern) + "%' "
+                        "LIMIT " + to_string(max_results);
+    
+    /* execute the query */
+    result = this->work.exec(query);
+
+    vector<string> ret;
+
+    foreach(it, result) {
+        ret.push_back(it->at(0).c_str());
+    }
+    return ret;
+
+}
+

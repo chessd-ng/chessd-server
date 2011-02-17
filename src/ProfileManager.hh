@@ -69,12 +69,19 @@ class ProfileManager : public ServerModule {
         /*! \brief Handle profile retrive or update */
         void handleProfile(const XMPP::Stanza& stanza);
 
+        /*! \brief Handle search user request */
+        void handleSearchUser(const XMPP::Stanza& stanza);
+
         /*! \brief This is a transaction that reads users ratings. */
 		void fetchRating(const XMPP::Stanza& stanza,
                          DatabaseInterface& database);
 
         /*! \brief This is a transaction that search for games. */
         void searchGame(const XMPP::Stanza& stanza,
+                        DatabaseInterface& database);
+
+        /*! \brief This is a transaction that search for users. */
+        void searchUser(const XMPP::Stanza& stanza,
                         DatabaseInterface& database);
 
         /*! \brief This is a transaction that fetch a requested game. */

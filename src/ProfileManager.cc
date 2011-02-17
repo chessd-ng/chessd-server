@@ -32,10 +32,21 @@ using namespace XMPP;
 using namespace Util;
 using namespace Threads;
 
-#define XMLNS_CHESSD_INFO "http://c3sl.ufpr.br/chessd#info"
-#define XMLNS_CHESSD_PROFILE "http://c3sl.ufpr.br/chessd#profile"
-#define XMLNS_CHESSD_GAME_SEARCH "http://c3sl.ufpr.br/chessd#search_game"
-#define XMLNS_CHESSD_GAME_FETCH "http://c3sl.ufpr.br/chessd#fetch_game"
+const char* XMLNS_CHESSD_INFO        = "http://c3sl.ufpr.br/chessd#info";
+const char* XMLNS_CHESSD_PROFILE     = "http://c3sl.ufpr.br/chessd#profile";
+const char* XMLNS_CHESSD_SEARCH_GAME = "http://c3sl.ufpr.br/chessd#search_game";
+const char* XMLNS_CHESSD_SEARCH_USER = "http://c3sl.ufpr.br/chessd#search_user";
+const char* XMLNS_CHESSD_FETCH_GAME  = "http://c3sl.ufpr.br/chessd#fetch_game";
+
+PLAYER_COLOR translate_role(const std::string& role) {
+    if(role == "white") {
+        return WHITE;
+    } else if(role == "black") {
+        return BLACK;
+    } else {
+        return UNDEFINED;
+    }
+}
 
 ProfileManager::ProfileManager(
         DatabaseManager& database,
@@ -50,10 +61,10 @@ ProfileManager::~ProfileManager() {
 vector<string> ProfileManager::namespaces() const {
     vector<string> ret;
     ret.push_back(XMLNS_CHESSD_INFO);
-    ret.push_back(XMLNS_CHESSD_GAME_SEARCH);
-    ret.push_back(XMLNS_CHESSD_GAME_FETCH);
+    ret.push_back(XMLNS_CHESSD_SEARCH_GAME);
+    ret.push_back(XMLNS_CHESSD_FETCH_GAME);
     ret.push_back(XMLNS_CHESSD_PROFILE);
-
+    ret.push_back(XMLNS_CHESSD_SEARCH_USER);
     return ret;
 }
 
@@ -64,60 +75,55 @@ void ProfileManager::handleIq(const Stanza& iq) {
 
         if(xmlns == XMLNS_CHESSD_INFO) {
             this->handleRating(iq);
-        } else if(xmlns == XMLNS_CHESSD_GAME_SEARCH) {
+        } else if(xmlns == XMLNS_CHESSD_SEARCH_GAME) {
             this->handleSearchGame(iq);
-        } else if(xmlns == XMLNS_CHESSD_GAME_FETCH) {
+        } else if(xmlns == XMLNS_CHESSD_FETCH_GAME) {
             this->handleFetchGame(iq);
+        } else if(xmlns == XMLNS_CHESSD_SEARCH_USER) {
+            this->handleSearchUser(iq);
         } else if(xmlns == XMLNS_CHESSD_PROFILE) {
             this->handleProfile(iq);
         } else {
             throw feature_not_implemented("Unknown xmlns");
         }
     } catch (const xml_error& error) {
-        throw bad_request("wrong format");
+        throw bad_request("Invalid format");
     }
 }
 
 void ProfileManager::handleRating(const Stanza& stanza) {
-    try {
-        const Tag& query = stanza.query();
+    const Tag& query = stanza.query();
 
-        /* check if the format is correct */
-        foreach(tag, query.tags()) {
-            if(tag->name() == "rating") {
-                if(not tag->hasAttribute("jid"))
-                    throw XMPP::bad_request("Invalid format");
-            } else if(tag->name() == "type") {
-                if(not tag->hasAttribute("jid"))
-                    throw XMPP::bad_request("Invalid format");
-            } else {
+    /* check if the format is correct */
+    foreach(tag, query.tags()) {
+        if(tag->name() == "rating") {
+            if(not tag->hasAttribute("jid"))
                 throw XMPP::bad_request("Invalid format");
-            }
+        } else if(tag->name() == "type") {
+            if(not tag->hasAttribute("jid"))
+                throw XMPP::bad_request("Invalid format");
+        } else {
+            throw XMPP::bad_request("Invalid format");
         }
-
-        /* execute the transaction */
-        this->database.queueTransaction(boost::bind(&ProfileManager::fetchRating, this, stanza, _1));
-    } catch (const XML::xml_error& error) {
-        throw XMPP::bad_request("Invalid format");
     }
+
+    /* execute the transaction */
+    this->database.queueTransaction(boost::bind(&ProfileManager::fetchRating, this, stanza, _1));
 }
 
 void ProfileManager::handleSearchGame(const Stanza& stanza) {
-    try {
-        /* execute the transaction */
-        this->database.queueTransaction(boost::bind(&ProfileManager::searchGame, this, stanza, _1));
-    } catch (const XML::xml_error& error) {
-        throw XMPP::bad_request("Invalid format");
-    }
+    /* execute the transaction */
+    this->database.queueTransaction(boost::bind(&ProfileManager::searchGame, this, stanza, _1));
+}
+
+void ProfileManager::handleSearchUser(const Stanza& stanza) {
+    /* execute the transaction */
+    this->database.queueTransaction(boost::bind(&ProfileManager::searchUser, this, stanza, _1));
 }
 
 void ProfileManager::handleFetchGame(const Stanza& stanza) {
-    try {
-        /* execute the transaction */
-        this->database.queueTransaction(boost::bind(&ProfileManager::fetchGame, this, stanza, _1));
-    } catch (const XML::xml_error& error) {
-        throw XMPP::bad_request("Invalid format");
-    }
+    /* execute the transaction */
+    this->database.queueTransaction(boost::bind(&ProfileManager::fetchGame, this, stanza, _1));
 }
 
 void ProfileManager::handleProfile(const Stanza& stanza) {
@@ -145,16 +151,6 @@ void ProfileManager::updateProfile(const Stanza& stanza, DatabaseInterface& data
         }
     } catch (const XMPP::xmpp_exception& error) {
         this->sendStanza(error.getErrorStanza(new Stanza(stanza)));
-    }
-}
-
-PLAYER_COLOR translate_role(const std::string& role) {
-    if(role == "white") {
-        return WHITE;
-    } else if(role == "black") {
-        return BLACK;
-    } else {
-        return UNDEFINED;
     }
 }
 
@@ -211,7 +207,7 @@ void ProfileManager::searchGame(const Stanza& stanza, DatabaseInterface& databas
             generator.addAttribute("id", stanza.id());
             generator.addAttribute("type", "result");
             generator.openTag("query");
-            generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_SEARCH);
+            generator.addAttribute("xmlns", XMLNS_CHESSD_SEARCH_GAME);
 
             foreach(game, games) {
                 generator.openTag("game");
@@ -251,6 +247,41 @@ void ProfileManager::searchGame(const Stanza& stanza, DatabaseInterface& databas
     }
 }
 
+void ProfileManager::searchUser(const Stanza& stanza, DatabaseInterface& database) {
+    try {
+        try {
+            XML::TagGenerator generator;
+
+            /* Parse request */
+            const Tag& query = stanza.findTag("query");
+            const Tag& user_tag = query.findTag("user");
+            string name = user_tag.getAttribute("name");
+            vector<string> users = database.searchUser(name, 50);
+
+            /* Create result */
+            generator.openTag("iq");
+            generator.addAttribute("to", stanza.from().full());
+            generator.addAttribute("from", stanza.to().full());
+            generator.addAttribute("id", stanza.id());
+            generator.addAttribute("type", "result");
+            generator.openTag("query");
+            generator.addAttribute("xmlns", XMLNS_CHESSD_SEARCH_USER);
+            foreach(it, users) {
+                generator.openTag("user");
+                generator.addAttribute("jid", *it);
+                generator.closeTag();
+            }
+
+            /* send the result to the player */
+            this->sendStanza(new XMPP::Stanza(generator.getTag()));
+        } catch(const XML::xml_error& error) {
+            throw XMPP::bad_request("Invalid format");
+        }
+    } catch (const XMPP::xmpp_exception& error) {
+        this->sendStanza(error.getErrorStanza(new Stanza(stanza)));
+    }
+}
+
 void ProfileManager::fetchGame(const Stanza& stanza, DatabaseInterface& database) {
     try {
         try {
@@ -269,7 +300,7 @@ void ProfileManager::fetchGame(const Stanza& stanza, DatabaseInterface& database
             generator.addAttribute("id", stanza.id());
             generator.addAttribute("type", "result");
             generator.openTag("query");
-            generator.addAttribute("xmlns", XMLNS_CHESSD_GAME_FETCH);
+            generator.addAttribute("xmlns", XMLNS_CHESSD_FETCH_GAME);
             generator.addChild(HistoryProcess::generate(XML::parseXmlString(game_history)));
 
             /* send the result to the player */

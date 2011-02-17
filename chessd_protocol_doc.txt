@@ -352,6 +352,29 @@ Any date and time is in the format specified by the XEP-082.
     The result is a sequence of game states.
 --!>
 
+
+<!--
+    Search for users in the server
+--!>
+
+<iq from='rating.shiva' type='result' id='get_rating'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#search_user'>
+        <user name='pattern'/>
+    </query>
+</iq>
+
+<!--
+    The result is a list of user matching the pattern
+--!>
+
+<iq from='rating.shiva' type='result' id='get_rating'>
+    <query xmlns='http://c3sl.ufpr.br/chessd#search_user'>
+        <user jid='user1@host'/>
+        <user jid='user2@host'/>
+        <user jid='user3@host'/>
+    </query>
+</iq>
+
 <!--
     Admin tools.
     Only users with admin privilegies

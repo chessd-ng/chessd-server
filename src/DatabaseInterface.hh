@@ -177,6 +177,8 @@ class DatabaseInterface : public pqxx::transactor<>
 
         void eraseAnnouncement(int id);
 
+        std::vector<std::string> searchUser(const std::string& pattern, int max_results);
+
     private:
 
         /*! \brief Get the user's id by his name */
