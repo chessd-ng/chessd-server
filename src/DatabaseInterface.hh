@@ -179,13 +179,13 @@ class DatabaseInterface : public pqxx::transactor<>
 
         std::vector<std::string> searchUser(const std::string& pattern, int max_results);
 
-    private:
-
         /*! \brief Get the user's id by his name */
         int getUserId(const std::string& username, bool create);
 
         /*! \brief Get the username id by his id */
         std::string getUsername(int user_id);
+
+    private:
 
         pqxx::work& work;
         

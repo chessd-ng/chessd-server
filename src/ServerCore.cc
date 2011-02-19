@@ -261,6 +261,8 @@ void ServerCore::handlePresence(const Stanza& stanza) {
         } catch(const xml_error&) {
             /* the config is optional, so if not present just ignore it */
         }
+        this->database_manager.queueTransaction(boost::bind(&DatabaseInterface::getUserId,
+                    _1, stanza.from().partial(), true));
     }
     WriteLock<map<Jid, UserStatus> > status(this->users_status);
     (*status)[user].available = available;

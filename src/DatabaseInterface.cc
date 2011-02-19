@@ -37,7 +37,7 @@ int DatabaseInterface::getUserId(const string& _username, bool create) {
                         "FROM users "
                         "WHERE user_name ='" + this->work.esc(username) + "'";
     
-    /* execute te query */
+    /* execute the query */
     result = this->work.exec(query);
 
     /* if user is not in the database, create it */
