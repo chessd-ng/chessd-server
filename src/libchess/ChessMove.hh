@@ -23,7 +23,7 @@
 #include "Piece.hh"
 
 class Position {
-	private:
+	public:
 		union {
 			int pos[2];
 			struct {
@@ -31,7 +31,6 @@ class Position {
 			};
 		};
 
-	public:
 		std::string toStringNotation() const ;
 
 		Position(const std::string& p);

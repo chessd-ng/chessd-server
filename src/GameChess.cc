@@ -24,6 +24,8 @@
 #include "GlickoSystem.hh"
 #include "HistoryProcess.hh"
 
+using std::string;
+
 /*
  * Set initial variables.
 */
@@ -451,9 +453,11 @@ bool GameChess::done(const Util::Time& current_time) {
 
 XML::Tag* GameChess::move(const XMPP::Jid& player, const std::string& movement, const Util::Time& time_stamp) {
 	//check if time is over
-	if(this->auto_flag==true)
-		if(this->checkTimeOver(time_stamp))
-			throw time_over::time_over(std::string("Time of ")+std::string(this->chess.turn()==WHITE?"white":"black")+std::string(" is over"));
+	if(this->auto_flag==true) {
+		if(this->checkTimeOver(time_stamp)) {
+      throw ::time_over(std::string("Time of ")+std::string(this->chess.turn()==WHITE?"white":"black")+std::string(" is over"));
+    }
+  }
 
 	XML::Tag* ans=GameChessUntimed::move(player,movement,time_stamp);
 
