@@ -49,15 +49,13 @@ namespace XMPP {
 			typedef boost::ptr_map<Jid, DiscoItem> item_map;
 			typedef boost::ptr_map<Jid, DiscoItem>::iterator iterator_map;
 			typedef boost::ptr_map<Jid, DiscoItem>::const_iterator const_iterator_map;
-			struct iterator_transformer :
-				public std::unary_function<const item_map::value_type&, DiscoItem&> {
+			struct iterator_transformer {
 				DiscoItem& operator()(const item_map::value_type& v) const {
 					return *v.second;
 				}
 			};
-			struct const_iterator_transformer :
-				public std::unary_function<const item_map::value_type&, const DiscoItem&> {
-				const DiscoItem& operator()(const item_map::value_type& v) {
+			struct const_iterator_transformer {
+				const DiscoItem& operator()(const const_iterator_map::value_type& v) const {
 					return *v.second;
 				}
 			};

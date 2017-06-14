@@ -1,3 +1,8 @@
 .*.swp
 *.o
 src/chessd
+.deps
+Makefile
+aclocal.m4
+config.log
+config.status
