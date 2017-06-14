@@ -112,7 +112,7 @@ class TourneyManager : public ServerModule {
             Util::Time start_time;
             bool running;
             XMPP::Jid owner;
-            std::auto_ptr<Tourney> tourney;
+            std::unique_ptr<Tourney> tourney;
         };
 
         /*! \brief Team database */

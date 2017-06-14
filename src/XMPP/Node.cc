@@ -141,7 +141,7 @@ namespace XMPP {
 	}
 
 	void Node::handleStanza(Stanza* _stanza) throw() {
-        std::auto_ptr<Stanza> stanza(_stanza);
+        std::unique_ptr<Stanza> stanza(_stanza);
         try {
             if(stanza->type() == "presence") {
                 this->handlePresence(*stanza);

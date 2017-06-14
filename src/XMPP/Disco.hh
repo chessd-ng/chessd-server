@@ -141,7 +141,7 @@ namespace XMPP {
 
 
             /*! \brief Set the disco extension */
-            void setExtendedInfo(XML::Tag* info) { this->_ext_info = std::auto_ptr<XML::Tag>(info); }
+            void setExtendedInfo(XML::Tag* info) { this->_ext_info = std::unique_ptr<XML::Tag>(info); }
 
             /*! \brief Get the disco extension */
             XML::Tag& getExtendedInfo() { return *this->_ext_info; }
@@ -156,7 +156,7 @@ namespace XMPP {
 
 			DiscoItemSet _items;
 
-            std::auto_ptr<XML::Tag> _ext_info;
+            std::unique_ptr<XML::Tag> _ext_info;
 
 	};
 

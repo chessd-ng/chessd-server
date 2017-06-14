@@ -134,7 +134,7 @@ void ServerCore::onError(const string& msg) {
 XMPP::Jid ServerCore::createGame(Game* _game,
         const OnGameEnd& on_game_end) {
 
-    auto_ptr<Game> game(_game);
+    unique_ptr<Game> game(_game);
     
     /* Acquire lock to user status */
     WriteLock<map<Jid, UserStatus> > status(this->users_status);
@@ -185,7 +185,7 @@ void ServerCore::_createGame(Game* game,
     Jid room_jid = Jid("game_" + to_string(game_id), this->node_name);
 
     /* Create the game room */
-    auto_ptr<GameRoom> game_room (new GameRoom(game, room_jid,
+    unique_ptr<GameRoom> game_room (new GameRoom(game, room_jid,
             this->database_manager,
             GameRoomHandlers(boost::bind(&ComponentBase::sendStanza, this, _1),
                 boost::bind(&ServerCore::closeGame, this, game_id),
@@ -200,7 +200,8 @@ void ServerCore::_createGame(Game* game,
     this->root_node.disco().items().insert(new XMPP::DiscoItem(game->title(),
                 room_jid));
 
-    game_rooms.insert(game_id, game_room);
+    // XXX
+    game_rooms.insert(game_id, game_room.release());
 }
 
 void ServerCore::endGame(GameId room_id, const vector<GamePlayer>& players) {
@@ -330,7 +331,7 @@ void ServerCore::handleSearch(const Stanza& stanza) {
     }
 
     /* send the result stanza */
-    auto_ptr<Stanza> result(stanza.createIQResult());
+    unique_ptr<Stanza> result(stanza.createIQResult());
     result->children().push_back(generator.getTag());
     this->root_node.sendStanza(result.release());
 }

@@ -82,7 +82,7 @@ class AdjournedWrapper : public Match {
 
         int adj_id;
         DatabaseManager& database;
-        std::auto_ptr<Match> match;
+        std::unique_ptr<Match> match;
 };
 
 MatchManager::MatchManager(
@@ -157,7 +157,7 @@ void MatchManager::handleOffer(const Stanza& stanza) {
         } else {
 
             /* apply match rule */
-            std::auto_ptr<Match> match(MatchFactory::create(offer, this->teams));
+            std::unique_ptr<Match> match(MatchFactory::create(offer, this->teams));
 
             /* The processOffer was part of this function.
              * It was separated due to the need to
@@ -173,7 +173,7 @@ void MatchManager::handleOffer(const Stanza& stanza) {
 
 void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
     try {
-        std::auto_ptr<Match> match(_match);
+        std::unique_ptr<Match> match(_match);
 
         /* parse message */
         const Tag& offer = stanza.query().findTag("match");
@@ -238,7 +238,7 @@ void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
 }
 
 void MatchManager::resumeOffer(int adj_id, const std::string& history) {
-    std::auto_ptr<Stanza> stanza;
+    std::unique_ptr<Stanza> stanza;
     try {
         /* if the history is empty, it means that the id does not exist */
         if(history.empty()) {
@@ -249,15 +249,15 @@ void MatchManager::resumeOffer(int adj_id, const std::string& history) {
         /* find the offer message */
         foreach(offer, this->delayed_offer) {
             if(offer->first == adj_id) {
-                stanza = std::auto_ptr<Stanza>(offer->second);
+                stanza = std::unique_ptr<Stanza>(offer->second);
                 this->delayed_offer.erase(offer);
                 break;
             }
         }
 
         /* create the match and proces it */
-        std::auto_ptr<Tag> history_tag(parseXmlString(history));
-        std::auto_ptr<Match> match(
+        std::unique_ptr<Tag> history_tag(parseXmlString(history));
+        std::unique_ptr<Match> match(
                 new AdjournedWrapper(
                         adj_id,
                         this->database,
@@ -336,7 +336,7 @@ void MatchManager::handleDecline(const Stanza& stanza) {
 }
 
 void MatchManager::closeMatch(int id, bool accepted) {
-    std::auto_ptr<Match> match(this->match_db.closeMatch(id));
+    std::unique_ptr<Match> match(this->match_db.closeMatch(id));
     if(accepted) {
         /* close all other matchs if the user is not multi game */
         foreach(player, match->players()) {
@@ -423,7 +423,7 @@ void MatchManager::listAdjournedGames(const Stanza& query, DatabaseInterface& da
             games = database.searchAdjournedGames(players, offset, max_results);
 
             /* Create result */
-            std::auto_ptr<Stanza> resp(query.createIQResult());
+            std::unique_ptr<Stanza> resp(query.createIQResult());
             generator.openTag("query");
             generator.addAttribute("xmlns", XMLNS_ADJOURNED_LIST);
             foreach(game, games) {

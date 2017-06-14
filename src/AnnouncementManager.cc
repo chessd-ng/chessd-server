@@ -89,7 +89,7 @@ void AnnouncementManager::handleCreate(const Stanza& stanza) {
 
         /* create the announcment */
         TeamDatabase tmp;
-        auto_ptr<MatchAnnouncement> announcement(
+        unique_ptr<MatchAnnouncement> announcement(
                 MatchAnnouncementFactory::create(announcement_tag, tmp));
 
         /* sanity check */
@@ -120,7 +120,7 @@ void AnnouncementManager::handleCreate(const Stanza& stanza) {
         this->announcements.insert(id, announcement.release());
 
         /* send a result with the annoucement id */
-        auto_ptr<Stanza> result(stanza.createIQResult());
+        unique_ptr<Stanza> result(stanza.createIQResult());
         TagGenerator generator;
         generator.openTag("create");
         generator.addAttribute("xmlns", XMLNS_CHESSD_MATCH_ANNOUNCEMENT);
@@ -199,7 +199,7 @@ void AnnouncementManager::searchAnnouncement(DatabaseInterface& database, const 
 						this->announcements.find(*id);
 
 					/* add announcement to the result */
-					auto_ptr<Tag> announce_tag(it->second->notification());
+					unique_ptr<Tag> announce_tag(it->second->notification());
 					announce_tag->setAttribute("id", to_string(*id));
 					generator.addChild(announce_tag.release());
 				}
@@ -208,7 +208,7 @@ void AnnouncementManager::searchAnnouncement(DatabaseInterface& database, const 
             }
 
             /* create message */
-            auto_ptr<Stanza> result(stanza.createIQResult());
+            unique_ptr<Stanza> result(stanza.createIQResult());
             result->children().push_back(generator.getTag());
 
             /* send message  */
@@ -248,7 +248,7 @@ void AnnouncementManager::handleDelete(const Stanza& stanza) {
                 &DatabaseInterface::eraseAnnouncement, _1, id));
 
     /* send a the result confirming */
-    auto_ptr<Stanza> result(stanza.createIQResult());
+    unique_ptr<Stanza> result(stanza.createIQResult());
     TagGenerator generator;
     generator.openTag("delete");
     generator.addAttribute("xmlns", XMLNS_CHESSD_MATCH_ANNOUNCEMENT);
@@ -277,7 +277,7 @@ void AnnouncementManager::handleAccept(const Stanza& stanza) {
         }
 
         /* create the game */
-        auto_ptr<Game> game(it->second->createGame(stanza.from()));
+        unique_ptr<Game> game(it->second->createGame(stanza.from()));
 
         /* delete the annoucement */
         this->announcements.erase(it);
@@ -293,7 +293,7 @@ void AnnouncementManager::handleAccept(const Stanza& stanza) {
         Jid game_room = this->game_manager.createGame(game.release());
 
         /* send a the result confirming */
-        auto_ptr<Stanza> result(stanza.createIQResult());
+        unique_ptr<Stanza> result(stanza.createIQResult());
         TagGenerator generator;
         generator.openTag("accept");
         generator.addAttribute("xmlns", XMLNS_CHESSD_MATCH_ANNOUNCEMENT);

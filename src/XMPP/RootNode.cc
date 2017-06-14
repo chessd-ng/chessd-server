@@ -37,7 +37,7 @@ namespace XMPP {
 	RootNode::~RootNode() { }
 
 	void RootNode::handleStanza(Stanza* _stanza) throw() {
-        std::auto_ptr<Stanza> stanza(_stanza);
+        std::unique_ptr<Stanza> stanza(_stanza);
         try {
             if(stanza->to().node().empty()) {
                 Node::handleStanza(stanza.release());

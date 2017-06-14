@@ -84,7 +84,7 @@ namespace XMPP {
                     this->notifyUserStatus(user_jid, nick, true);
                 }
 			} else {
-                itj->presence() = std::auto_ptr<Stanza>(new Stanza(presence));
+                itj->presence() = std::unique_ptr<Stanza>(new Stanza(presence));
                 itj->lang() = presence.lang();
             }
             Stanza* stanza = this->createPresenceStanza(*this->users().find_jid(user_jid));
@@ -137,7 +137,7 @@ namespace XMPP {
         const Jid& user_jid = presence.from();
 		MucUserSet::iterator it = this->users().find_jid(user_jid);
 		if(it != this->users().end()) {
-            it->presence() = std::auto_ptr<Stanza>(new Stanza(presence));
+            it->presence() = std::unique_ptr<Stanza>(new Stanza(presence));
             this->removeUser(it);
 		}
 	}
@@ -166,7 +166,7 @@ namespace XMPP {
 	}
 
     void Muc::handleStanza(Stanza* _stanza) throw () {
-        std::auto_ptr<Stanza> stanza(_stanza);
+        std::unique_ptr<Stanza> stanza(_stanza);
         try {
             if(stanza->type() != "presence" and not stanza->to().resource().empty()) {
                 MucUserSet::iterator dest, source;

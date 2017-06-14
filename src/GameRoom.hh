@@ -170,7 +170,7 @@ class GameRoom : public XMPP::Muc {
 
         Util::Time currentTime();
 
-        std::auto_ptr<Game> _game;
+        std::unique_ptr<Game> _game;
 
         END_CODE result_reason;
 

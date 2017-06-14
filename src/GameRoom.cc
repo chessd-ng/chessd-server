@@ -224,7 +224,7 @@ void GameRoom::checkTime() {
 }
 
 Stanza* GameRoom::createStateStanza() {
-    auto_ptr<Stanza> stanza(new Stanza("iq"));
+    unique_ptr<Stanza> stanza(new Stanza("iq"));
     XML::TagGenerator generator;
 
     stanza->subtype() = "set";
@@ -237,7 +237,7 @@ Stanza* GameRoom::createStateStanza() {
 }
 
 void GameRoom::handleState(const Stanza& stanza) {
-    auto_ptr<Stanza> result(this->createStateStanza());
+    unique_ptr<Stanza> result(this->createStateStanza());
     result->to() = stanza.from();
     result->id() = stanza.id();
     result->subtype() = "result";
@@ -297,7 +297,7 @@ void GameRoom::handleGameIq(const Stanza& stanza) {
 }
 
 void GameRoom::notifyState(const Jid& user) {
-    auto_ptr<Stanza> stanza(this->createStateStanza());
+    unique_ptr<Stanza> stanza(this->createStateStanza());
     stanza->to() = user;
     stanza->subtype() = "set";
     this->sendIq(stanza.release());
@@ -314,7 +314,7 @@ void GameRoom::handleMove(const Stanza& stanza) {
         string move_string = move.getAttribute("long");
         
         /* make the move */
-        auto_ptr<XML::Tag> move_notification(this->_game->move(stanza.from(), move_string, this->currentTime()));
+        unique_ptr<XML::Tag> move_notification(this->_game->move(stanza.from(), move_string, this->currentTime()));
         this->move_count ++;
         this->agreement.agreed(AGREEMENT_MOVE, stanza.from());
 
@@ -433,7 +433,7 @@ void GameRoom::notifyRequest(GameRequest request, const Jid& requester) {
 Stanza* GameRoom::createResultStanza(const string& lang) {
 
     XML::TagGenerator tag_generator;
-    auto_ptr<Stanza> stanza(new Stanza("iq"));
+    unique_ptr<Stanza> stanza(new Stanza("iq"));
     stanza->subtype() = "set";
     stanza->lang() = lang;
     tag_generator.openTag("query");
@@ -474,7 +474,7 @@ Stanza* GameRoom::createMoveStanza(XML::Tag* move_tag) {
 
 void GameRoom::notifyMove(XML::Tag* move_tag) {
     /* create message */
-    auto_ptr<Stanza> stanza(createMoveStanza(move_tag));
+    unique_ptr<Stanza> stanza(createMoveStanza(move_tag));
     /* send to all occupants */
     this->broadcastIq(*stanza);
 }
@@ -485,7 +485,7 @@ void storeResult(const GameResult& result, int& game_id, DatabaseInterface& data
 
 void storeAdjourned(const AdjournedGame& adj_game, DatabaseInterface& database) {
     PersistentAdjournedGame game;
-    auto_ptr<XML::Tag> history(adj_game.history());
+    unique_ptr<XML::Tag> history(adj_game.history());
 
     /* set game values */
     game.category = adj_game.category();
@@ -519,7 +519,7 @@ void GameRoom::endGame(GameEndType type, END_CODE end_code) {
 
     if(type == END_TYPE_NORMAL) {
         /* take the game result */
-        auto_ptr<GameResult> result(this->_game->result());
+        unique_ptr<GameResult> result(this->_game->result());
 
         /* set result */
         this->result_reason = result->end_reason();
@@ -535,7 +535,7 @@ void GameRoom::endGame(GameEndType type, END_CODE end_code) {
 
     } else if(type == END_TYPE_ADJOURNED) {
         /* get the adjourned game */
-        auto_ptr<AdjournedGame> adj_game(this->_game->adjourn(
+        unique_ptr<AdjournedGame> adj_game(this->_game->adjourn(
                     this->currentTime()));
 
         /* set result */
@@ -554,7 +554,7 @@ void GameRoom::endGame(GameEndType type, END_CODE end_code) {
 }
 
 void GameRoom::notifyResult(const Jid& user) {
-    auto_ptr<Stanza> stanza(this->createResultStanza(this->occupants().find_jid(user)->lang()));
+    unique_ptr<Stanza> stanza(this->createResultStanza(this->occupants().find_jid(user)->lang()));
     stanza->to() = user;
     this->sendIq(stanza.release());
 }

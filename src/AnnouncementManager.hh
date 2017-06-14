@@ -62,7 +62,7 @@ class AnnouncementManager : public ServerModule {
             std::string category;
             int min_rating, max_rating;
             std::set<XMPP::Jid> players;
-            std::auto_ptr<MatchAnnouncement> announcement;
+            std::unique_ptr<MatchAnnouncement> announcement;
         };
 
         /*! \brief Receive a notification of a status change */

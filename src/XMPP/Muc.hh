@@ -52,13 +52,13 @@ namespace XMPP {
             Jid& jid() { return this->_jid;}
             const Jid& jid() const { return this->_jid;}
 
-            std::auto_ptr<Stanza>& presence() { return this->_presence;}
-            const std::auto_ptr<Stanza>& presence() const { return this->_presence;}
+            std::unique_ptr<Stanza>& presence() { return this->_presence;}
+            const std::unique_ptr<Stanza>& presence() const { return this->_presence;}
 
         private:
             std::string _nick, _affiliation, _role, _lang;
             Jid _jid;
-            std::auto_ptr<Stanza> _presence;
+            std::unique_ptr<Stanza> _presence;
 
             //MucUser(const MucUser&) { }
     };

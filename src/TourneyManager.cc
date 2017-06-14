@@ -96,14 +96,14 @@ void TourneyManager::handleCreate(const Stanza& stanza) {
     }
 
     /* create tourney */
-    auto_ptr<TourneyStatus> tourney(new TourneyStatus);
+    unique_ptr<TourneyStatus> tourney(new TourneyStatus);
 
     tourney->name = tourney_attributes.findTag("name").getCData();
     tourney->description =
         tourney_attributes.findTag("description").getCData();
     tourney->running = false;
     tourney->start_time = start_time;
-    tourney->tourney = auto_ptr<Tourney>(
+    tourney->tourney = unique_ptr<Tourney>(
             TourneyFactory::create(tourney_attributes));
     tourney->owner = stanza.from();
 
@@ -118,7 +118,7 @@ void TourneyManager::handleCreate(const Stanza& stanza) {
 
 
     /* send result with tourney id */
-    auto_ptr<Stanza> result(stanza.createIQResult());
+    unique_ptr<Stanza> result(stanza.createIQResult());
     TagGenerator generator;
     generator.openTag("create");
     generator.addAttribute("xmlns", XMLNS_CHESSD_TOURNEY);
@@ -154,7 +154,7 @@ void TourneyManager::startNextRound(uint64_t tourney_id) {
     try {
 
         /* create the games */
-        auto_ptr<vector<Game*> > games(tourney.tourney->match());
+        unique_ptr<vector<Game*> > games(tourney.tourney->match());
 
         if(games.get() == 0) {
             /* not ready yet */
@@ -233,7 +233,7 @@ void TourneyManager::_reportResult(uint64_t tourney_id,
 
 void TourneyManager::handleList(const Stanza& stanza) {
     /* send result with all tourney ids */
-    auto_ptr<Stanza> result(stanza.createIQResult());
+    unique_ptr<Stanza> result(stanza.createIQResult());
     TagGenerator generator;
     generator.openTag("list");
     generator.addAttribute("xmlns", XMLNS_CHESSD_TOURNEY);
@@ -274,7 +274,7 @@ void TourneyManager::handleJoin(const Stanza& stanza) {
     tourney.tourney->addPlayer(TourneyPlayer(stanza.from(), Rating()));
 
     /* send result confirming action */
-    auto_ptr<Stanza> result(stanza.createIQResult());
+    unique_ptr<Stanza> result(stanza.createIQResult());
     TagGenerator generator;
     generator.openTag("join");
     generator.addAttribute("xmlns", XMLNS_CHESSD_TOURNEY);

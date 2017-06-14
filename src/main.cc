@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
     try {
         /* Load config file */
         std::string file_name = (argc>=2) ? argv[1] : "config.xml";
-        std::auto_ptr<XML::Tag> config(XML::parseXmlFile(file_name));
+        std::unique_ptr<XML::Tag> config(XML::parseXmlFile(file_name));
 
         if(config.get() == 0) {
             throw "Unable to load config file";

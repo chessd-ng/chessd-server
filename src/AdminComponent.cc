@@ -97,7 +97,7 @@ void AdminComponent::handleIq(const Stanza& stanza) {
 }
 
 void AdminComponent::handleBannedList(const Stanza& stanza) {
-    std::auto_ptr<XMPP::Stanza> message(stanza.createIQResult());
+    std::unique_ptr<XMPP::Stanza> message(stanza.createIQResult());
     XML::TagGenerator generator;
 
     /* create result message with the users banned */
@@ -118,7 +118,7 @@ void AdminComponent::handleBannedList(const Stanza& stanza) {
 }
 
 void AdminComponent::handleBannedWordsList(const XMPP::Stanza& stanza) {
-    std::auto_ptr<XMPP::Stanza> message(stanza.createIQResult());
+    std::unique_ptr<XMPP::Stanza> message(stanza.createIQResult());
     XML::TagGenerator generator;
 
     /* create result message with the users banned */
@@ -155,14 +155,14 @@ void AdminComponent::handleKick(const Stanza& stanza) {
     generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
     generator.openTag("reason");
     generator.addCData(reason);
-    std::auto_ptr<XMPP::Stanza> message(new Stanza(generator.getTag()));
+    std::unique_ptr<XMPP::Stanza> message(new Stanza(generator.getTag()));
     this->sendIq(message.release());
 
     /* kick user */
     this->kickUser(target);
 
     /* send result */
-    auto_ptr<Stanza> result(stanza.createIQResult());
+    unique_ptr<Stanza> result(stanza.createIQResult());
     generator.openTag("kick");
     generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
     result->children().push_back(generator.getTag());
@@ -187,14 +187,14 @@ void AdminComponent::handleBan(const Stanza& stanza) {
     generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
     generator.openTag("reason");
     generator.addCData(reason);
-    std::auto_ptr<XMPP::Stanza> message(new Stanza(generator.getTag()));
+    std::unique_ptr<XMPP::Stanza> message(new Stanza(generator.getTag()));
     this->sendIq(message.release());
 
     /* ban user */
     this->banUser(target, reason);
 
     /* send result */
-    auto_ptr<Stanza> result(stanza.createIQResult());
+    unique_ptr<Stanza> result(stanza.createIQResult());
     generator.openTag("ban");
     generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
     result->children().push_back(generator.getTag());
@@ -209,7 +209,7 @@ void AdminComponent::handleBanWord(const Stanza& stanza) {
     /* get word to be banned */
     string word(word_tag.getAttribute("word"));
 
-    auto_ptr<Stanza> result(stanza.createIQResult());
+    unique_ptr<Stanza> result(stanza.createIQResult());
     result->children().push_back(new Tag(stanza.firstTag()));
 
     //insert banned words to set in memory
@@ -234,7 +234,7 @@ void AdminComponent::handleUnbanWord(const Stanza& stanza) {
     /* get word to be banned */
     string word(word_tag.getAttribute("word"));
 
-    auto_ptr<Stanza> result(stanza.createIQResult());
+    unique_ptr<Stanza> result(stanza.createIQResult());
     result->children().push_back(new Tag(stanza.firstTag()));
     /*Remove banned words from set in memory*/
     if(banned_words.erase(word)==true) {
@@ -256,7 +256,7 @@ void AdminComponent::handleUnban(const Stanza& stanza) {
     this->unbanUser(target);
 
     /* send result */
-    auto_ptr<Stanza> result(stanza.createIQResult());
+    unique_ptr<Stanza> result(stanza.createIQResult());
     TagGenerator generator;
     generator.openTag("unban");
     generator.addAttribute("xmlns", XMLNS_CHESSD_ADMIN);
@@ -265,7 +265,7 @@ void AdminComponent::handleUnban(const Stanza& stanza) {
 }
 
 void AdminComponent::kickUser(const XMPP::PartialJid& user) {
-    std::auto_ptr<XMPP::Stanza> message(new XMPP::Stanza("iq"));
+    std::unique_ptr<XMPP::Stanza> message(new XMPP::Stanza("iq"));
     XML::TagGenerator generator;
 
     /* Create command message with the user name */
@@ -331,7 +331,7 @@ void AdminComponent::loadAcl(DatabaseInterface& database) {
 }
 
 void AdminComponent::updateAcl() {
-    std::auto_ptr<XMPP::Stanza> message(new XMPP::Stanza("iq"));
+    std::unique_ptr<XMPP::Stanza> message(new XMPP::Stanza("iq"));
     XML::TagGenerator generator;
 
     /* Create the command message */

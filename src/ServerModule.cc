@@ -67,7 +67,7 @@ void ServerModule::handleStanza(const Stanza& stanza) {
 }
 
 void ServerModule::_handleStanza(Stanza* _stanza) {
-    auto_ptr<Stanza> stanza(_stanza);
+    unique_ptr<Stanza> stanza(_stanza);
     try {
         if(stanza->type() == "iq") {
             if(not this->isUserAvailable(stanza->from())) {

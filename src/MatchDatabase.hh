@@ -67,7 +67,7 @@ class MatchDatabase {
 	private:
 
 		struct MatchInfo {
-			std::auto_ptr<Match> match;
+			std::unique_ptr<Match> match;
 			std::map<XMPP::Jid, bool> accepted_players;
 			int pending_count;
 			MatchInfo(Match* match);

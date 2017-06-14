@@ -287,7 +287,7 @@ int DatabaseInterface::insertGameResult(const GameResult& game_result)
     game.result = game_result.end_reason();
 
     /* get history */
-    auto_ptr<XML::Tag> history(game_result.history());
+    unique_ptr<XML::Tag> history(game_result.history());
     game.history = history->xml();
 
     /* insert to the database */

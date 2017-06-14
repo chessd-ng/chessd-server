@@ -55,11 +55,11 @@ namespace XMPP {
 	}
 
     void Component::connect(const std::string& host, int port, const std::string& password ) {
-        std::auto_ptr<Tag> tag;
+        std::unique_ptr<Tag> tag;
 
         this->stream.connect(host, port);
 
-        tag = std::auto_ptr<Tag>(this->stream.recvTag(-1));
+        tag = std::unique_ptr<Tag>(this->stream.recvTag(-1));
 
         if (tag->name() != "stream:stream") {
             throw "Authentication error: Invalid protocol";
@@ -74,7 +74,7 @@ namespace XMPP {
             this->stream.sendTag(tag_tmp);
         }
 
-        tag = std::auto_ptr<Tag>(this->stream.recvTag(-1));
+        tag = std::unique_ptr<Tag>(this->stream.recvTag(-1));
 
         if(tag->name() != "handshake") {
             throw "Authentication error: Permission Denied";

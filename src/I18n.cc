@@ -56,7 +56,7 @@ const std::string& I18n::getText(const std::string& text_name, const std::string
 
 void I18n::loadCodeTable(const std::string& filename) {
     /* parse XML file */
-    std::auto_ptr<XML::Tag> xml(XML::parseXmlFile(filename));
+    std::unique_ptr<XML::Tag> xml(XML::parseXmlFile(filename));
 
     /* read codes */
     foreach(text, xml->tags()) {
@@ -68,7 +68,7 @@ void I18n::loadCodeTable(const std::string& filename) {
 
 void I18n::loadLang(const std::string& filename) {
     /* parse file */
-    std::auto_ptr<XML::Tag> xml(XML::parseXmlFile(filename));
+    std::unique_ptr<XML::Tag> xml(XML::parseXmlFile(filename));
 
     /* get lang name */
     std::string lang = xml->getAttribute("lang");
