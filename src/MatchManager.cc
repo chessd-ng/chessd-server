@@ -151,7 +151,7 @@ void MatchManager::handleOffer(const Stanza& stanza) {
 
         /* Is the offer to resume an adjourned game? */
         if(offer.hasAttribute("adjourned_id")) {
-            int adj_id = parse_string<int>(offer.getAttribute("adjourned_id"));
+            int adj_id = std::stoi(offer.getAttribute("adjourned_id"));
             this->delayed_offer.push_back(make_pair(adj_id, new Stanza(stanza)));
             this->database.queueTransaction(boost::bind(&MatchManager::loadAdjourned, this, adj_id, _1));
         } else {
@@ -181,7 +181,7 @@ void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
 
         /* is it a rematch? */
         if(offer.hasAttribute("id")) {
-            match_id = parse_string<int>(offer.getAttribute("id"));
+            match_id = std::stoi(offer.getAttribute("id"));
         } else {
             match_id = -1;
         }
@@ -299,7 +299,7 @@ void MatchManager::handleAccept(const Stanza& stanza) {
         /* get match */
         const Tag& match = stanza.query().findTag("match");
         /* parse message */
-        int id = parse_string<int>(match.getAttribute("id"));
+        int id = std::stoi(match.getAttribute("id"));
         /* update accepted */
         this->match_db.acceptMatch(id, stanza.from());
         /* reply result */
@@ -320,7 +320,7 @@ void MatchManager::handleDecline(const Stanza& stanza) {
         /* get match */
         const Tag& match = stanza.query().findTag("match");
         /* parse message */
-        int id = parse_string<int>(match.getAttribute("id"));
+        int id = std::stoi(match.getAttribute("id"));
         /* sanity check */
         if(not this->match_db.hasPlayer(id, stanza.from()))
             throw match_error("Invalid match id");
@@ -389,7 +389,7 @@ void MatchManager::notifyResult(const Match& match, int id, bool accepted) {
 	generator.openTag("query");
 	generator.addAttribute("xmlns", accepted ? XMLNS_MATCH_ACCEPT : XMLNS_MATCH_DECLINE);
 	generator.openTag("match");
-	generator.addAttribute("id", to_string<int>(id));
+	generator.addAttribute("id", std::to_string(id));
 
     /* send to the players */
     stanza.children().push_back(generator.getTag());
@@ -415,8 +415,8 @@ void MatchManager::listAdjournedGames(const Stanza& query, DatabaseInterface& da
 
             /* Parse request */
             const Tag& search_tag = query.query().findTag("search");
-            offset = parse_string<int>(search_tag.getAttribute("offset"));
-            max_results = min(max_results, parse_string<int>(search_tag.getAttribute("results")));
+            offset = std::stoi(search_tag.getAttribute("offset"));
+            max_results = min(max_results, std::stoi(search_tag.getAttribute("results")));
             players.push_back(query.from().partial());
 
             /* Search in the database */

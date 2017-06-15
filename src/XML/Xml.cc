@@ -258,7 +258,7 @@ namespace XML {
 						if(not isNumber(tag.getAttribute("min"))) {
 							error=true; break;
 						}
-						minOccur=parse_string<int>(tag.getAttribute("min"));
+						minOccur=std::stoi(tag.getAttribute("min"));
 					} else {
 						minOccur=1;
 					}
@@ -270,7 +270,7 @@ namespace XML {
 							if(not isNumber(tag.getAttribute("max"))) {
 								error = true; break;
 							}
-							maxOccur=parse_string<int>(tag.getAttribute("max"));
+							maxOccur=std::stoi(tag.getAttribute("max"));
 						}
 					} else {
 						maxOccur=1;

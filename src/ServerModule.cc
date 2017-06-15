@@ -75,7 +75,7 @@ void ServerModule::_handleStanza(Stanza* _stanza) {
             }
             if(stanza->type() == "result") {
                 if(not stanza->id().empty()) {
-                    uint64_t id = parse_string<uint64_t>(stanza->id());
+                    uint64_t id = std::stoull(stanza->id());
                     if(this->iq_result_handlers.count(id) > 0) {
                         this->iq_result_handlers.find(id)->second(stanza.release());
                         this->iq_result_handlers.erase(id);

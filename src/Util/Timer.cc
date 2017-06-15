@@ -131,14 +131,14 @@ namespace Util {
 	}
 
     Time Time::Seconds(const std::string& constant) {
-        return Time(parse_string<long long>(constant) * one_second);
+        return Time(std::stoll(constant) * one_second);
 	}
 
 	Time Time::Miliseconds(const std::string& constant) {
-        return Time(parse_string<long long>(constant) * one_milisecond);
+        return Time(std::stoll(constant) * one_milisecond);
 	}
 
 	Time Time::Microseconds(const std::string& constant) {
-        return Time(parse_string<long long>(constant) * one_microsecond);
+        return Time(std::stoll(constant) * one_microsecond);
 	}
 }

@@ -33,7 +33,7 @@ ComponentBase::ComponentBase(const XML::Tag& config,
 			XMPP::Jid(config.getAttribute("component_name")),
 			component_name, "service", "game"),
     server_address(config.getAttribute("server_address")),
-    server_port(parse_string<int>(config.getAttribute("component_port"))),
+    server_port(std::stoi(config.getAttribute("component_port"))),
     server_password(config.getAttribute("component_password")),
 	task_recv(boost::bind(&ComponentBase::run_recv, this)),
 	task_send(boost::bind(&ComponentBase::run_send, this))

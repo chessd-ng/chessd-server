@@ -99,13 +99,13 @@ std::string ChessBasedGame::getPosForFEN() const {
 				count++;
 			else {
 				if(count>0)
-					fen+=Util::to_string(count);
+					fen+=std::to_string(count);
 				count=0;
 				fen+=(char)((*this->gameboard)[i][j]->pieceReal());
 			}
 		}
 		if(count>0)
-			fen+=Util::to_string(count);
+			fen+=std::to_string(count);
 		
 		fen+= '/' ;
 	}

@@ -67,11 +67,11 @@ ChessState::ChessState(const std::string& FEN) : State(FEN.substr(0,FEN.find(' '
 
 	begin=FEN.find(' ',begin) + 1;
 
-	this->halfmoves=Util::parse_string<int>(FEN.substr(begin,FEN.find(' ',begin)));
+	this->halfmoves=std::stoi(FEN.substr(begin,FEN.find(' ',begin)));
 
 	begin=FEN.find(' ',begin) + 1;
 
-	this->fullmoves=Util::parse_string<int>(FEN.substr(begin,FEN.size()));
+	this->fullmoves=std::stoi(FEN.substr(begin,FEN.size()));
 
 }
 
@@ -88,9 +88,9 @@ std::string ChessState::FEN() const {
 	else
 		ans+=this->enpassant.toStringNotation();
 	ans+=" ";
-	ans+=Util::to_string(this->halfmoves);
+	ans+=std::to_string(this->halfmoves);
 	ans+=" ";
-	ans+=Util::to_string(this->fullmoves);
+	ans+=std::to_string(this->fullmoves);
 	return ans;
 }
 

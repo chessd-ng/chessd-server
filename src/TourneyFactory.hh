@@ -29,7 +29,7 @@ struct TourneyFactory {
 			return new ChessTourney(offer.getAttribute("category"),
                                     Util::Time::Seconds(offer.getAttribute("time")),
                                     Util::Time::Seconds(offer.getAttribute("inc")),
-                                    Util::parse_string<int>(offer.getAttribute("rounds")));
+                                    std::stoi(offer.getAttribute("rounds")));
 			/*
 			 * throw ;4
 			*/

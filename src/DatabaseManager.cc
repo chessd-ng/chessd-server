@@ -82,7 +82,7 @@ DatabaseManager::DatabaseManager(const XML::Tag& config) :
         " password=" + config.getAttribute("password") +
         " sslmode=disable";
 
-    this->connections_left = parse_string<int>(config.getAttribute("max_connections"));
+    this->connections_left = std::stoi(config.getAttribute("max_connections"));
 
     /* Check if we can connect to the database */
     pqxx::connection* conn = this->getConnection();

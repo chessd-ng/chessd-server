@@ -25,9 +25,9 @@ ChessTourney::ChessTourney(const std::string& __category, const Util::Time& _ini
 	tourney_started=false;
 	missing_results=false;
 	game_attributes["category"]=__category;
-	game_attributes["time"]=Util::to_string((int)_initial_time.getSeconds());
-	game_attributes["inc"]=Util::to_string((int)_inc.getSeconds());
-	game_attributes["rounds"]=Util::to_string(__rounds);
+	game_attributes["time"]=std::to_string((int)_initial_time.getSeconds());
+	game_attributes["inc"]=std::to_string((int)_inc.getSeconds());
+	game_attributes["rounds"]=std::to_string(__rounds);
 }
 
 const TourneyPlayerList& ChessTourney::players() const {

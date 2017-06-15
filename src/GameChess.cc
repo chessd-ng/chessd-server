@@ -139,8 +139,8 @@ XML::Tag* GameChessUntimed::state(const Util::Time& current_time) const {
 			t.addAttribute("enpassant",est.enpassant.toStringNotation());
 		else
 			t.addAttribute("enpassant","-");
-		t.addAttribute("halfmoves",Util::to_string(est.halfmoves));
-		t.addAttribute("fullmoves",Util::to_string(est.fullmoves));
+		t.addAttribute("halfmoves", std::to_string(est.halfmoves));
+		t.addAttribute("fullmoves",std::to_string(est.fullmoves));
 	}
 	t.closeTag();
 	foreach(it,this->_players) {
@@ -403,7 +403,7 @@ GameChess::GameChess(XML::Tag* adjourned_game) : GameChessUntimed(adjourned_game
 		if(it->name()=="player") {
 			this->_players[it->getAttribute("color")=="white"?WHITE:BLACK].time=Util::Time::Seconds(it->getAttribute("time_left")),
 			this->_players[it->getAttribute("color")=="white"?WHITE:BLACK].inc=Util::Time::Seconds(it->getAttribute("inc"));
-			this->initial_time=Util::parse_string<int>(it->getAttribute("time"));
+			this->initial_time=std::stoi(it->getAttribute("time"));
 		}
 	}
 	//time is not over for anyone
@@ -431,9 +431,9 @@ XML::Tag* GameChess::state(const Util::Time& current_time) const {
 			
 			//XXX be careful with double from getSeconds
 			if(this->auto_flag == true)
-				it->attributes()["time"]= Util::to_string((int)(std::max(aux.getSeconds()+0.001,0.0)));
+				it->attributes()["time"]= std::to_string((int)(std::max(aux.getSeconds()+0.001,0.0)));
 			else
-				it->attributes()["time"]= Util::to_string((int)(aux.getSeconds()+0.001));
+				it->attributes()["time"]= std::to_string((int)(aux.getSeconds()+0.001));
 		}
 	}
 
@@ -473,7 +473,7 @@ XML::Tag* GameChess::move(const XMPP::Jid& player, const std::string& movement, 
 
 	//update history_moves
 	int last_time=int(this->standard_player_map[player]->time.getSeconds()+0.001);
-	history_moves+=Util::to_string(last_time)+" ";
+	history_moves+=std::to_string(last_time)+" ";
 
 	return ans;
 }
@@ -498,16 +498,16 @@ XML::Tag* GameChess::generateHistoryTag(Util::Time time_passed) const {
 	XML::Tag* ans=GameChessUntimed::generateHistoryTag(time_passed);
 	foreach( it , ans->tags() ) {
 		if(it->name()=="player") {
-			it->attributes()["time"]=Util::to_string(this->initial_time);
+			it->attributes()["time"]=std::to_string(this->initial_time);
 
 			if(this->_done==END_NO_REASON) {
 				if( (this->chess.turn() == colormap.find(XMPP::Jid(it->getAttribute("jid")))->second) and (this->turns_restart>=2))
-					it->attributes()["time_left"]=Util::to_string<int>(int((this->_players[(it->getAttribute("color")=="white")?0:1].time-time_passed).getSeconds()+0.001));
+					it->attributes()["time_left"]=std::to_string(int((this->_players[(it->getAttribute("color")=="white")?0:1].time-time_passed).getSeconds()+0.001));
 				else
-					it->attributes()["time_left"]=Util::to_string<int>(int(this->_players[(it->getAttribute("color")=="white")?0:1].time.getSeconds()+0.001));
+					it->attributes()["time_left"]=std::to_string(int(this->_players[(it->getAttribute("color")=="white")?0:1].time.getSeconds()+0.001));
 			}
 
-			it->attributes()["inc"]=Util::to_string<int>(int(this->_players[0].inc.getSeconds()+0.001));
+			it->attributes()["inc"]=std::to_string(int(this->_players[0].inc.getSeconds()+0.001));
 
 		}
 	}

@@ -56,7 +56,7 @@ XML::Tag* ChessHistoryProcess::generate(XML::Tag* history_tag) {
 						players[p]->attributes()["time"]=tmp;
 					}
 				}
-				initial_time=Util::parse_string<int>(players[p]->attributes()["time"]);
+				initial_time=std::stoi(players[p]->attributes()["time"]);
 			}
 //			players[p]->attributes().erase("time");
 		}
@@ -102,7 +102,7 @@ XML::Tag* ChessHistoryProcess::generateStateTag(const ChessState& state, int tim
 		new_state.addAttribute("move",mv);
 		new_state.addAttribute("short",short_mv);
 		if(time>=0)
-			new_state.addAttribute("time",Util::to_string(time));
+			new_state.addAttribute("time",std::to_string(time));
 		new_state.closeTag();
 	}
 	return new_state.getTag();

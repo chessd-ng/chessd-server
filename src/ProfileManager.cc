@@ -168,10 +168,10 @@ void ProfileManager::searchGame(const Stanza& stanza, DatabaseInterface& databas
             const Tag& query = stanza.findTag("query");
             const Tag& search_tag = query.findTag("search");
             if(search_tag.hasAttribute("offset")) {
-                offset = parse_string<int>(search_tag.getAttribute("offset"));
+                offset = std::stoi(search_tag.getAttribute("offset"));
             }
             if(search_tag.hasAttribute("results")) {
-                max_results = min(50, parse_string<int>(search_tag.getAttribute("results")));
+                max_results = min(50, std::stoi(search_tag.getAttribute("results")));
             }
             foreach(field, search_tag.tags()) {
                 if(field->name() == "player") {
@@ -290,7 +290,7 @@ void ProfileManager::fetchGame(const Stanza& stanza, DatabaseInterface& database
             /* Parse request */
             const Tag& query = stanza.findTag("query");
             const Tag& game_tag = query.findTag("game");
-            int game_id = parse_string<int>(game_tag.getAttribute("id"));
+            int game_id = std::stoi(game_tag.getAttribute("id"));
             std::string game_history = database.getGameHistory(game_id);
 
             /* Create result */

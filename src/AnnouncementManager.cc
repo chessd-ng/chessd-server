@@ -99,11 +99,11 @@ void AnnouncementManager::handleCreate(const Stanza& stanza) {
 
         /* get rating limits */
         if(announcement_tag.hasAttribute("minimum_rating")) {
-            min_rating = parse_string<int>(
+            min_rating = std::stoi(
                     announcement_tag.getAttribute("minimum_rating"));
         }
         if(announcement_tag.hasAttribute("maximum_rating")) {
-            max_rating = parse_string<int>(
+            max_rating = std::stoi(
                     announcement_tag.getAttribute("maximum_rating"));
         }
 
@@ -173,14 +173,14 @@ void AnnouncementManager::searchAnnouncement(DatabaseInterface& database, const 
 
             /* check for number of results */
             if(search_tag.hasAttribute("results")) {
-                results = min(50, parse_string<int>(search_tag.getAttribute("results")));
+                results = min(50, std::stoi(search_tag.getAttribute("results")));
             } else {
                 results = 10;
             }
 
             /* check for offset */
             if(search_tag.hasAttribute("offset")) {
-                offset = parse_string<int>(search_tag.getAttribute("offset"));
+                offset = std::stoi(search_tag.getAttribute("offset"));
             } else {
                 offset = 0;
             }
@@ -224,7 +224,7 @@ void AnnouncementManager::searchAnnouncement(DatabaseInterface& database, const 
 void AnnouncementManager::handleDelete(const Stanza& stanza) {
     const Tag& query = stanza.firstTag();
     const Tag& announcement_tag = query.firstTag();
-    uint64_t id = parse_string<uint64_t>(announcement_tag.getAttribute("id"));
+    uint64_t id = std::stoull(announcement_tag.getAttribute("id"));
 
     /* get the announcent by its id */
     ptr_map<uint64_t, MatchAnnouncement>::iterator it = this->announcements.find(id);
@@ -260,7 +260,7 @@ void AnnouncementManager::handleAccept(const Stanza& stanza) {
     try {
         const Tag& query = stanza.firstTag();
         const Tag& announcement_tag = query.firstTag();
-        uint64_t id = parse_string<uint64_t>(announcement_tag.getAttribute("id"));
+        uint64_t id = std::stoull(announcement_tag.getAttribute("id"));
 
         /* get the announcent by its id */
         ptr_map<uint64_t, MatchAnnouncement>::iterator it = this->announcements.find(id);

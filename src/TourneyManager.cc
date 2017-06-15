@@ -255,7 +255,7 @@ void TourneyManager::handleJoin(const Stanza& stanza) {
 
     /* get tourney id */
     const Tag& tourney_attributes = query.firstTag();
-    uint64_t id = parse_string<uint64_t>(tourney_attributes.getAttribute("id"));
+    uint64_t id = std::stoull(tourney_attributes.getAttribute("id"));
 
     /* check if tourney exists */
     if(this->tourneys.count(id) == 0) {

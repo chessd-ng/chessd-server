@@ -60,7 +60,7 @@ void I18n::loadCodeTable(const std::string& filename) {
 
     /* read codes */
     foreach(text, xml->tags()) {
-        uint32_t code = Util::parse_string<uint32_t>(text->getAttribute("code"));
+        uint32_t code = std::stoul(text->getAttribute("code"));
         const std::string& text_name = text->findCData().data();
         this->code_map[text_name] = code;
     }

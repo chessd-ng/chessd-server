@@ -367,7 +367,7 @@ vector<PersistentGame> DatabaseInterface::searchGames(
          * accept an arbitrary number of players */
         for(int i=0;i<int(players.size());++i) {
             int user_id = this->getUserId(players[i].first, false);
-            string id_str = Util::to_string(i);
+            string id_str = std::to_string(i);
             from += ", game_players g" + id_str + " ";
             if(not where.empty())
                 where += " AND ";
@@ -422,7 +422,7 @@ vector<PersistentGame> DatabaseInterface::searchGames(
             /* get players */
             string query =
                 "SELECT * FROM game_players WHERE game_id = "
-                + Util::to_string(game.id);
+                + std::to_string(game.id);
             pqxx::result result = this->work.exec(query);
             foreach(r, result) {
                 GamePlayerResult result;
@@ -481,7 +481,7 @@ string DatabaseInterface::getAdjournedGameHistory(int game_id) {
     string query;
     
     /* find game */
-    query = "SELECT history FROM adjourned_games WHERE game_id = " + Util::to_string(game_id);
+    query = "SELECT history FROM adjourned_games WHERE game_id = " + std::to_string(game_id);
     pqxx::result result = this->work.exec(query);
 
     if(result.empty()) {
@@ -508,7 +508,7 @@ vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
         /* prepare sql query */
         for(int i=0;i<int(players.size());++i) {
             int user_id = this->getUserId(players[i], false);
-            string id_str = Util::to_string(i);
+            string id_str = std::to_string(i);
             from += ", adjourned_game_players g" + id_str + " ";
             if(i > 0)
                 where += " AND ";
@@ -518,7 +518,7 @@ vector<PersistentAdjournedGame> DatabaseInterface::searchAdjournedGames(
                 + ".game_id AND g" + id_str + ".user_id = '"
                 + to_string(user_id) + "' ";
         }
-        string query = select + from + where + " limit " + Util::to_string(max_results) + " offset " + Util::to_string(offset);
+        string query = select + from + where + " limit " + std::to_string(max_results) + " offset " + std::to_string(offset);
 
         /* search games */
         pqxx::result result = this->work.exec(query);
