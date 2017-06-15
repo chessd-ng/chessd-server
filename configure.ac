@@ -47,6 +47,5 @@ AC_C_VOLATILE
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([gettimeofday pow sqrt strdup])
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile bin/Makefile])
 AC_OUTPUT
-
