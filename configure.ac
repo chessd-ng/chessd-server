@@ -3,9 +3,10 @@
 
 
 AC_PREREQ(2.61)
-AC_INIT(chessd, alpha , BUG-REPORT-ADDRESS)
-AM_INIT_AUTOMAKE(chessd,alpha)
+AC_INIT([chessd], [alpha])
 AC_CONFIG_SRCDIR([src/TourneyManager.hh])
+AM_INIT_AUTOMAKE([subdir-objects])
+
 #AC_CONFIG_HEADER([config.h])
 # Checks for programs.
 AC_PROG_CXX
@@ -47,5 +48,5 @@ AC_C_VOLATILE
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([gettimeofday pow sqrt strdup])
 
-AC_CONFIG_FILES([Makefile bin/Makefile])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

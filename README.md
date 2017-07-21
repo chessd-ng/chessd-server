@@ -21,7 +21,11 @@ Just run in the project root:
 
 
 ```
-./configure && make
+./configure CXXFLAGS="-O3 -g0" && make
 ```
  
+For an debug build:
 
+```
+./configure CXXFLAGS="-Od -ggdb3" && make
+```
