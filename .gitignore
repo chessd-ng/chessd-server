@@ -8,3 +8,10 @@ config.status
 autom4te.cache/
 .dirstamp
 chessd
+
+compile
+configure
+depcomp
+missing
+install-sh
+Makefile.in

@@ -21,11 +21,15 @@ Just run in the project root:
 
 
 ```
-./configure CXXFLAGS="-O3 -g0" && make
+autoreconf --install
+./configure-release.sh
 ```
  
 For an debug build:
 
 ```
-./configure CXXFLAGS="-Od -ggdb3" && make
+autoreconf --install
+./configure-dbug.sh
 ```
+
+You can invoke `./configure` directly as well after `autoreconf`.

@@ -19,14 +19,10 @@ AC_PROG_CC
 # FIXME: Replace `main' with a function in `-lboost_date_time':
 AC_CHECK_LIB([boost_date_time], [main])
 # FIXME: Replace `main' with a function in `-liksemel':
-# AC_CHECK_LIB([iksemel], [main])
-# FIXME: Replace `main' with a function in `-lpthread':
 AC_CHECK_LIB([pthread], [main])
 # FIXME: Replace `main' with a function in `-lrt':
 AC_CHECK_LIB([rt], [main])
 
-#PKG_CHECK_MODULES(chessd,[libboost_date_time])
-#PKG_CHECK_MODULES(chessd,[libboost_date_time-1.0 >= 1.34 libiksemel >= 1.2 ])
 PKG_CHECK_MODULES([IKSEMEL],[iksemel >= 1.2])
 PKG_CHECK_MODULES([PQXX],[libpqxx >= 4.0])
 
