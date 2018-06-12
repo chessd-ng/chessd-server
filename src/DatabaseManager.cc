@@ -73,14 +73,34 @@ void TransactorObject::operator()(DatabaseInterface& interface) {
 DatabaseManager::DatabaseManager(const XML::Tag& config) :
     colector_task(boost::bind(&DatabaseManager::colector, this))
 {
+    string empty;
+
+    string host = config.getAttribute("host", empty);
+    string port = config.getAttribute("port", empty);
+    string user = config.getAttribute("user", empty);
+    string password = config.getAttribute("password", empty);
+    string dbname = config.getAttribute("db_name", empty);
+
+    string connection_string;
+
+    if (!host.empty()) {
+        connection_string += " host=" + host;
+    }
+    if (!port.empty()) {
+        connection_string += " port=" + port;
+    }
+    if (!user.empty()) {
+        connection_string += " user=" + user;
+    }
+    if (!password.empty()) {
+        connection_string += " password=" + password;
+    }
+    if (!dbname.empty()) {
+        connection_string += " dbname=" + dbname;
+    }
+
     /* prepare the connetion string */
-    this->connection_string =
-        " host=" + config.getAttribute("host") +
-        " port=" + config.getAttribute("port") +
-        " dbname=" + config.getAttribute("db_name") +
-        " user=" + config.getAttribute("user") +
-        " password=" + config.getAttribute("password") +
-        " sslmode=disable";
+    this->connection_string = connection_string;
 
     this->connections_left = std::stoi(config.getAttribute("max_connections"));
 

@@ -33,11 +33,11 @@ enum STATUS {
 
 namespace XMPP {
 
-    Component::Component(const std::string& component_name) :
-        stream("jabber:component:accept"),
-		component_name(component_name) { }
+  Component::Component(const std::string& component_name) :
+    stream("jabber:component:accept"),
+    component_name(component_name) { }
 
-	Component::~Component() { }
+  Component::~Component() { }
 
 	Stanza* Component::recvStanza(int max_time) {
         Tag* tag = this->stream.recvTag(max_time);
@@ -57,7 +57,7 @@ namespace XMPP {
     void Component::connect(const std::string& host, int port, const std::string& password ) {
         std::unique_ptr<Tag> tag;
 
-        this->stream.connect(host, port);
+        this->stream.connect(host, port, this->component_name);
 
         tag = std::unique_ptr<Tag>(this->stream.recvTag(-1));
 

@@ -37,12 +37,12 @@ namespace XMPP {
 
 			/*! \brief Constructor
 			 *
-			 * \param ns is the stream's namespace
-			 */
-			Stream(const std::string& ns);
+       * \param ns is the stream's namespace
+       */
+      Stream(const std::string& ns);
 
-            /*! \brief Create a stream with an already stabilished connection */
-            Stream(int socket_fd);
+      /*! \brief Create a stream with an already stabilished connection */
+      Stream(int socket_fd);
 
 			/*! \brief Destructor
 			 *
@@ -56,7 +56,7 @@ namespace XMPP {
 			 * \param port is the port to connect.
 			 * \return Returns true on success, false otherwise
 			 */
-			void connect(const std::string& host, int port);
+			void connect(const std::string& host, int port, const std::string& to);
 
 			/*! \brief Close the connection to the server */
 			void close();

@@ -22,6 +22,9 @@
 #include "Stream.hh"
 
 #include <iksemel.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
 #include "Util/Log.hh"
 
@@ -31,6 +34,40 @@ using namespace std;
 using namespace XML;
 
 namespace XMPP {
+
+  namespace {
+    int connect_socket(const char* host, int port) {
+
+      struct hostent *hp;
+      struct sockaddr_in sa;
+      int arg, ret;
+
+      /* resolve host address */
+      if((hp = gethostbyname(host)) == NULL) {
+        throw runtime_error("Unable to resolve host");
+      }
+
+      /* create the socket */
+      int fd = socket(hp->h_addrtype, SOCK_STREAM, 0);
+      if(fd == -1) {
+        throw runtime_error("Unable to create socket");
+      }
+
+      /* set up host address */
+      memset(&sa, 0, sizeof(sa));
+      memcpy((char *)&sa.sin_addr, (char *)hp->h_addr, hp->h_length);
+      sa.sin_family = hp->h_addrtype;
+      sa.sin_port = htons(port);
+
+      /* connect to the host */
+      ret = connect(fd, (struct sockaddr *) &sa, sizeof sa);
+      if(ret < 0 && errno != EINPROGRESS) {
+        throw runtime_error("Unable to connect");
+      }
+
+      return fd;
+    }
+  }
 
 	struct Stream::HookInfo {
 		iksparser* parser;
@@ -49,20 +86,18 @@ namespace XMPP {
 		return IKS_OK;
 	}
 
-	/*static void log(void* user_data, const char* data, size_t size, int is_incoming) {
+	static void log(void* user_data, const char* data, size_t size, int is_incoming) {
 		Stream::HookInfo* hinfo = (Stream::HookInfo*) user_data;
-		if(not hinfo->log_handler.empty()) {
-			string tmp(data, size);
-			hinfo->log_handler(tmp, is_incoming);
-		}
-	}*/
+    string tmp(data, size);
+    Util::log.log(tmp);
+	}
 
 	Stream::Stream(const string& ns) :
 			hinfo(new HookInfo),
 			ns(strdup(ns.c_str())),
 			active(false) {
 		this->hinfo->parser = iks_stream_new(this->ns, this->hinfo, hook);
-		//iks_set_log_hook(this->hinfo->parser, log);
+		iks_set_log_hook(this->hinfo->parser, log);
 	}
 
 	Stream::~Stream() {
@@ -74,13 +109,18 @@ namespace XMPP {
 		free(this->ns);
 	}
 
-	void Stream::connect(const string& host, int port) {
+	void Stream::connect(const string& host, int port, const string& to) {
+    int fd = connect_socket(host.c_str(), port);
+
 		int ret;
-		ret = iks_connect_tcp(this->hinfo->parser, host.c_str(), port);
+		ret = iks_connect_fd(this->hinfo->parser, fd);
 		this->active = (ret == IKS_OK);
+
 		if(not this->active) {
 			throw runtime_error("Connection failed");
 		}
+
+    iks_send_header(this->hinfo->parser, to.c_str());
 	}
 
     int Stream::getFD() const {
