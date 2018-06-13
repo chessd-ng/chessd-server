@@ -32,11 +32,11 @@ using namespace XMPP;
 using namespace Util;
 using namespace Threads;
 
-const char* XMLNS_CHESSD_INFO        = "http://c3sl.ufpr.br/chessd#info";
-const char* XMLNS_CHESSD_PROFILE     = "http://c3sl.ufpr.br/chessd#profile";
-const char* XMLNS_CHESSD_SEARCH_GAME = "http://c3sl.ufpr.br/chessd#search_game";
-const char* XMLNS_CHESSD_SEARCH_USER = "http://c3sl.ufpr.br/chessd#search_user";
-const char* XMLNS_CHESSD_FETCH_GAME  = "http://c3sl.ufpr.br/chessd#fetch_game";
+const char* XMLNS_CHESSD_INFO        = "http://c3sl.ufpr.br/chessd/info";
+const char* XMLNS_CHESSD_PROFILE     = "http://c3sl.ufpr.br/chessd/profile";
+const char* XMLNS_CHESSD_SEARCH_GAME = "http://c3sl.ufpr.br/chessd/search_game";
+const char* XMLNS_CHESSD_SEARCH_USER = "http://c3sl.ufpr.br/chessd/search_user";
+const char* XMLNS_CHESSD_FETCH_GAME  = "http://c3sl.ufpr.br/chessd/fetch_game";
 
 PLAYER_COLOR translate_role(const std::string& role) {
     if(role == "white") {

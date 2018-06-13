@@ -28,7 +28,7 @@
 
 #include "Util/Date.hh"
 
-#define XMLNS_CHESSD_TOURNEY       "http://c3sl.ufpr.br/chessd#tourney"
+#define XMLNS_CHESSD_TOURNEY       "http://c3sl.ufpr.br/chessd/tourney"
 
 using namespace std;
 using namespace XML;

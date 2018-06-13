@@ -34,7 +34,7 @@ using namespace XMPP;
 using namespace Util;
 using namespace Threads;
 
-#define XMLNS_CHESSD_GAME "http://c3sl.ufpr.br/chessd#game"
+#define XMLNS_CHESSD_GAME "http://c3sl.ufpr.br/chessd/game"
 
 
 ServerCore::ServerCore(

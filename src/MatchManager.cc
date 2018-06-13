@@ -30,12 +30,12 @@
 
 #include "Util/Date.hh"
 
-#define XMLNS_MATCH         "http://c3sl.ufpr.br/chessd#match"
-#define XMLNS_MATCH_OFFER   "http://c3sl.ufpr.br/chessd#match#offer"
-#define XMLNS_MATCH_ACCEPT  "http://c3sl.ufpr.br/chessd#match#accept"
-#define XMLNS_MATCH_DECLINE "http://c3sl.ufpr.br/chessd#match#decline"
+#define XMLNS_MATCH         "http://c3sl.ufpr.br/chessd/match"
+#define XMLNS_MATCH_OFFER   "http://c3sl.ufpr.br/chessd/match/offer"
+#define XMLNS_MATCH_ACCEPT  "http://c3sl.ufpr.br/chessd/match/accept"
+#define XMLNS_MATCH_DECLINE "http://c3sl.ufpr.br/chessd/match/decline"
 
-#define XMLNS_ADJOURNED_LIST "http://c3sl.ufpr.br/chessd#adjourned#list"
+#define XMLNS_ADJOURNED_LIST "http://c3sl.ufpr.br/chessd/adjourned/list"
 
 using namespace std;
 using namespace XML;

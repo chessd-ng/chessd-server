@@ -28,7 +28,7 @@ using namespace std;
 using namespace XML;
 using namespace XMPP;
 
-const char* XMLNS_CHESSD_ADMIN = "http://c3sl.ufpr.br/chessd#admin";
+const char* XMLNS_CHESSD_ADMIN = "http://c3sl.ufpr.br/chessd/admin";
 
 AdminComponent::AdminComponent(
         const std::string& server_name,

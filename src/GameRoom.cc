@@ -26,19 +26,19 @@
 
 #include "Util/Log.hh"
 
-const char* XMLNS_GAME                  = "http://c3sl.ufpr.br/chessd#game";
-const char* XMLNS_GAME_MOVE             = "http://c3sl.ufpr.br/chessd#game#move";
-const char* XMLNS_GAME_RESIGN           = "http://c3sl.ufpr.br/chessd#game#resign";
-const char* XMLNS_GAME_DRAW             = "http://c3sl.ufpr.br/chessd#game#draw";
-const char* XMLNS_GAME_DRAW_DECLINE     = "http://c3sl.ufpr.br/chessd#game#draw-decline";
-const char* XMLNS_GAME_CANCEL           = "http://c3sl.ufpr.br/chessd#game#cancel";
-const char* XMLNS_GAME_CANCEL_DECLINE   = "http://c3sl.ufpr.br/chessd#game#cancel-decline";
-const char* XMLNS_GAME_CANCELED         = "http://c3sl.ufpr.br/chessd#game#canceled";
-const char* XMLNS_GAME_ADJOURN          = "http://c3sl.ufpr.br/chessd#game#adjourn";
-const char* XMLNS_GAME_ADJOURN_DECLINE  = "http://c3sl.ufpr.br/chessd#game#adjourn-decline";
-const char* XMLNS_GAME_START            = "http://c3sl.ufpr.br/chessd#game#start";
-const char* XMLNS_GAME_STATE            = "http://c3sl.ufpr.br/chessd#game#state";
-const char* XMLNS_GAME_END              = "http://c3sl.ufpr.br/chessd#game#end";
+const char* XMLNS_GAME                  = "http://c3sl.ufpr.br/chessd/game";
+const char* XMLNS_GAME_MOVE             = "http://c3sl.ufpr.br/chessd/game/move";
+const char* XMLNS_GAME_RESIGN           = "http://c3sl.ufpr.br/chessd/game/resign";
+const char* XMLNS_GAME_DRAW             = "http://c3sl.ufpr.br/chessd/game/draw";
+const char* XMLNS_GAME_DRAW_DECLINE     = "http://c3sl.ufpr.br/chessd/game/draw-decline";
+const char* XMLNS_GAME_CANCEL           = "http://c3sl.ufpr.br/chessd/game/cancel";
+const char* XMLNS_GAME_CANCEL_DECLINE   = "http://c3sl.ufpr.br/chessd/game/cancel-decline";
+const char* XMLNS_GAME_CANCELED         = "http://c3sl.ufpr.br/chessd/game/canceled";
+const char* XMLNS_GAME_ADJOURN          = "http://c3sl.ufpr.br/chessd/game/adjourn";
+const char* XMLNS_GAME_ADJOURN_DECLINE  = "http://c3sl.ufpr.br/chessd/game/adjourn-decline";
+const char* XMLNS_GAME_START            = "http://c3sl.ufpr.br/chessd/game/start";
+const char* XMLNS_GAME_STATE            = "http://c3sl.ufpr.br/chessd/game/state";
+const char* XMLNS_GAME_END              = "http://c3sl.ufpr.br/chessd/game/end";
 
 const int AGREEMENT_DRAW = 1;
 const int AGREEMENT_CANCEL = 2;

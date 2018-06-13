@@ -29,7 +29,7 @@
 
 #include "GameException.hh"
 
-#define XMLNS_CHESSD_MATCH_ANNOUNCEMENT     "http://c3sl.ufpr.br/chessd#match_announcement"
+#define XMLNS_CHESSD_MATCH_ANNOUNCEMENT     "http://c3sl.ufpr.br/chessd/match_announcement"
 
 using namespace std;
 using namespace boost;
