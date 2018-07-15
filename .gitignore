@@ -15,3 +15,6 @@ depcomp
 missing
 install-sh
 Makefile.in
+
+nohup.out
+log/

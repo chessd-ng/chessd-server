@@ -97,7 +97,7 @@ namespace XMPP {
 			ns(strdup(ns.c_str())),
 			active(false) {
 		this->hinfo->parser = iks_stream_new(this->ns, this->hinfo, hook);
-		iks_set_log_hook(this->hinfo->parser, log);
+		// iks_set_log_hook(this->hinfo->parser, log);
 	}
 
 	Stream::~Stream() {
