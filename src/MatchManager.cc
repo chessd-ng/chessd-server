@@ -199,9 +199,10 @@ void MatchManager::processOffer(const Stanza& stanza, Match* _match) {
 
         /* check if there are no repeated users in the match */
         foreach(it1, match->players()) {
-            for (auto it2 = it1; it2 != match->players().end(); it2++) {
-                if(it1->jid.parcialCompare(it2->jid))
+            for (auto it2 = match->players().begin(); it2 != it1; it2++) {
+                if(it1->jid.parcialCompare(it2->jid)) {
                     throw match_error("Users must not repeat in the match");
+                }
             }
         }
 
